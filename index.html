@@ -10,19 +10,36 @@
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: white; overflow: hidden; }
-        #cesiumContainer { width: 100%; height: calc(100% - 60px); }
+        
+        /* Globe 3D */
+        #cesiumContainer { width: 100%; height: calc(100% - 60px); position: absolute; top: 0; z-index: 1; }
+        
+        /* Vues superposées (Étapes et Checklist) */
+        .app-view { display: none; position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 60px); background: #121212; z-index: 20; overflow-y: auto; padding: 20px; box-sizing: border-box; }
         
         /* Bottom Navigation Bar */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 60px; background-color: #1e1e1e; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 12px; cursor: pointer; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 12px; cursor: pointer; transition: 0.2s; width: 33%; }
         .nav-item.active { color: #4ade80; }
-        .nav-icon { font-size: 24px; margin-bottom: 4px; }
+        .nav-icon { font-size: 24px; margin-bottom: 4px; pointer-events: none; }
 
-        /* Panel UI Overlay */
-        #ui-panel { position: absolute; top: 20px; left: 20px; background: rgba(30, 30, 30, 0.85); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); z-index: 10; border: 1px solid #333; max-width: 300px; }
+        /* UI Panel sur le globe */
+        #ui-panel { position: absolute; top: 20px; left: 20px; background: rgba(30, 30, 30, 0.85); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); z-index: 10; border: 1px solid #333; }
         h1 { margin: 0 0 10px 0; font-size: 18px; color: #4ade80; }
+        h2 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
         p { margin: 0; font-size: 14px; color: #ccc; }
         #db-status { margin-top: 10px; font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #333; display: inline-block; }
+
+        /* Cartes pour les étapes */
+        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
+        .card h3 { margin: 0 0 5px 0; color: #fff; }
+        .card p { font-size: 13px; margin-bottom: 8px; }
+        .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .badge-warning { background: rgba(250, 204, 21, 0.2); color: #facc15; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        
+        /* Checklist items */
+        .check-item { display: flex; align-items: center; padding: 12px; background: #1e1e1e; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; }
+        .check-item input[type="checkbox"] { margin-right: 15px; width: 18px; height: 18px; accent-color: #4ade80; }
     </style>
 </head>
 <body>
@@ -31,19 +48,72 @@
 
     <div id="ui-panel">
         <h1>🇻🇳 Vietnam Trip 2026</h1>
-        <p>Prochaine étape : Hanoï</p>
-        <div id="db-status">🟠 Connexion Firebase en cours...</div>
+        <p>13 Avril - 28 Avril</p>
+        <div id="db-status">🟠 Connexion Firebase...</div>
+    </div>
+
+    <div id="view-etapes" class="app-view">
+        <h2>🗺️ Itinéraire & Réservations</h2>
+        
+        <div class="card">
+            <h3>Hanoï (13-14 avril)</h3>
+            <p>✈️ Vol Bilbao → Hanoï</p>
+            <p>🏨 Aimee House Vũ Miên</p>
+            <span class="badge-ok">Tout réservé</span>
+        </div>
+
+        <div class="card">
+            <h3>Ninh Binh (16-17 avril)</h3>
+            <p>🏨 Hang Mua Ecolodge</p>
+            <span class="badge-warning">Transport à réserver</span>
+        </div>
+
+        <div class="card">
+            <h3>Pu Luong (17-19 avril)</h3>
+            <p>🏨 Puluong Valley Home</p>
+            <span class="badge-warning">Transport à réserver</span>
+        </div>
+        
+        <div class="card">
+            <h3>Lan Ha Bay (19-21 avril)</h3>
+            <p>🚢 Croisière 5★ (2 jours)</p>
+            <span class="badge-warning">Confirmer lieu prise en charge</span>
+        </div>
+
+        </div>
+
+    <div id="view-checklist" class="app-view">
+        <h2>✅ Actions Urgentes</h2>
+        
+        <div class="check-item">
+            <input type="checkbox" id="chk1">
+            <label for="chk1">Payer le trek Oxalis (Phong Nha)</label>
+        </div>
+        <div class="check-item">
+            <input type="checkbox" id="chk2">
+            <label for="chk2">Réserver Bus de nuit : Lan Ha Bay → Phong Nha</label>
+        </div>
+        <div class="check-item">
+            <input type="checkbox" id="chk3">
+            <label for="chk3">Décaler transfert Hué → Hoi An au 24 matin</label>
+        </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active"><span class="nav-icon">🌍</span>Globe</div>
-        <div class="nav-item"><span class="nav-icon">🗺️</span>Étapes</div>
-        <div class="nav-item"><span class="nav-icon">✅</span>Checklist</div>
+        <div class="nav-item active" data-target="globe">
+            <span class="nav-icon">🌍</span>Globe
+        </div>
+        <div class="nav-item" data-target="view-etapes">
+            <span class="nav-icon">🗺️</span>Étapes
+        </div>
+        <div class="nav-item" data-target="view-checklist">
+            <span class="nav-icon">✅</span>Checklist
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // CONFIGURATION FIREBASE
         const firebaseConfig = {
@@ -52,40 +122,49 @@
             projectId: "vietnam-2026",
             storageBucket: "vietnam-2026.firebasestorage.app",
             messagingSenderId: "472100185718",
-            appId: "1:472100185718:web:a89bde58f2606d64f56157",
-            measurementId: "G-6B2PF76XTS"
+            appId: "1:472100185718:web:a89bde58f2606d64f56157"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // UI Statut
         const statusEl = document.getElementById('db-status');
-        try {
-            statusEl.innerText = "🟢 Firebase connecté !";
-            statusEl.style.color = "#4ade80";
-        } catch (e) {
-            statusEl.innerText = "🔴 Erreur Firebase";
-            console.error(e);
-        }
+        try { statusEl.innerText = "🟢 Firebase connecté !"; statusEl.style.color = "#4ade80"; } 
+        catch (e) { statusEl.innerText = "🔴 Erreur Firebase"; }
 
-        // INITIALISATION DU GLOBE CESIUM 3D
-        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
+        // NAVIGATION LOGIC
+        const navItems = document.querySelectorAll('.nav-item');
+        const views = document.querySelectorAll('.app-view');
+        const uiPanel = document.getElementById('ui-panel');
 
-        // LA CORRECTION EST ICI (terrain)
-        const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(),
-            animation: false,
-            timeline: false,
-            baseLayerPicker: false,
-            geocoder: false,
-            homeButton: false,
-            navigationHelpButton: false,
-            sceneModePicker: false
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // 1. Reset tous les boutons et vues
+                navItems.forEach(nav => nav.classList.remove('active'));
+                views.forEach(view => view.style.display = 'none');
+                uiPanel.style.display = 'none';
+
+                // 2. Activer le bouton cliqué
+                item.classList.add('active');
+                
+                // 3. Afficher la bonne vue
+                const targetId = item.getAttribute('data-target');
+                if(targetId === 'globe') {
+                    // Si globe, on remet juste le panel UI par dessus
+                    uiPanel.style.display = 'block';
+                } else {
+                    document.getElementById(targetId).style.display = 'block';
+                }
+            });
         });
 
+        // GLOBE 3D
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false
+        });
         viewer.cesiumWidget.creditContainer.style.display = "none";
-
-        // Voler vers Hanoï
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(105.8342, 21.0278, 5000000),
             duration: 3.0
