@@ -14,7 +14,7 @@
         
         /* Bottom Navigation Bar */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 60px; background-color: #1e1e1e; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 12px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 12px; cursor: pointer; }
         .nav-item.active { color: #4ade80; }
         .nav-icon { font-size: 24px; margin-bottom: 4px; }
 
@@ -42,11 +42,10 @@
     </div>
 
     <script type="module">
-        // Import Firebase (version modulaire v9+)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // TA CONFIGURATION FIREBASE EXACTE
+        // CONFIGURATION FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA3FpIWbIjJNK-TaiqFsZJG5XewiLBpJ_Q",
             authDomain: "vietnam-2026.firebaseapp.com",
@@ -57,11 +56,9 @@
             measurementId: "G-6B2PF76XTS"
         };
 
-        // Initialiser Firebase et Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Vérification UI que la BDD est connectée
         const statusEl = document.getElementById('db-status');
         try {
             statusEl.innerText = "🟢 Firebase connecté !";
@@ -71,12 +68,12 @@
             console.error(e);
         }
 
-        // --- INITIALISATION DU GLOBE CESIUM 3D ---
-        // TON TOKEN CESIUM EXACT
+        // INITIALISATION DU GLOBE CESIUM 3D
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
 
+        // LA CORRECTION EST ICI (terrain)
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrainProvider: Cesium.createWorldTerrain(),
+            terrain: Cesium.Terrain.fromWorldTerrain(),
             animation: false,
             timeline: false,
             baseLayerPicker: false,
@@ -86,12 +83,11 @@
             sceneModePicker: false
         });
 
-        // Enlever le logo Cesium en bas pour faire plus propre
         viewer.cesiumWidget.creditContainer.style.display = "none";
 
-        // Voler directement vers le Vietnam au chargement !
+        // Voler vers Hanoï
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(105.8342, 21.0278, 5000000), // Coordonnées de Hanoï
+            destination: Cesium.Cartesian3.fromDegrees(105.8342, 21.0278, 5000000),
             duration: 3.0
         });
     </script>
