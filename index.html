@@ -3,119 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vietnam 2026 - Trip Tracker</title>
+    <title>Vietnam 2026 - Masterclass Trip</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3284/3284615.png">
+
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: white; overflow: hidden; }
+        :root { --primary: #4ade80; --bg-glass: rgba(20, 20, 20, 0.6); --border-glass: rgba(255, 255, 255, 0.1); }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #000; color: white; overflow: hidden; }
+        #cesiumContainer { width: 100%; height: 100%; position: absolute; top: 0; z-index: 1; }
         
-        /* Globe 3D */
-        #cesiumContainer { width: 100%; height: calc(100% - 60px); position: absolute; top: 0; z-index: 1; }
+        .app-view { display: none; position: absolute; z-index: 20; background: var(--bg-glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--border-glass); border-radius: 20px; overflow-y: auto; box-sizing: border-box; transition: all 0.3s ease; }
         
-        /* Vues superposées (Étapes et Checklist) */
-        .app-view { display: none; position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 60px); background: #121212; z-index: 20; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        h1 { margin: 0 0 5px 0; font-size: 22px; color: var(--primary); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        h2 { font-size: 18px; border-bottom: 1px solid var(--border-glass); padding-bottom: 10px; margin-top: 0; }
+        p { margin: 0; font-size: 14px; color: #aaa; }
         
-        /* Bottom Navigation Bar */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 60px; background-color: #1e1e1e; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 12px; cursor: pointer; transition: 0.2s; width: 33%; }
-        .nav-item.active { color: #4ade80; }
-        .nav-icon { font-size: 24px; margin-bottom: 4px; pointer-events: none; }
+        /* Compte à rebours */
+        #countdown-container { margin-top: 15px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; border: 1px solid var(--primary); text-align: center; font-family: monospace; font-size: 18px; font-weight: bold; color: #fff; text-shadow: 0 0 10px var(--primary); }
+        
+        .card { background: rgba(255, 255, 255, 0.05); padding: 18px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .card h3 { margin: 0 0 8px 0; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .badge { font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
+        .badge-ok { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+        .badge-warn { background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.3); }
 
-        /* UI Panel sur le globe */
-        #ui-panel { position: absolute; top: 20px; left: 20px; background: rgba(30, 30, 30, 0.85); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); z-index: 10; border: 1px solid #333; }
-        h1 { margin: 0 0 10px 0; font-size: 18px; color: #4ade80; }
-        h2 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
-        p { margin: 0; font-size: 14px; color: #ccc; }
-        #db-status { margin-top: 10px; font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #333; display: inline-block; }
+        .check-item { display: flex; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border-glass); }
+        .check-item input[type="checkbox"] { margin-right: 15px; width: 22px; height: 22px; accent-color: var(--primary); }
 
-        /* Cartes pour les étapes */
-        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
-        .card h3 { margin: 0 0 5px 0; color: #fff; }
-        .card p { font-size: 13px; margin-bottom: 8px; }
-        .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-        .badge-warning { background: rgba(250, 204, 21, 0.2); color: #facc15; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-        
-        /* Checklist items */
-        .check-item { display: flex; align-items: center; padding: 12px; background: #1e1e1e; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; }
-        .check-item input[type="checkbox"] { margin-right: 15px; width: 18px; height: 18px; accent-color: #4ade80; }
+        .nav-container { position: fixed; z-index: 1000; background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); display: flex; justify-content: space-around; align-items: center; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 12px; cursor: pointer; font-weight: 500; }
+        .nav-item.active { color: var(--primary); transform: scale(1.05); }
+        .nav-icon { font-size: 24px; margin-bottom: 4px; }
+
+        #db-status { margin-top: 15px; font-size: 11px; padding: 6px 12px; border-radius: 20px; background: rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-glass); }
+        .dot { width: 8px; height: 8px; background: #facc15; border-radius: 50%; box-shadow: 0 0 10px #facc15; }
+
+        /* Format Mobile */
+        .nav-container { bottom: 0; left: 0; width: 100%; height: 75px; border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+        .app-view { top: 0; left: 0; width: 100%; height: calc(100% - 75px - env(safe-area-inset-bottom)); padding: 25px 20px; border-radius: 0; }
+        #ui-panel { top: 20px; left: 20px; right: 20px; padding: 20px; }
+
+        /* Desktop */
+        @media (min-width: 768px) {
+            .nav-container { top: 50%; left: 20px; transform: translateY(-50%); width: 80px; height: auto; flex-direction: column; padding: 30px 0; border-radius: 25px; gap: 30px; }
+            #ui-panel { top: 30px; left: 130px; width: 320px; }
+            .app-view { top: 30px; right: 30px; width: 450px; height: calc(100% - 60px); padding: 30px; border-radius: 25px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="cesiumContainer"></div>
 
-    <div id="ui-panel">
-        <h1>🇻🇳 Vietnam Trip 2026</h1>
-        <p>13 Avril - 28 Avril</p>
-        <div id="db-status">🟠 Connexion Firebase...</div>
+    <div id="ui-panel" class="app-view" style="display: block;">
+        <h1>Vietnam 2026</h1>
+        <p>13 Avril - 28 Avril • 15 Jours</p>
+        
+        <div id="countdown-container">Décollage...</div>
+
+        <div id="db-status"><div class="dot" id="dot-status"></div><span id="text-status">Initialisation...</span></div>
     </div>
 
     <div id="view-etapes" class="app-view">
-        <h2>🗺️ Itinéraire & Réservations</h2>
-        
+        <h2>🗺️ Itinéraire & Masterclass</h2>
         <div class="card">
-            <h3>Hanoï (13-14 avril)</h3>
-            <p>✈️ Vol Bilbao → Hanoï</p>
+            <h3>Hanoï <span class="badge badge-ok">Confirmé</span></h3>
+            <p>✈️ Turkish Airlines (13 avr)</p>
             <p>🏨 Aimee House Vũ Miên</p>
-            <span class="badge-ok">Tout réservé</span>
         </div>
-
         <div class="card">
-            <h3>Ninh Binh (16-17 avril)</h3>
-            <p>🏨 Hang Mua Ecolodge</p>
-            <span class="badge-warning">Transport à réserver</span>
-        </div>
-
-        <div class="card">
-            <h3>Pu Luong (17-19 avril)</h3>
-            <p>🏨 Puluong Valley Home</p>
-            <span class="badge-warning">Transport à réserver</span>
-        </div>
-        
-        <div class="card">
-            <h3>Lan Ha Bay (19-21 avril)</h3>
-            <p>🚢 Croisière 5★ (2 jours)</p>
-            <span class="badge-warning">Confirmer lieu prise en charge</span>
-        </div>
-
-        </div>
-
-    <div id="view-checklist" class="app-view">
-        <h2>✅ Actions Urgentes</h2>
-        
-        <div class="check-item">
-            <input type="checkbox" id="chk1">
-            <label for="chk1">Payer le trek Oxalis (Phong Nha)</label>
-        </div>
-        <div class="check-item">
-            <input type="checkbox" id="chk2">
-            <label for="chk2">Réserver Bus de nuit : Lan Ha Bay → Phong Nha</label>
-        </div>
-        <div class="check-item">
-            <input type="checkbox" id="chk3">
-            <label for="chk3">Décaler transfert Hué → Hoi An au 24 matin</label>
+            <h3>Ninh Binh <span class="badge badge-warn">Transport</span></h3>
+            <p>🏨 Hang Mua Ecolodge (16-17 avr)</p>
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" data-target="globe">
-            <span class="nav-icon">🌍</span>Globe
-        </div>
-        <div class="nav-item" data-target="view-etapes">
-            <span class="nav-icon">🗺️</span>Étapes
-        </div>
-        <div class="nav-item" data-target="view-checklist">
-            <span class="nav-icon">✅</span>Checklist
-        </div>
+    <div id="view-checklist" class="app-view">
+        <h2>✅ Urgences Absolues</h2>
+        <div class="check-item"><input type="checkbox" id="chk1"><label for="chk1">Payer le trek Oxalis</label></div>
+        <div class="check-item"><input type="checkbox" id="chk2"><label for="chk2">Bus de nuit Lan Ha Bay</label></div>
+    </div>
+
+    <div class="nav-container">
+        <div class="nav-item active" data-target="ui-panel"><span class="nav-icon">🌍</span>Globe</div>
+        <div class="nav-item" data-target="view-etapes"><span class="nav-icon">🧭</span>Itinéraire</div>
+        <div class="nav-item" data-target="view-checklist"><span class="nav-icon">⚡</span>Actions</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURATION FIREBASE
+        // FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA3FpIWbIjJNK-TaiqFsZJG5XewiLBpJ_Q",
             authDomain: "vietnam-2026.firebaseapp.com",
@@ -127,47 +112,61 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // UI Statut
-        const statusEl = document.getElementById('db-status');
-        try { statusEl.innerText = "🟢 Firebase connecté !"; statusEl.style.color = "#4ade80"; } 
-        catch (e) { statusEl.innerText = "🔴 Erreur Firebase"; }
+        // ENREGISTREMENT DU SERVICE WORKER (Pour le mode PWA / Hors-ligne)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('Service worker enregistré !', reg);
+                });
+            });
+        }
 
-        // NAVIGATION LOGIC
+        // COMPTE À REBOURS
+        const countDownDate = new Date("Apr 13, 2026 12:10:00").getTime();
+        const countdownEl = document.getElementById("countdown-container");
+        
+        setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countDownDate - now;
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            countdownEl.innerHTML = `✈️ - ${days}j ${hours}h ${minutes}m ${seconds}s`;
+        }, 1000);
+
+        // UI STATUS
+        const textStatus = document.getElementById('text-status');
+        const dotStatus = document.getElementById('dot-status');
+        try { textStatus.innerText = "Synchronisé"; dotStatus.style.background = "#4ade80"; dotStatus.style.boxShadow = "0 0 10px #4ade80"; } 
+        catch (e) { textStatus.innerText = "Mode Hors-ligne"; dotStatus.style.background = "#ef4444"; }
+
+        // NAVIGATION LOGIQUE
         const navItems = document.querySelectorAll('.nav-item');
         const views = document.querySelectorAll('.app-view');
-        const uiPanel = document.getElementById('ui-panel');
 
         navItems.forEach(item => {
             item.addEventListener('click', () => {
-                // 1. Reset tous les boutons et vues
                 navItems.forEach(nav => nav.classList.remove('active'));
-                views.forEach(view => view.style.display = 'none');
-                uiPanel.style.display = 'none';
-
-                // 2. Activer le bouton cliqué
+                views.forEach(view => { view.style.opacity = '0'; setTimeout(() => view.style.display = 'none', 300); });
                 item.classList.add('active');
-                
-                // 3. Afficher la bonne vue
                 const targetId = item.getAttribute('data-target');
-                if(targetId === 'globe') {
-                    // Si globe, on remet juste le panel UI par dessus
-                    uiPanel.style.display = 'block';
-                } else {
-                    document.getElementById(targetId).style.display = 'block';
-                }
+                const targetView = document.getElementById(targetId);
+                setTimeout(() => { targetView.style.display = 'block'; setTimeout(() => targetView.style.opacity = '1', 50); }, 300);
             });
         });
 
-        // GLOBE 3D
+        // GLOBE 3D CESIUM
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
-        const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(),
-            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false
-        });
+        const viewer = new Cesium.Viewer('cesiumContainer', { terrain: Cesium.Terrain.fromWorldTerrain(), animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false });
         viewer.cesiumWidget.creditContainer.style.display = "none";
+
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(105.8342, 21.0278, 5000000),
-            duration: 3.0
+            destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 2500000),
+            orientation: { pitch: Cesium.Math.toRadians(-65.0) },
+            duration: 4.0
         });
     </script>
 </body>
