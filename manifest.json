@@ -1,0 +1,15 @@
+{
+  "name": "Vietnam Trip 2026",
+  "short_name": "VN 2026",
+  "start_url": "/vietnam2026/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#4ade80",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3284/3284615.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
