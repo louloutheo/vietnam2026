@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Masterclass Trip</title>
+    <title>Vietnam 2026 - Masterclass</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -18,24 +18,20 @@
         :root { --primary: #4ade80; --glass-bg: rgba(20, 20, 20, 0.75); --glass-border: rgba(255, 255, 255, 0.15); }
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #000; color: white; overflow: hidden; }
         
-        /* LA CARTE EN FOND */
         #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* LE CALQUE INVISIBLE (Le secret de Google Maps) */
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; }
 
-        /* TOUS LES ELEMENTS VISIBLES REDEVIENNENT TOUCHABLES */
         .glass-panel, .nav-container { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
 
-        /* WIDGET DU HAUT (Chrono & Info) */
+        /* WIDGET HAUT */
         .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 350px; width: 100%; margin-top: 15px; }
         .top-widget h1 { margin: 0 0 5px 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
         #countdown-container { font-family: monospace; font-size: 16px; font-weight: bold; color: #fff; margin-top: 8px; }
         
-        /* CONTENEUR CENTRAL (Pour les vues Itinéraire/Checklist) */
+        /* CONTENEUR MILIEU */
         .middle-container { flex-grow: 1; position: relative; width: 100%; display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 20px; }
         
-        /* LES VUES (Cartes à droite ou en bas) */
         .app-view { display: none; width: 100%; max-width: 400px; max-height: 60vh; overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
         
@@ -44,13 +40,21 @@
         .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; }
         .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
 
-        /* NAVIGATION DU BAS */
-        .nav-container { display: flex; justify-content: space-evenly; align-items: center; padding: 12px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 5px 15px; border-radius: 16px; }
+        /* INPUTS CONVERTISSEUR */
+        input[type="number"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 60%; outline: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        input[type="number"]::placeholder { color: rgba(255,255,255,0.2); }
+        /* Cacher les flèches des inputs number */
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .quick-btn { background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.5); color: var(--primary); padding: 10px; border-radius: 12px; flex: 1; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .quick-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
+
+        /* NAVIGATION BAS */
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 5px; border-radius: 16px; width: 22%; }
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
-        /* SCROLLBAR INVISIBLE */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -59,7 +63,6 @@
     <div id="cesiumContainer"></div>
 
     <div id="ui-layer">
-        
         <div class="glass-panel top-widget">
             <h1>Vietnam 2026</h1>
             <div id="countdown-container">Calcul...</div>
@@ -73,16 +76,35 @@
                     <h3>Hanoï <span class="badge badge-ok">Confirmé</span></h3>
                     <p style="margin:0; font-size:13px; color:#ccc;">✈️ Vol & 🏨 Aimee House</p>
                 </div>
-                <div class="card">
-                    <h3>Ninh Binh</h3>
-                    <p style="margin:0; font-size:13px; color:#ccc;">🏨 Hang Mua Ecolodge</p>
-                </div>
             </div>
 
             <div id="view-checklist" class="glass-panel app-view">
                 <h2>⚡ Urgences</h2>
-                <div class="card">
-                    <label style="display:flex; align-items:center; font-size:14px;"><input type="checkbox" style="margin-right:10px;"> Payer le trek Oxalis</label>
+                <div class="card"><label style="display:flex; align-items:center; font-size:14px;"><input type="checkbox" style="margin-right:10px;"> Payer le trek Oxalis</label></div>
+            </div>
+
+            <div id="view-converter" class="glass-panel app-view">
+                <h2>💱 Convertisseur</h2>
+                <div id="rate-info" style="text-align: center; margin-bottom: 15px; font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Recherche du taux...</div>
+                
+                <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 15px;">
+                    <span style="font-size: 28px;">🇻🇳</span>
+                    <input type="number" id="input-vnd" placeholder="0">
+                    <span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold;">VND</span>
+                </div>
+                
+                <div style="text-align: center; color: var(--primary); margin: -5px 0;">⇅</div>
+
+                <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 15px;">
+                    <span style="font-size: 28px;">🇪🇺</span>
+                    <input type="number" id="input-eur" placeholder="0">
+                    <span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold;">EUR</span>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="quick-btn" onclick="quickFill(100000)">100k</button>
+                    <button class="quick-btn" onclick="quickFill(500000)">500k</button>
+                    <button class="quick-btn" onclick="quickFill(1000000)">1M</button>
                 </div>
             </div>
 
@@ -90,14 +112,15 @@
 
         <div class="nav-container">
             <div class="nav-item active" data-target="none"><span class="nav-icon">🌍</span>Globe</div>
-            <div class="nav-item" data-target="view-etapes"><span class="nav-icon">🧭</span>Itinéraire</div>
+            <div class="nav-item" data-target="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
+            <div class="nav-item" data-target="view-converter"><span class="nav-icon">💱</span>Monnaie</div>
             <div class="nav-item" data-target="view-checklist"><span class="nav-icon">⚡</span>Actions</div>
         </div>
 
     </div>
 
     <script>
-        // COMPTE À REBOURS
+        // CHRONO
         const countDownDate = new Date("Apr 13, 2026 12:10:00").getTime();
         setInterval(() => {
             const now = new Date().getTime();
@@ -109,7 +132,7 @@
             document.getElementById("countdown-container").innerHTML = `✈️ - ${d}j ${h}h ${m}m ${s}s`;
         }, 1000);
 
-        // NAVIGATION LOGIQUE (Très propre)
+        // NAVIGATION LOGIQUE
         const navItems = document.querySelectorAll('.nav-item');
         const views = document.querySelectorAll('.app-view');
 
@@ -117,14 +140,48 @@
             item.addEventListener('click', () => {
                 navItems.forEach(nav => nav.classList.remove('active'));
                 views.forEach(view => view.style.display = 'none');
-                
                 item.classList.add('active');
                 const target = item.getAttribute('data-target');
-                if(target !== 'none') {
-                    document.getElementById(target).style.display = 'block';
-                }
+                if(target !== 'none') document.getElementById(target).style.display = 'block';
             });
         });
+
+        // LOGIQUE CONVERTISSEUR INTELLIGENT
+        let exchangeRate = parseFloat(localStorage.getItem('vn_rate')) || 27500; // Taux de secours ~27500
+        const rateInfo = document.getElementById('rate-info');
+        const inputVnd = document.getElementById('input-vnd');
+        const inputEur = document.getElementById('input-eur');
+
+        // Récupération du taux en direct via API gratuite
+        fetch('https://api.exchangerate-api.com/v4/latest/EUR')
+            .then(res => res.json())
+            .then(data => {
+                exchangeRate = data.rates.VND;
+                localStorage.setItem('vn_rate', exchangeRate); // Sauvegarde pour mode hors-ligne
+                rateInfo.innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct 🟢)`;
+            })
+            .catch(() => {
+                rateInfo.innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne 🟠)`;
+            });
+
+        function convertVND() {
+            if(inputVnd.value) { inputEur.value = (inputVnd.value / exchangeRate).toFixed(2); } 
+            else { inputEur.value = ''; }
+        }
+
+        function convertEUR() {
+            if(inputEur.value) { inputVnd.value = Math.round(inputEur.value * exchangeRate); } 
+            else { inputVnd.value = ''; }
+        }
+
+        // Expose function to global scope for the quick buttons
+        window.quickFill = function(amount) {
+            inputVnd.value = amount;
+            convertVND();
+        };
+
+        inputVnd.addEventListener('input', convertVND);
+        inputEur.addEventListener('input', convertEUR);
 
         // CESIUM GLOBE
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
