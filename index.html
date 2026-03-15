@@ -236,7 +236,7 @@
             });
         });
 
-        // --- CESIUM : L'EXPÉRIENCE APPLE "LOCALISER" ---
+        // --- CESIUM : V6 CLEAN MAP + FRONTIÈRES + PINS ---
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
         
         const viewer = new Cesium.Viewer('cesiumContainer', { 
@@ -245,24 +245,43 @@
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
 
-        // FRONTIÈRES ET NOMS DES VILLES (Labels)
-        Cesium.createWorldImageryAsync({
-            style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
-        }).then(function(imageryProvider) {
-            viewer.scene.imageryLayers.addImageryProvider(imageryProvider);
+        // 1. DESSINER LA FRONTIÈRE DU VIETNAM (Via GeoJSON public)
+        const geojsonOptions = {
+            stroke: Cesium.Color.fromCssColorString('#4ade80'),
+            strokeWidth: 3,
+            fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) // Léger voile vert sur le pays
+        };
+        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', geojsonOptions)
+            .then(function(dataSource) {
+                viewer.dataSources.add(dataSource);
+            });
+
+        // 2. PLACER TES PINS (Étapes)
+        const route = [
+            { name: "Hanoï", lon: 105.8342, lat: 21.0278 },
+            { name: "Ninh Binh", lon: 105.9800, lat: 20.2539 }
+        ];
+        route.forEach(etape => {
+            viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(etape.lon, etape.lat),
+                point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
+                label: { text: etape.name, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) }
+            });
         });
 
-        // LE BLOCAGE STRICT DE LA CAMÉRA EST ICI
+        // 3. LE BLOCAGE STRICT DE LA CAMÉRA
         const cc = viewer.scene.screenSpaceCameraController;
-        cc.enableTilt = false;       // Bloque l'inclinaison (pitch)
-        cc.enableLook = false;       // Bloque la rotation de la tête dans le vide
-        cc.enableTranslate = false;  // LE SECRET : Interdit de glisser/panner la caméra quand on clique dans l'espace vide
-        cc.minimumZoomDistance = 5000; 
+        cc.enableTilt = false;       
+        cc.enableLook = false;       
+        cc.enableTranslate = false;  // Interdit de glisser/panner la caméra dans le vide noir
+        
+        // LE FIX DU ZOOM : On peut zoomer jusqu'à 250 mètres !
+        cc.minimumZoomDistance = 250; 
         cc.maximumZoomDistance = 15000000; 
 
-        // Position initiale
+        // Position initiale de la caméra
         viewer.camera.flyTo({ 
-            destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 2500000), 
+            destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), 
             duration: 0 
         });
     </script>
