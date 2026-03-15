@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3284/3284615.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
@@ -18,18 +18,24 @@
         :root { --primary: #4ade80; --glass-bg: rgba(20, 20, 20, 0.75); --glass-border: rgba(255, 255, 255, 0.15); }
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #000; color: white; overflow: hidden; }
         
+        button, input, .quick-btn, .nav-item, .refresh-btn { touch-action: manipulation; }
+
         #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; transition: all 0.3s ease; }
 
-        .glass-panel, .nav-container { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
+        .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
+        .nav-container { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
 
-        /* WIDGET HAUT */
-        .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 350px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
+        /* WIDGET HAUT GAUCHE */
+        .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 250px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
         .top-widget h1 { margin: 0 0 5px 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-        #countdown-container { font-family: monospace; font-size: 16px; font-weight: bold; color: #fff; margin-top: 8px; }
+        #countdown-container { font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; margin-top: 8px; }
         
-        /* CONTENEUR MILIEU (Pour les vues) */
+        /* BOUTON REFRESH (HAUT DROITE) */
+        .refresh-btn { position: absolute; top: max(25px, env(safe-area-inset-top)); right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 50; transition: 0.2s; }
+        .refresh-btn:active { transform: scale(0.85); background: var(--primary); color: black; }
+
         .middle-container { flex-grow: 1; position: relative; width: 100%; display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 20px; transition: all 0.3s ease; }
         
         .app-view { display: none; width: 100%; max-width: 400px; max-height: 60vh; overflow-y: auto; padding: 20px; box-sizing: border-box; transition: all 0.3s ease; }
@@ -40,13 +46,10 @@
         .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; }
         .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
 
-        /* --- CONVERTISSEUR INTELLIGENT --- */
-        /* FIX CLAVIER : Quand le convertisseur est actif (via JS), on le colle en haut et on réduit sa taille */
-        #view-converter.active-converter { position: fixed; top: 0; left: 0; right: 0; width: 100%; max-width: 100%; height: max-content; max-height: 35vh; border-radius: 0 0 24px 24px; padding: 15px; padding-top: env(safe-area-inset-top); margin: 0; align-self: flex-start; z-index: 100; transform: none; }
-
-        /* Quand le convertisseur est actif, on cache le widget du haut et on décale le conteneur du milieu */
-        #ui-layer.converter-focused { padding-top: 0; }
+        /* FIX CLAVIER iOS */
+        #view-converter.active-converter { position: fixed; top: 0; left: 0; right: 0; width: 100%; max-width: 100%; height: max-content; max-height: 35vh; border-radius: 0 0 24px 24px; padding: 15px; padding-top: calc(15px + env(safe-area-inset-top)); margin: 0; align-self: flex-start; z-index: 100; transform: none; }
         #ui-layer.converter-focused .top-widget { transform: translateY(-200%); }
+        #ui-layer.converter-focused .refresh-btn { transform: translateY(-200%); }
 
         input[type="text"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 70%; outline: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         input[type="text"]::placeholder { color: rgba(255,255,255,0.2); }
@@ -55,7 +58,6 @@
         .quick-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
         .reset-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #ef4444; margin-right: 10px; }
 
-        /* NAVIGATION BAS */
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; transition: transform 0.3s ease; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 5px; border-radius: 16px; width: 22%; }
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
@@ -69,13 +71,15 @@
     <div id="cesiumContainer"></div>
 
     <div id="ui-layer">
+        
+        <div class="glass-panel refresh-btn" onclick="forceAppRefresh()">↻</div>
+
         <div class="glass-panel top-widget">
             <h1>Vietnam 2026</h1>
             <div id="countdown-container">Calcul...</div>
         </div>
 
         <div class="middle-container">
-            
             <div id="view-etapes" class="glass-panel app-view">
                 <h2>🗺️ Itinéraire</h2>
                 <div class="card">
@@ -114,7 +118,6 @@
                     <button class="quick-btn" onclick="quickAdd(1000000)">1M</button>
                 </div>
             </div>
-
         </div>
 
         <div class="nav-container">
@@ -123,11 +126,19 @@
             <div class="nav-item" data-target="view-converter"><span class="nav-icon">💱</span>Monnaie</div>
             <div class="nav-item" data-target="view-checklist"><span class="nav-icon">⚡</span>Actions</div>
         </div>
-
     </div>
 
     <script>
-        // CHRONO
+        // --- LE BOUTON RAFRAÎCHIR MANUEL ---
+        window.forceAppRefresh = function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) { registration.update(); }
+                });
+            }
+            window.location.reload(true);
+        };
+
         const countDownDate = new Date("Apr 13, 2026 12:10:00").getTime();
         setInterval(() => {
             const now = new Date().getTime();
@@ -139,7 +150,6 @@
             document.getElementById("countdown-container").innerHTML = `✈️ - ${d}j ${h}h ${m}m ${s}s`;
         }, 1000);
 
-        // NAVIGATION LOGIQUE
         const navItems = document.querySelectorAll('.nav-item');
         const views = document.querySelectorAll('.app-view');
         const middleContainer = document.querySelector('.middle-container');
@@ -148,35 +158,19 @@
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 navItems.forEach(nav => nav.classList.remove('active'));
-                views.forEach(view => { 
-                    view.style.display = 'none';
-                    // S'assurer de désactiver les classes de fix clavier si on change de vue
-                    view.classList.remove('active-converter');
-                });
-                middleContainer.style.alignItems = 'flex-end'; // Reset par défaut
-
+                views.forEach(view => { view.style.display = 'none'; view.classList.remove('active-converter'); });
+                middleContainer.style.alignItems = 'flex-end';
                 item.classList.add('active');
                 const target = item.getAttribute('data-target');
-                if(target !== 'none') {
-                    const view = document.getElementById(target);
-                    view.style.display = 'block';
-                    
-                    // Si on affiche le convertisseur, on prépare le terrain
-                    if(target === 'view-converter') {
-                        // view.classList.add('active-converter'); // Activé au focus JS à la place
-                    }
-                }
+                if(target !== 'none') { document.getElementById(target).style.display = 'block'; }
             });
         });
 
-        // --- CONVERTISSEUR INTELLIGENT & FIX CLAVIER INTÉGRÉ ---
-        let exchangeRate = parseFloat(localStorage.getItem('vn_rate')) || 27500; // Taux de secours ~27500
+        let exchangeRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
         const rateInfo = document.getElementById('rate-info');
         const inputVnd = document.getElementById('input-vnd');
         const inputEur = document.getElementById('input-eur');
-        const viewConverter = document.getElementById('view-converter');
 
-        // Récupération du taux en direct
         fetch('https://api.exchangerate-api.com/v4/latest/EUR')
             .then(res => res.json())
             .then(data => {
@@ -188,7 +182,6 @@
                 rateInfo.innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne 🟠)`;
             });
 
-        // Fonctions de nettoyage et formatage (séparateur de milliers)
         const parseValue = (val) => parseFloat(val.replace(/\s/g, '').replace(',', '.')) || 0;
         const formatValue = (num, decimals = 0) => num.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
@@ -196,7 +189,6 @@
             const valVnd = parseValue(inputVnd.value);
             if(valVnd > 0) {
                 inputEur.value = formatValue(valVnd / exchangeRate, 2);
-                // On ré-applique le formatage VND avec séparateurs
                 inputVnd.value = formatValue(valVnd, 0);
             } else { inputEur.value = ''; }
         }
@@ -205,44 +197,54 @@
             const valEur = parseValue(inputEur.value);
             if(valEur > 0) {
                 inputVnd.value = formatValue(Math.round(valEur * exchangeRate), 0);
-                // On ré-applique le formatage EUR
                 inputEur.value = formatValue(valEur, 2);
             } else { inputVnd.value = ''; }
         }
 
-        // --- LOGIQUE ADDITIONNELLE & RESET ---
         window.quickAdd = function(amount) {
-            const currentVnd = parseValue(inputVnd.value);
-            inputVnd.value = formatValue(currentVnd + amount, 0);
-            convertVND(); // Mettre à jour EUR
+            inputVnd.value = formatValue(parseValue(inputVnd.value) + amount, 0);
+            convertVND();
         };
-
         window.resetConverter = function() { inputVnd.value = ''; inputEur.value = ''; convertVND(); }
-
         inputVnd.addEventListener('input', convertVND);
         inputEur.addEventListener('input', convertEUR);
 
-        // --- FIX CLAVIER INTELLIGENT EN JS ---
         [inputVnd, inputEur].forEach(input => {
-            // Quand on clique sur un champ de saisie
             input.addEventListener('focus', () => {
-                uiLayer.classList.add('converter-focused'); // Cache le widget du haut
-                viewConverter.classList.add('active-converter'); // Colle le convertisseur en haut
-                middleContainer.style.alignItems = 'flex-start'; // Alignement par le haut
+                uiLayer.classList.add('converter-focused');
+                document.getElementById('view-converter').classList.add('active-converter');
+                middleContainer.style.alignItems = 'flex-start';
             });
-            // Quand on quitte le champ de saisie
             input.addEventListener('blur', () => {
                 uiLayer.classList.remove('converter-focused');
-                viewConverter.classList.remove('active-converter');
-                middleContainer.style.alignItems = 'flex-end'; // Reset alignment
+                document.getElementById('view-converter').classList.remove('active-converter');
+                middleContainer.style.alignItems = 'flex-end';
             });
         });
 
-        // CESIUM GLOBE
+        // --- CESIUM : L'EXPÉRIENCE APPLE "LOCALISER" ---
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
-        const viewer = new Cesium.Viewer('cesiumContainer', { terrain: Cesium.Terrain.fromWorldTerrain(), animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false });
+        
+        const viewer = new Cesium.Viewer('cesiumContainer', { 
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // Activation des Frontières et des Labels de Villes (Asset ID 2 = Bing Maps Aerial with Labels)
+            baseLayer: Cesium.ImageryLayer.fromProviderAsync(Cesium.IonImageryProvider.fromAssetId(2)),
+            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false 
+        });
         viewer.cesiumWidget.creditContainer.style.display = "none";
-        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 2500000), orientation: { pitch: Cesium.Math.toRadians(-65.0) }, duration: 4.0 });
+
+        // CONTRAINTES DE LA CAMÉRA (Anti "Regarder les étoiles")
+        const cameraController = viewer.scene.screenSpaceCameraController;
+        cameraController.enableTilt = false; // Bloque l'inclinaison vers le ciel
+        cameraController.enableLook = false; // Empêche de tourner la tête sur place
+        cameraController.minimumZoomDistance = 2000; // Bloque le zoom max à 2km du sol
+        cameraController.maximumZoomDistance = 15000000; // Bloque le dézoom max pour garder la Terre centrée
+
+        // Position initiale
+        viewer.camera.flyTo({ 
+            destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 2500000), 
+            duration: 0 
+        });
     </script>
 </body>
 </html>
