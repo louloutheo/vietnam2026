@@ -129,6 +129,20 @@
     </div>
 
     <script>
+        // --- SCRIPT DE MISE À JOUR AUTOMATIQUE (PWA) ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload(true);
+                        }
+                    });
+                });
+            });
+        }
+
         // --- LE BOUTON RAFRAÎCHIR MANUEL ---
         window.forceAppRefresh = function() {
             if ('serviceWorker' in navigator) {
@@ -227,18 +241,24 @@
         
         const viewer = new Cesium.Viewer('cesiumContainer', { 
             terrain: Cesium.Terrain.fromWorldTerrain(),
-            // Activation des Frontières et des Labels de Villes (Asset ID 2 = Bing Maps Aerial with Labels)
-            baseLayer: Cesium.ImageryLayer.fromProviderAsync(Cesium.IonImageryProvider.fromAssetId(2)),
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false 
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
 
-        // CONTRAINTES DE LA CAMÉRA (Anti "Regarder les étoiles")
-        const cameraController = viewer.scene.screenSpaceCameraController;
-        cameraController.enableTilt = false; // Bloque l'inclinaison vers le ciel
-        cameraController.enableLook = false; // Empêche de tourner la tête sur place
-        cameraController.minimumZoomDistance = 2000; // Bloque le zoom max à 2km du sol
-        cameraController.maximumZoomDistance = 15000000; // Bloque le dézoom max pour garder la Terre centrée
+        // FRONTIÈRES ET NOMS DES VILLES (Labels)
+        Cesium.createWorldImageryAsync({
+            style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
+        }).then(function(imageryProvider) {
+            viewer.scene.imageryLayers.addImageryProvider(imageryProvider);
+        });
+
+        // LE BLOCAGE STRICT DE LA CAMÉRA EST ICI
+        const cc = viewer.scene.screenSpaceCameraController;
+        cc.enableTilt = false;       // Bloque l'inclinaison (pitch)
+        cc.enableLook = false;       // Bloque la rotation de la tête dans le vide
+        cc.enableTranslate = false;  // LE SECRET : Interdit de glisser/panner la caméra quand on clique dans l'espace vide
+        cc.minimumZoomDistance = 5000; 
+        cc.maximumZoomDistance = 15000000; 
 
         // Position initiale
         viewer.camera.flyTo({ 
