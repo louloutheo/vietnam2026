@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - V3.1</title>
+    <title>Vietnam 2026 - V3.2</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -28,7 +28,6 @@
         
         .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin: 10px 0; width: 100%; position: relative; pointer-events: none;}
         
-        /* CORRECTION DU BUG D'AFFICHAGE ICI */
         .app-view { display: none; flex-direction: column; width: 100%; max-width: 400px; max-height: 45vh; overflow-y: auto; padding: 15px; box-sizing: border-box; pointer-events: auto; }
         .app-view h2 { margin: 0 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
         
@@ -59,10 +58,11 @@
         ::-webkit-scrollbar { width: 3px; background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        @media (min-width: 600px) {
+        /* RESPONSIVE PC: On met la barre de rupture à 768px (Tablettes et PC) */
+        @media (min-width: 768px) {
             .middle-container {
-                position: absolute !important; left: 10px !important; top: 80px !important; bottom: 70px !important; 
-                width: 320px !important; align-items: flex-start !important; justify-content: flex-start !important; margin: 0 !important;
+                position: absolute !important; left: 15px !important; top: 85px !important; bottom: 85px !important; 
+                width: 340px !important; align-items: flex-start !important; justify-content: flex-start !important; margin: 0 !important;
             }
             .app-view { max-height: 100% !important; width: 100% !important; }
             .toggle-btn { display: none !important; } 
@@ -199,31 +199,41 @@
         function saveVoyage() { localStorage.setItem('vn_mon_voyage', JSON.stringify(monVoyage)); renderDay(); }
 
         let currentDayIdx = 0;
-        let isCollapsed = false; // Gestion du tiroir
+        let isCollapsed = false;
 
         function changeDay(dir) { currentDayIdx += dir; if(currentDayIdx < 0) currentDayIdx = 0; if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; renderDay(); }
 
-        // MOTEUR CAMERA INTELLIGENT
+        // ==========================================
+        // 🎯 LE MOTEUR CAMÉRA INTELLIGENT (CALCUL MATHÉMATIQUE)
+        // ==========================================
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
             const isClose = d.zoomMap < 1000000;
-            const isMobile = window.innerWidth < 600;
+            const isMobile = window.innerWidth < 768; // Détection du mode (Mobile vs PC)
 
-            // Offset de base (inclinaison 3D)
-            let latOffset = isClose ? 0.02 : 0;
+            // Décalage de base pour compenser l'inclinaison 3D (-60 deg)
+            let latOffset = isClose ? (d.zoomMap * 0.000005) : 0; 
+            let lonOffset = 0;
 
-            // LE PETIT JEU : Si on est sur mobile ET que le tiroir est OUVERT, on décale la ville vers le haut
             const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
+
             if (isMobile && !isCollapsed && planningIsActive) {
-                latOffset += (d.zoomMap * 0.0000018); // Ratio magique selon le zoom
+                // SUR MOBILE : On pousse la ville vers le HAUT (On descend la caméra au Sud)
+                latOffset += (d.zoomMap * 0.000003); 
+            } else if (!isMobile) {
+                // SUR PC : On pousse la ville vers la DROITE (On décale la caméra à l'Ouest)
+                lonOffset += (d.zoomMap * 0.0000025); 
             }
 
             viewer.camera.flyTo({ 
-                destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat - latOffset, d.zoomMap), 
+                destination: Cesium.Cartesian3.fromDegrees(d.lon - lonOffset, d.lat - latOffset, d.zoomMap), 
                 orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, 
-                duration: 1.2 // Animation fluide
+                duration: 1.2 
             });
         }
+
+        // Met à jour la caméra quand on redimensionne la fenêtre du PC
+        window.addEventListener('resize', () => { setTimeout(updateCamera, 300); });
 
         function renderDay() {
             const d = monVoyage[currentDayIdx];
@@ -263,7 +273,7 @@
             isCollapsed = !isCollapsed;
             if(isCollapsed) { panel.classList.add('collapsed'); btn.innerText = '🔼'; } 
             else { panel.classList.remove('collapsed'); btn.innerText = '🔽'; }
-            updateCamera(); // La caméra bouge avec le tiroir !
+            updateCamera(); 
         };
 
         function toggleTheme() { document.body.classList.toggle('light-theme'); }
@@ -276,13 +286,9 @@
             const t = i.getAttribute('data-target'); 
             if(t !== 'none') { 
                 document.getElementById(t).style.display = 'flex'; 
-                if(t === 'view-etapes') { 
-                    document.getElementById('view-etapes').classList.remove('collapsed'); 
-                    document.getElementById('toggle-panel-btn').innerText='🔽'; 
-                    isCollapsed=false; 
-                } 
+                if(t === 'view-etapes') { document.getElementById('view-etapes').classList.remove('collapsed'); document.getElementById('toggle-panel-btn').innerText='🔽'; isCollapsed=false; } 
             }
-            updateCamera(); // Recentre si on clique sur Carte
+            updateCamera(); 
         }));
 
         setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); }, 1000);
