@@ -15,53 +15,66 @@
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
     <style>
-        :root { --primary: #4ade80; --glass-bg: rgba(20, 20, 20, 0.75); --glass-border: rgba(255, 255, 255, 0.15); }
+        :root { --primary: #4ade80; --danger: #ef4444; --glass-bg: rgba(20, 20, 20, 0.75); --glass-border: rgba(255, 255, 255, 0.15); }
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #000; color: white; overflow: hidden; }
         
-        button, input, .quick-btn, .nav-item, .refresh-btn { touch-action: manipulation; }
+        button, input, select, .quick-btn, .nav-item, .refresh-btn { touch-action: manipulation; outline: none; }
 
         #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; transition: all 0.3s ease; }
 
         .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
-        .nav-container { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
 
-        /* WIDGET HAUT GAUCHE */
+        /* WIDGET HAUT */
         .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 250px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
         .top-widget h1 { margin: 0 0 5px 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
         #countdown-container { font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; margin-top: 8px; }
         
-        /* BOUTON REFRESH (HAUT DROITE) */
-        .refresh-btn { position: absolute; top: max(25px, env(safe-area-inset-top)); right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 50; transition: 0.2s; }
+        .refresh-btn { position: absolute; top: max(25px, env(safe-area-inset-top)); right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 50; transition: 0.2s; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); }
         .refresh-btn:active { transform: scale(0.85); background: var(--primary); color: black; }
 
+        /* MILIEU & VUES */
         .middle-container { flex-grow: 1; position: relative; width: 100%; display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 20px; transition: all 0.3s ease; }
         
-        .app-view { display: none; width: 100%; max-width: 400px; max-height: 60vh; overflow-y: auto; padding: 20px; box-sizing: border-box; transition: all 0.3s ease; }
-        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+        .app-view { display: none; width: 100%; max-width: 400px; max-height: 65vh; overflow-y: auto; padding: 20px; box-sizing: border-box; transition: all 0.3s ease; }
+        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         
         .card { background: rgba(255, 255, 255, 0.08); padding: 15px; border-radius: 16px; margin-bottom: 12px; }
         .card h3 { margin: 0 0 5px 0; font-size: 15px; display: flex; justify-content: space-between; }
         .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; }
         .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
 
-        /* FIX CLAVIER iOS */
-        #view-converter.active-converter { position: fixed; top: 0; left: 0; right: 0; width: 100%; max-width: 100%; height: max-content; max-height: 35vh; border-radius: 0 0 24px 24px; padding: 15px; padding-top: calc(15px + env(safe-area-inset-top)); margin: 0; align-self: flex-start; z-index: 100; transform: none; }
-        #ui-layer.converter-focused .top-widget { transform: translateY(-200%); }
-        #ui-layer.converter-focused .refresh-btn { transform: translateY(-200%); }
+        /* FIX CLAVIER iOS (Générique) */
+        .view-focused { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; height: max-content !important; max-height: 45vh !important; border-radius: 0 0 24px 24px !important; padding: 15px !important; padding-top: calc(15px + env(safe-area-inset-top)) !important; margin: 0 !important; align-self: flex-start !important; z-index: 100 !important; transform: none !important; }
+        #ui-layer.keyboard-up .top-widget, #ui-layer.keyboard-up .refresh-btn { transform: translateY(-200%); opacity: 0; }
 
-        input[type="text"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 70%; outline: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        input[type="text"]::placeholder { color: rgba(255,255,255,0.2); }
+        input[type="text"], input[type="number"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 60%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        input::placeholder { color: rgba(255,255,255,0.2); }
         
         .quick-btn { background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.5); color: var(--primary); padding: 10px; border-radius: 12px; flex: 1; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 13px; text-transform: uppercase; }
         .quick-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
-        .reset-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #ef4444; margin-right: 10px; }
+        .reset-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: var(--danger); }
 
-        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; transition: transform 0.3s ease; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 5px; border-radius: 16px; width: 22%; }
+        /* --- MODULE BUDGET CSS --- */
+        .budget-gauge-bg { background: rgba(255,255,255,0.1); width: 100%; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .budget-gauge-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease, background 0.3s; }
+        .budget-stats { display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; color: #aaa; }
+        
+        .expense-form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .expense-input { background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: white; padding: 12px; border-radius: 12px; font-size: 16px; flex-grow: 1; text-align: left !important; width: auto !important; }
+        .expense-select { background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: white; padding: 12px; border-radius: 12px; font-size: 16px; }
+        .expense-btn { background: var(--primary); color: black; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; }
+        
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .expense-item:last-child { border-bottom: none; }
+        .expense-delete { color: var(--danger); background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 0 5px; }
+
+        /* NAVIGATION BAS (Ajusté pour 5 boutons) */
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; transition: transform 0.3s ease; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 9px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 2px; border-radius: 16px; width: 19%; text-transform: uppercase; }
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
-        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
@@ -72,7 +85,7 @@
 
     <div id="ui-layer">
         
-        <div class="glass-panel refresh-btn" onclick="forceAppRefresh()">↻</div>
+        <div class="refresh-btn" onclick="forceAppRefresh()">↻</div>
 
         <div class="glass-panel top-widget">
             <h1>Vietnam 2026</h1>
@@ -80,11 +93,16 @@
         </div>
 
         <div class="middle-container">
+            
             <div id="view-etapes" class="glass-panel app-view">
                 <h2>🗺️ Itinéraire</h2>
                 <div class="card">
                     <h3>Hanoï <span class="badge badge-ok">Confirmé</span></h3>
                     <p style="margin:0; font-size:13px; color:#ccc;">✈️ Vol & 🏨 Aimee House</p>
+                </div>
+                <div class="card">
+                    <h3>Ninh Binh <span class="badge badge-ok">Confirmé</span></h3>
+                    <p style="margin:0; font-size:13px; color:#ccc;">🏨 Hang Mua Ecolodge</p>
                 </div>
             </div>
 
@@ -93,66 +111,104 @@
                 <div class="card"><label style="display:flex; align-items:center; font-size:14px;"><input type="checkbox" style="margin-right:10px;"> Payer le trek Oxalis</label></div>
             </div>
 
-            <div id="view-converter" class="glass-panel app-view">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">
+            <div id="view-converter" class="glass-panel app-view focusable-view">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">
                     <h2>💱 Convertisseur</h2>
-                    <div id="rate-info" style="font-size: 10px; color: #aaa; text-transform: uppercase;">1 € = Calcul...</div>
+                    <div id="rate-info" style="font-size: 10px; color: #aaa; text-transform: uppercase; align-self:center;">1 € = Calcul...</div>
                 </div>
                 
                 <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 12px;">
                     <span style="font-size: 28px;">🇻🇳</span>
-                    <input type="text" id="input-vnd" placeholder="0" inputmode="decimal">
+                    <input type="text" id="input-vnd" placeholder="0" inputmode="decimal" class="smart-input">
                     <span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold;">VND</span>
                 </div>
                 
                 <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 12px;">
                     <span style="font-size: 28px;">🇪🇺</span>
-                    <input type="text" id="input-eur" placeholder="0" inputmode="decimal">
+                    <input type="text" id="input-eur" placeholder="0" inputmode="decimal" class="smart-input">
                     <span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold;">EUR</span>
                 </div>
 
-                <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
                     <button class="quick-btn reset-btn" onclick="resetConverter()">C</button>
                     <button class="quick-btn" onclick="quickAdd(100000)">100k</button>
                     <button class="quick-btn" onclick="quickAdd(500000)">500k</button>
                     <button class="quick-btn" onclick="quickAdd(1000000)">1M</button>
                 </div>
             </div>
+
+            <div id="view-budget" class="glass-panel app-view focusable-view">
+                <h2>💰 Budget Tracker</h2>
+                
+                <div class="card" style="padding: 15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:end;">
+                        <div>
+                            <span style="font-size:24px; font-weight:bold; color:var(--primary);" id="budget-left">0 €</span>
+                            <span style="font-size:12px; color:#aaa;">restants</span>
+                        </div>
+                        <div style="font-size:12px; color:#888; text-align:right;">
+                            Sur <span id="budget-total" onclick="askTotalBudget()" style="text-decoration:underline; cursor:pointer;">1500 €</span>
+                        </div>
+                    </div>
+                    
+                    <div class="budget-gauge-bg">
+                        <div class="budget-gauge-fill" id="budget-gauge"></div>
+                    </div>
+                    
+                    <div class="budget-stats">
+                        <span>Dépensé: <span id="budget-spent" style="color:white;">0 €</span></span>
+                        <span id="budget-percent">0%</span>
+                    </div>
+                </div>
+
+                <h3 style="margin: 15px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Ajouter une dépense</h3>
+                <div class="expense-form">
+                    <select id="exp-cat" class="expense-select">
+                        <option value="🍔">🍔 Repas</option>
+                        <option value="🚕">🚕 Transp.</option>
+                        <option value="🏨">🏨 Hôtel</option>
+                        <option value="🍺">🍺 Bière</option>
+                        <option value="🎟️">🎟️ Activité</option>
+                    </select>
+                    <input type="number" id="exp-amount" class="expense-input smart-input" placeholder="Montant" inputmode="decimal" style="width: 80px !important;">
+                    <select id="exp-currency" class="expense-select">
+                        <option value="VND">₫ VND</option>
+                        <option value="EUR">€ EUR</option>
+                    </select>
+                </div>
+                <button class="expense-btn" onclick="addExpense()" style="width:100%; margin-top:10px;">Ajouter</button>
+
+                <h3 style="margin: 20px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Dernières dépenses</h3>
+                <div id="expense-list" style="margin-top: 10px;">
+                    </div>
+            </div>
+
         </div>
 
         <div class="nav-container">
             <div class="nav-item active" data-target="none"><span class="nav-icon">🌍</span>Globe</div>
             <div class="nav-item" data-target="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
             <div class="nav-item" data-target="view-converter"><span class="nav-icon">💱</span>Monnaie</div>
+            <div class="nav-item" data-target="view-budget"><span class="nav-icon">💰</span>Budget</div>
             <div class="nav-item" data-target="view-checklist"><span class="nav-icon">⚡</span>Actions</div>
         </div>
     </div>
 
     <script>
-        // --- SCRIPT DE MISE À JOUR AUTOMATIQUE (PWA) ---
+        // --- SCRIPT AUTO-UPDATE PWA ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(reg => {
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            window.location.reload(true);
-                        }
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { window.location.reload(true); }
                     });
                 });
             });
         }
+        window.forceAppRefresh = function() { window.location.reload(true); };
 
-        // --- LE BOUTON RAFRAÎCHIR MANUEL ---
-        window.forceAppRefresh = function() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for(let registration of registrations) { registration.update(); }
-                });
-            }
-            window.location.reload(true);
-        };
-
+        // --- CHRONO ---
         const countDownDate = new Date("Apr 13, 2026 12:10:00").getTime();
         setInterval(() => {
             const now = new Date().getTime();
@@ -164,6 +220,7 @@
             document.getElementById("countdown-container").innerHTML = `✈️ - ${d}j ${h}h ${m}m ${s}s`;
         }, 1000);
 
+        // --- GESTION NAVIGATION & FIX CLAVIER ---
         const navItems = document.querySelectorAll('.nav-item');
         const views = document.querySelectorAll('.app-view');
         const middleContainer = document.querySelector('.middle-container');
@@ -172,7 +229,7 @@
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 navItems.forEach(nav => nav.classList.remove('active'));
-                views.forEach(view => { view.style.display = 'none'; view.classList.remove('active-converter'); });
+                views.forEach(view => { view.style.display = 'none'; view.classList.remove('view-focused'); });
                 middleContainer.style.alignItems = 'flex-end';
                 item.classList.add('active');
                 const target = item.getAttribute('data-target');
@@ -180,110 +237,176 @@
             });
         });
 
-        let exchangeRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
-        const rateInfo = document.getElementById('rate-info');
-        const inputVnd = document.getElementById('input-vnd');
-        const inputEur = document.getElementById('input-eur');
+        // Applique le fix clavier iOS (déplacer la vue en haut) pour tous les inputs intelligents
+        document.querySelectorAll('.smart-input').forEach(input => {
+            input.addEventListener('focus', (e) => {
+                uiLayer.classList.add('keyboard-up');
+                e.target.closest('.focusable-view').classList.add('view-focused');
+                middleContainer.style.alignItems = 'flex-start';
+            });
+            input.addEventListener('blur', (e) => {
+                uiLayer.classList.remove('keyboard-up');
+                e.target.closest('.focusable-view').classList.remove('view-focused');
+                middleContainer.style.alignItems = 'flex-end';
+            });
+        });
 
+        // --- MONNAIE & TAUX DE CHANGE ---
+        let exchangeRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
         fetch('https://api.exchangerate-api.com/v4/latest/EUR')
             .then(res => res.json())
             .then(data => {
                 exchangeRate = data.rates.VND;
                 localStorage.setItem('vn_rate', exchangeRate);
-                rateInfo.innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct 🟢)`;
+                document.getElementById('rate-info').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct 🟢)`;
+                updateBudgetUI(); // Met à jour le budget si le taux a changé
             })
             .catch(() => {
-                rateInfo.innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne 🟠)`;
+                document.getElementById('rate-info').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne 🟠)`;
             });
 
-        const parseValue = (val) => parseFloat(val.replace(/\s/g, '').replace(',', '.')) || 0;
+        const parseValue = (val) => parseFloat(val.toString().replace(/\s/g, '').replace(',', '.')) || 0;
         const formatValue = (num, decimals = 0) => num.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
+        // Convertisseur
+        const inputVnd = document.getElementById('input-vnd');
+        const inputEur = document.getElementById('input-eur');
         function convertVND() {
             const valVnd = parseValue(inputVnd.value);
-            if(valVnd > 0) {
-                inputEur.value = formatValue(valVnd / exchangeRate, 2);
-                inputVnd.value = formatValue(valVnd, 0);
-            } else { inputEur.value = ''; }
+            if(valVnd > 0) { inputEur.value = formatValue(valVnd / exchangeRate, 2); inputVnd.value = formatValue(valVnd, 0); } else { inputEur.value = ''; }
         }
-
         function convertEUR() {
             const valEur = parseValue(inputEur.value);
-            if(valEur > 0) {
-                inputVnd.value = formatValue(Math.round(valEur * exchangeRate), 0);
-                inputEur.value = formatValue(valEur, 2);
-            } else { inputVnd.value = ''; }
+            if(valEur > 0) { inputVnd.value = formatValue(Math.round(valEur * exchangeRate), 0); inputEur.value = formatValue(valEur, 2); } else { inputVnd.value = ''; }
         }
-
-        window.quickAdd = function(amount) {
-            inputVnd.value = formatValue(parseValue(inputVnd.value) + amount, 0);
-            convertVND();
-        };
-        window.resetConverter = function() { inputVnd.value = ''; inputEur.value = ''; convertVND(); }
+        window.quickAdd = function(amount) { inputVnd.value = formatValue(parseValue(inputVnd.value) + amount, 0); convertVND(); };
+        window.resetConverter = function() { inputVnd.value = ''; inputEur.value = ''; }
         inputVnd.addEventListener('input', convertVND);
         inputEur.addEventListener('input', convertEUR);
 
-        [inputVnd, inputEur].forEach(input => {
-            input.addEventListener('focus', () => {
-                uiLayer.classList.add('converter-focused');
-                document.getElementById('view-converter').classList.add('active-converter');
-                middleContainer.style.alignItems = 'flex-start';
-            });
-            input.addEventListener('blur', () => {
-                uiLayer.classList.remove('converter-focused');
-                document.getElementById('view-converter').classList.remove('active-converter');
-                middleContainer.style.alignItems = 'flex-end';
-            });
-        });
+        // --- 💰 MODULE BUDGET TRACKER ---
+        let totalBudgetEur = parseFloat(localStorage.getItem('vn_total_budget')) || 1500;
+        let expenses = JSON.parse(localStorage.getItem('vn_expenses')) || [];
 
-        // --- CESIUM : V6 CLEAN MAP + FRONTIÈRES + PINS ---
+        window.askTotalBudget = function() {
+            let newB = prompt("Quel est ton budget total (en Euros) pour le voyage ?", totalBudgetEur);
+            if(newB && !isNaN(parseValue(newB))) {
+                totalBudgetEur = parseValue(newB);
+                localStorage.setItem('vn_total_budget', totalBudgetEur);
+                updateBudgetUI();
+            }
+        };
+
+        window.addExpense = function() {
+            const amountInput = document.getElementById('exp-amount').value;
+            const cat = document.getElementById('exp-cat').value;
+            const currency = document.getElementById('exp-currency').value;
+            
+            let amount = parseValue(amountInput);
+            if(amount <= 0) return;
+
+            // Convertir systématiquement en Euros pour la jauge globale
+            let amountEur = currency === 'VND' ? amount / exchangeRate : amount;
+
+            const newExp = {
+                id: Date.now(),
+                cat: cat,
+                originalAmount: amount,
+                currency: currency,
+                amountEur: amountEur,
+                date: new Date().toLocaleDateString('fr-FR')
+            };
+
+            expenses.unshift(newExp); // Ajouter au début
+            localStorage.setItem('vn_expenses', JSON.stringify(expenses));
+            
+            document.getElementById('exp-amount').value = ''; // Reset input
+            
+            // Cacher le clavier (perdre le focus)
+            document.getElementById('exp-amount').blur();
+            
+            updateBudgetUI();
+        };
+
+        window.deleteExpense = function(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            localStorage.setItem('vn_expenses', JSON.stringify(expenses));
+            updateBudgetUI();
+        };
+
+        function updateBudgetUI() {
+            document.getElementById('budget-total').innerText = formatValue(totalBudgetEur, 0) + ' €';
+            
+            let spentEur = expenses.reduce((sum, exp) => sum + exp.amountEur, 0);
+            let leftEur = totalBudgetEur - spentEur;
+            
+            document.getElementById('budget-spent').innerText = formatValue(spentEur, 2) + ' €';
+            document.getElementById('budget-left').innerText = formatValue(leftEur, 2) + ' €';
+            
+            let percent = (spentEur / totalBudgetEur) * 100;
+            if(percent > 100) percent = 100;
+            
+            const gauge = document.getElementById('budget-gauge');
+            gauge.style.width = percent + '%';
+            
+            // Changement de couleur si on approche de la fin du budget
+            if(percent > 85) gauge.style.background = 'var(--danger)';
+            else if(percent > 65) gauge.style.background = '#facc15';
+            else gauge.style.background = 'var(--primary)';
+            
+            document.getElementById('budget-percent').innerText = Math.round(percent) + '%';
+
+            // Affichage de la liste
+            const listEl = document.getElementById('expense-list');
+            listEl.innerHTML = '';
+            
+            if(expenses.length === 0) {
+                listEl.innerHTML = '<div style="color:#666; font-size:12px; text-align:center; padding:10px;">Aucune dépense pour l\'instant.</div>';
+                return;
+            }
+
+            // Affiche les 10 dernières max pour pas surcharger l'écran
+            expenses.slice(0, 10).forEach(exp => {
+                let displayAmount = formatValue(exp.originalAmount, exp.currency === 'EUR' ? 2 : 0);
+                let symbol = exp.currency === 'EUR' ? '€' : '₫';
+                
+                listEl.innerHTML += `
+                    <div class="expense-item">
+                        <div>
+                            <span style="font-size:16px; margin-right:8px;">${exp.cat}</span>
+                            <span style="color:#aaa;">${exp.date}</span>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <strong style="color:white; margin-right:10px;">${displayAmount} ${symbol}</strong>
+                            <button class="expense-delete" onclick="deleteExpense(${exp.id})">×</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        updateBudgetUI(); // Init au lancement
+
+        // --- CESIUM : V6 CLEAN MAP + FRONTIÈRES ---
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
-        
-        const viewer = new Cesium.Viewer('cesiumContainer', { 
-            terrain: Cesium.Terrain.fromWorldTerrain(),
-            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false 
-        });
+        const viewer = new Cesium.Viewer('cesiumContainer', { terrain: Cesium.Terrain.fromWorldTerrain(), animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false });
         viewer.cesiumWidget.creditContainer.style.display = "none";
 
-        // 1. DESSINER LA FRONTIÈRE DU VIETNAM (Via GeoJSON public)
-        const geojsonOptions = {
-            stroke: Cesium.Color.fromCssColorString('#4ade80'),
-            strokeWidth: 3,
-            fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) // Léger voile vert sur le pays
-        };
-        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', geojsonOptions)
-            .then(function(dataSource) {
-                viewer.dataSources.add(dataSource);
-            });
+        // FRONTIÈRE DU VIETNAM
+        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', {
+            stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05)
+        }).then(ds => viewer.dataSources.add(ds));
 
-        // 2. PLACER TES PINS (Étapes)
-        const route = [
-            { name: "Hanoï", lon: 105.8342, lat: 21.0278 },
-            { name: "Ninh Binh", lon: 105.9800, lat: 20.2539 }
-        ];
+        // PINS
+        const route = [ { name: "Hanoï", lon: 105.8342, lat: 21.0278 }, { name: "Ninh Binh", lon: 105.9800, lat: 20.2539 } ];
         route.forEach(etape => {
-            viewer.entities.add({
-                position: Cesium.Cartesian3.fromDegrees(etape.lon, etape.lat),
-                point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
-                label: { text: etape.name, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) }
-            });
+            viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(etape.lon, etape.lat), point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: etape.name, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } });
         });
 
-        // 3. LE BLOCAGE STRICT DE LA CAMÉRA
+        // BLOCAGE CAMÉRA
         const cc = viewer.scene.screenSpaceCameraController;
-        cc.enableTilt = false;       
-        cc.enableLook = false;       
-        cc.enableTranslate = false;  // Interdit de glisser/panner la caméra dans le vide noir
-        
-        // LE FIX DU ZOOM : On peut zoomer jusqu'à 250 mètres !
-        cc.minimumZoomDistance = 250; 
-        cc.maximumZoomDistance = 15000000; 
-
-        // Position initiale de la caméra
-        viewer.camera.flyTo({ 
-            destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), 
-            duration: 0 
-        });
+        cc.enableTilt = false; cc.enableLook = false; cc.enableTranslate = false;  
+        cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
+        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), duration: 0 });
     </script>
 </body>
 </html>
