@@ -1,11 +1,10 @@
 {
-  "name": "Vietnam Trip 2026",
+  "name": "Vietnam 2026 Masterclass",
   "short_name": "VN 2026",
-  "start_url": "./",
-  "scope": "/vietnam2026/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#4ade80",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icon.png",
@@ -15,8 +14,7 @@
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
