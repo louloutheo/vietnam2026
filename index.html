@@ -68,7 +68,6 @@
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
-        /* DICTIONNAIRE AUDIO */
         .speak-btn { background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 50%; width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .speak-btn:active { transform: scale(0.9); background: #38bdf8; }
         .dico-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -141,7 +140,6 @@
 
             <div id="view-vault" class="glass-panel app-view focusable-view">
                 <h2>🗄️ Coffre Hors-Ligne</h2>
-
                 <div class="card" style="background:rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);">
                     <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #38bdf8;">🗣️ Guide de Survie (Audio)</h3>
                     <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Bonjour</div><div style="font-size:12px; color:#ccc;">Xin chào</div></div><button class="speak-btn" onclick="speakVN('Xin chào')">🔊</button></div>
@@ -149,7 +147,6 @@
                     <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Sans piment SVP</div><div style="font-size:12px; color:#ccc;">Không cay nhé</div></div><button class="speak-btn" onclick="speakVN('Không cay nhé')">🔊</button></div>
                     <div class="dico-item" style="border:none;"><div><div style="font-weight:bold; font-size:14px;">C'est trop cher</div><div style="font-size:12px; color:#ccc;">Đắt quá</div></div><button class="speak-btn" onclick="speakVN('Đắt quá')">🔊</button></div>
                 </div>
-
                 <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
                 <input type="file" id="vault-photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -157,7 +154,6 @@
                     <button class="expense-delete" onclick="clearPhoto()" style="font-size:12px; color:#aaa;">🗑️ Effacer</button>
                 </div>
                 <img id="vault-photo-display" style="width:100%; border-radius:12px; margin-top:10px; display:none; border:1px solid var(--glass-border);">
-                
                 <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas (Texte)</h3>
                 <textarea id="vault-docs" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
                 <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">🏨 Adresses</h3>
@@ -175,50 +171,28 @@
     </div>
 
     <script>
-        // TON VRAI PROGRAMME SERA À COLLER ICI
-        const MES_ETAPES = [
-            {
-                id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14",
-                logement: "Aimee House", transport: "Vol aller (Arrivée 14h00)", lien_resa: "https://booking.com",
-                programme: [
-                    { id: "td1", texte: "🍜 Bun Cha Huong Lien", lien: "http://google.com/maps" },
-                    { id: "td2", texte: "🎟️ Billets train de nuit", lien: "" }
-                ]
-            },
-            {
-                id: "step_2", titre: "Ninh Binh", date: "16 Avril - 18 Avril", date_debut_iso: "2026-04-16",
-                logement: "Hang Mua Ecolodge", transport: "Bus 12GO - 08h30", lien_resa: "https://12go.asia",
-                programme: [
-                    { id: "td3", texte: "🛶 Barque à Trang An", lien: "http://google.com/maps" },
-                    { id: "td4", texte: "📸 Point de vue Hang Mua", lien: "" }
-                ]
-            }
-        ];
-
-        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
-
-        if ('serviceWorker' in navigator) { 
-            navigator.serviceWorker.register('sw.js').then(r => {
-                r.addEventListener('updatefound', () => {
-                    const n = r.installing;
-                    n.addEventListener('statechange', () => {
-                        if (n.state === 'installed' && navigator.serviceWorker.controller) {
-                            showToast("🔄 Nouvelle version ! Recharge...");
-                            setTimeout(() => window.location.reload(true), 1500);
-                        }
-                    });
-                });
-            }); 
+        // 🚨 LE BOUTON NUCLÉAIRE ANTI-CACHE 🚨
+        // Il détruit automatiquement les vieux codes en mémoire pour forcer la mise à jour
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                for (let reg of regs) { reg.unregister(); }
+            });
         }
         window.forceAppRefresh = () => {
             caches.keys().then(names => { for(let name of names) caches.delete(name); });
             window.location.reload(true);
         };
 
+        const MES_ETAPES = [
+            { id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14", logement: "Aimee House", transport: "Vol aller", lien_resa: "https://booking.com", programme: [{ id: "td1", texte: "🍜 Bun Cha Huong Lien", lien: "" }] },
+            { id: "step_2", titre: "Ninh Binh", date: "16 Avril - 18 Avril", date_debut_iso: "2026-04-16", logement: "Hang Mua Ecolodge", transport: "Bus 12GO", lien_resa: "https://12go.asia", programme: [{ id: "td3", texte: "🛶 Barque à Trang An", lien: "" }] }
+        ];
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
+
         const targetDate = new Date("Apr 13, 2026 12:10:00").getTime();
         setInterval(() => { 
-            const now = new Date();
-            const d = targetDate - now.getTime(); 
+            const now = new Date(); const d = targetDate - now.getTime(); 
             document.getElementById("countdown-container").innerHTML = `✈️ - ${Math.floor(d / 86400000)}j ${Math.floor((d % 86400000)/3600000)}h ${Math.floor((d % 3600000)/60000)}m ${Math.floor((d % 60000)/1000)}s`; 
             document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'});
             document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'});
@@ -228,76 +202,48 @@
         const gpsBtn = document.getElementById('gps-button');
         
         navItems.forEach(i => i.addEventListener('click', () => { 
-            navItems.forEach(n => n.classList.remove('active')); 
-            views.forEach(v => { v.style.display = 'none'; v.classList.remove('view-focused'); }); 
-            midC.style.alignItems = 'flex-end'; i.classList.add('active'); 
-            const t = i.getAttribute('data-target'); 
+            navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; v.classList.remove('view-focused'); }); 
+            midC.style.alignItems = 'flex-end'; i.classList.add('active'); const t = i.getAttribute('data-target'); 
             if(t !== 'none') { document.getElementById(t).style.display = 'block'; gpsBtn.style.display = 'none'; } else { gpsBtn.style.display = 'flex'; }
         }));
         
         document.querySelectorAll('.smart-input').forEach(i => { i.addEventListener('focus', e => { uiL.classList.add('keyboard-up'); e.target.closest('.focusable-view').classList.add('view-focused'); midC.style.alignItems = 'flex-start'; }); i.addEventListener('blur', e => { uiL.classList.remove('keyboard-up'); e.target.closest('.focusable-view').classList.remove('view-focused'); midC.style.alignItems = 'flex-end'; }); });
 
-        let currentDashIndex = 0;
-        let savedTodos = JSON.parse(localStorage.getItem('vn_todos')) || {};
+        let currentDashIndex = 0; let savedTodos = JSON.parse(localStorage.getItem('vn_todos')) || {};
         function saveTodo(id, checked) { savedTodos[id] = checked; localStorage.setItem('vn_todos', JSON.stringify(savedTodos)); showToast(checked ? "✅ Fait" : "⏳ À faire"); }
 
         function renderDashboard() {
-            const now = new Date().getTime();
-            const dateDepart = new Date("2026-04-13T00:00:00").getTime();
-            const dateArrivee = new Date("2026-04-14T14:00:00").getTime();
-
-            if(now >= dateDepart && now < dateArrivee && currentDashIndex === 0) {
-                document.getElementById('dash-title').innerHTML = `L'Heure a sonné <span class="badge badge-fly">🛫 En Vol</span>`;
-                document.getElementById('dash-content').innerHTML = `<div class="card" style="margin-bottom:0; background:rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5);"><h3 style="font-size:20px; color:white; margin:0 0 10px 0; text-align:center;">✈️ En route pour le Vietnam !</h3><p style="text-align:center; font-size:14px; color:#ccc;">Détends-toi, profite du vol. L'aventure commence demain à 14h00 à Hanoï.</p></div>`;
-                return;
-            }
-
-            const etape = MES_ETAPES[currentDashIndex];
-            let statusBadge = "";
-            if(now < targetDate) statusBadge = '<span class="badge badge-wait">⏳ À venir</span>';
-            else statusBadge = '<span class="badge badge-ok">📍 Actuel</span>';
-
+            const now = new Date().getTime(); const dateDepart = new Date("2026-04-13T00:00:00").getTime(); const dateArrivee = new Date("2026-04-14T14:00:00").getTime();
+            if(now >= dateDepart && now < dateArrivee && currentDashIndex === 0) { document.getElementById('dash-title').innerHTML = `L'Heure a sonné <span class="badge badge-fly">🛫 En Vol</span>`; document.getElementById('dash-content').innerHTML = `<div class="card" style="margin-bottom:0; background:rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5);"><h3 style="font-size:20px; color:white; margin:0 0 10px 0; text-align:center;">✈️ En route pour le Vietnam !</h3><p style="text-align:center; font-size:14px; color:#ccc;">Détends-toi, profite du vol.</p></div>`; return; }
+            const etape = MES_ETAPES[currentDashIndex]; let statusBadge = now < targetDate ? '<span class="badge badge-wait">⏳ À venir</span>' : '<span class="badge badge-ok">📍 Actuel</span>';
             document.getElementById('dash-title').innerHTML = `Étape ${currentDashIndex + 1}/${MES_ETAPES.length} ${statusBadge}`;
-            let progHtml = '';
-            if(etape.programme && etape.programme.length > 0) {
-                progHtml = '<h4 style="margin: 15px 0 5px 0; font-size: 13px; color: var(--primary);">📋 À faire ici :</h4>';
-                etape.programme.forEach(p => { const isChecked = savedTodos[p.id] ? "checked" : ""; const linkHtml = p.lien ? `<a href="${p.lien}" target="_blank" class="todo-link">[Lien]</a>` : ''; progHtml += `<div class="todo-item"><input type="checkbox" onchange="saveTodo('${p.id}', this.checked)" ${isChecked}> <span>${p.texte}</span> ${linkHtml}</div>`; });
-            }
+            let progHtml = ''; if(etape.programme && etape.programme.length > 0) { progHtml = '<h4 style="margin: 15px 0 5px 0; font-size: 13px; color: var(--primary);">📋 À faire ici :</h4>'; etape.programme.forEach(p => { const isChecked = savedTodos[p.id] ? "checked" : ""; const linkHtml = p.lien ? `<a href="${p.lien}" target="_blank" class="todo-link">[Lien]</a>` : ''; progHtml += `<div class="todo-item"><input type="checkbox" onchange="saveTodo('${p.id}', this.checked)" ${isChecked}> <span>${p.texte}</span> ${linkHtml}</div>`; }); }
             document.getElementById('dash-content').innerHTML = `<div class="card" style="margin-bottom:0; background:rgba(0,0,0,0.5);"><h3 style="font-size:20px; color:white; margin:0 0 10px 0;">${etape.titre}</h3><p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">📅 ${etape.date}</p><p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">🏨 ${etape.logement}</p><p style="margin:0 0 10px 0; font-size:13px; color:#ccc;">🚌 ${etape.transport}</p>${etape.lien_resa ? `<a href="${etape.lien_resa}" target="_blank" class="resa-btn" style="background:var(--primary); color:black;">Ouvrir Réservation</a>` : ''}${progHtml}</div>`;
         }
-        window.changeDash = (dir) => { currentDashIndex += dir; if(currentDashIndex < 0) currentDashIndex = 0; if(currentDashIndex >= MES_ETAPES.length) currentDashIndex = MES_ETAPES.length - 1; renderDashboard(); };
-        renderDashboard();
-
-        window.estimateGrab = () => { const km = parseFloat(document.getElementById('grab-km').value); if(!km || km <= 0) return; const prixVnd = Math.round((km * 15000) + 20000); const prixEur = (prixVnd / exRate).toFixed(2); const res = document.getElementById('grab-result'); res.style.display = 'block'; res.innerHTML = `Prix juste : ~${prixVnd.toLocaleString('fr-FR')} ₫ (${prixEur} €)`; };
-
+        window.changeDash = (dir) => { currentDashIndex += dir; if(currentDashIndex < 0) currentDashIndex = 0; if(currentDashIndex >= MES_ETAPES.length) currentDashIndex = MES_ETAPES.length - 1; renderDashboard(); }; renderDashboard();
+        window.estimateGrab = () => { const km = parseFloat(document.getElementById('grab-km').value); if(!km || km <= 0) return; const prixVnd = Math.round((km * 15000) + 20000); const res = document.getElementById('grab-result'); res.style.display = 'block'; res.innerHTML = `Prix juste : ~${prixVnd.toLocaleString('fr-FR')} ₫`; };
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); showToast("🗣️ Audio en cours..."); };
 
-        let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
-        fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
+        let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500; fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
         const pVal = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0, fVal = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
-        const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur');
-        function cVND() { const v = pVal(iV.value); if(v>0){ iE.value = fVal(v/exRate,2); iV.value = fVal(v,0); } else iE.value = ''; }
-        function cEUR() { const v = pVal(iE.value); if(v>0){ iV.value = fVal(Math.round(v*exRate),0); iE.value = fVal(v,2); } else iV.value = ''; }
-        window.quickAdd = a => { iV.value = fVal(pVal(iV.value)+a,0); cVND(); }; window.resetConverter = () => { iV.value=''; iE.value=''; };
-        iV.addEventListener('input', cVND); iE.addEventListener('input', cEUR);
-
+        const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur'); function cVND() { const v = pVal(iV.value); if(v>0){ iE.value = fVal(v/exRate,2); iV.value = fVal(v,0); } else iE.value = ''; } function cEUR() { const v = pVal(iE.value); if(v>0){ iV.value = fVal(Math.round(v*exRate),0); iE.value = fVal(v,2); } else iV.value = ''; } window.quickAdd = a => { iV.value = fVal(pVal(iV.value)+a,0); cVND(); }; window.resetConverter = () => { iV.value=''; iE.value=''; }; iV.addEventListener('input', cVND); iE.addEventListener('input', cEUR);
         let tB = parseFloat(localStorage.getItem('vn_tb')) || 1500, exps = JSON.parse(localStorage.getItem('vn_exps')) || [];
         window.askTotalBudget = () => { let n = prompt("Budget total (€) ?", tB); if(n && !isNaN(pVal(n))){ tB = pVal(n); localStorage.setItem('vn_tb', tB); updateBudgetUI(); showToast("💾 Budget mis à jour"); }};
         window.addExpense = () => { const a = pVal(document.getElementById('exp-amount').value), c = document.getElementById('exp-cat').value, cur = document.getElementById('exp-currency').value; if(a<=0) return; exps.unshift({ id: Date.now(), cat: c, oA: a, cur: cur, aE: cur==='VND'?a/exRate:a, d: new Date().toLocaleDateString('fr-FR') }); localStorage.setItem('vn_exps', JSON.stringify(exps)); document.getElementById('exp-amount').value=''; document.getElementById('exp-amount').blur(); updateBudgetUI(); showToast("💰 Dépense ajoutée"); };
         window.deleteExpense = id => { exps = exps.filter(e => e.id !== id); localStorage.setItem('vn_exps', JSON.stringify(exps)); updateBudgetUI(); showToast("🗑️ Dépense supprimée"); };
-        function updateBudgetUI() { document.getElementById('budget-total').innerText = fVal(tB,0)+' €'; let sE = exps.reduce((s,e)=>s+e.aE,0), p = Math.min((sE/tB)*100,100); let rest = tB-sE; const now = new Date().getTime(); let daysLeft = 15; if(now > targetDate) { const daysPassed = Math.floor((now - targetDate) / 86400000); daysLeft = Math.max(1, 15 - daysPassed); } let perDay = rest / daysLeft; document.getElementById('budget-spent').innerText = fVal(sE,2)+' €'; document.getElementById('budget-left').innerText = fVal(rest,2)+' €'; document.getElementById('budget-per-day').innerText = fVal(perDay,2)+' € / jour'; const g = document.getElementById('budget-gauge'); g.style.width = p+'%'; g.style.background = p>85?'var(--danger)':p>65?'#facc15':'var(--primary)'; document.getElementById('budget-percent').innerText = Math.round(p)+'%'; const l = document.getElementById('expense-list'); l.innerHTML = exps.length===0?'<div style="color:#666; font-size:12px; text-align:center;">Aucune dépense.</div>':''; exps.slice(0,10).forEach(e => l.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${e.cat}</span><span style="color:#aaa;">${e.d}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${fVal(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="expense-delete" onclick="deleteExpense(${e.id})">×</button></div></div>`); } updateBudgetUI();
+        function updateBudgetUI() { document.getElementById('budget-total').innerText = fVal(tB,0)+' €'; let sE = exps.reduce((s,e)=>s+e.aE,0), p = Math.min((sE/tB)*100,100); let rest = tB-sE; let daysLeft = 15; let perDay = rest / daysLeft; document.getElementById('budget-spent').innerText = fVal(sE,2)+' €'; document.getElementById('budget-left').innerText = fVal(rest,2)+' €'; document.getElementById('budget-per-day').innerText = fVal(perDay,2)+' € / jour'; const g = document.getElementById('budget-gauge'); g.style.width = p+'%'; g.style.background = p>85?'var(--danger)':p>65?'#facc15':'var(--primary)'; document.getElementById('budget-percent').innerText = Math.round(p)+'%'; const l = document.getElementById('expense-list'); l.innerHTML = exps.length===0?'<div style="color:#666; font-size:12px; text-align:center;">Aucune dépense.</div>':''; exps.slice(0,10).forEach(e => l.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${e.cat}</span><span style="color:#aaa;">${e.d}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${fVal(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="expense-delete" onclick="deleteExpense(${e.id})">×</button></div></div>`); } updateBudgetUI();
 
         const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels'), vImg = document.getElementById('vault-photo-display');
-        vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || '';
-        vD.addEventListener('input', () => { localStorage.setItem('vn_vd', vD.value); }); vH.addEventListener('input', () => { localStorage.setItem('vn_vh', vH.value); });
-        window.savePhoto = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; showToast("📸 Photo enregistrée"); } catch(e) { alert("⚠️ Image trop lourde ! Fais une capture d'écran du QR Code."); } }; r.readAsDataURL(f); };
-        window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; showToast("🗑️ Photo effacée"); };
-        const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
+        vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || ''; vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value)); vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
+        window.savePhoto = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; showToast("📸 Photo enregistrée"); } catch(e) { alert("⚠️ Image trop lourde !"); } }; r.readAsDataURL(f); };
+        window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; showToast("🗑️ Photo effacée"); }; const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
 
-        // CESIUM 3D (AVEC CARTE ESRI - GRATUITE ET ILLIMITÉE)
+        // FIX SATELLITE ESRI COMPLET
         const viewer = new Cesium.Viewer('cesiumContainer', {
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false,
-            baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', maximumLevel: 19 }))
+            imageryProvider: new Cesium.ArcGisMapServerImageryProvider({
+                url : 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
+            })
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
         
@@ -308,7 +254,6 @@
 
         const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = false; cc.enableLook = false; cc.enableTranslate = false; cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
         viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), duration: 0 });
-
         window.geolocateMe = () => { showToast("📍 Recherche GPS..."); if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude), point: { pixelSize: 15, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 3 } }); showToast("✅ Position trouvée !"); }, () => showToast("❌ Active la localisation iPhone")); } else { showToast("❌ GPS non supporté"); } };
     </script>
 </body>
