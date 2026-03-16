@@ -171,21 +171,12 @@
     </div>
 
     <script>
-        // LE BOUTON NUCLÉAIRE ANTI-CACHE
         if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(regs => { for (let reg of regs) { reg.unregister(); } }); }
         window.forceAppRefresh = () => { caches.keys().then(names => { for(let name of names) caches.delete(name); }); window.location.reload(true); };
 
         const MES_ETAPES = [
-            {
-                id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14",
-                logement: "Aimee House", transport: "Vol aller", lien_resa: "https://booking.com",
-                programme: [{ id: "td1", texte: "🍜 Bun Cha Huong Lien", lien: "" }]
-            },
-            {
-                id: "step_2", titre: "Ninh Binh", date: "16 Avril - 18 Avril", date_debut_iso: "2026-04-16",
-                logement: "Hang Mua Ecolodge", transport: "Bus 12GO", lien_resa: "https://12go.asia",
-                programme: [{ id: "td3", texte: "🛶 Barque à Trang An", lien: "" }]
-            }
+            { id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14", logement: "Aimee House", transport: "Vol aller", lien_resa: "https://booking.com", programme: [{ id: "td1", texte: "🍜 Bun Cha Huong Lien", lien: "" }] },
+            { id: "step_2", titre: "Ninh Binh", date: "16 Avril - 18 Avril", date_debut_iso: "2026-04-16", logement: "Hang Mua Ecolodge", transport: "Bus 12GO", lien_resa: "https://12go.asia", programme: [{ id: "td3", texte: "🛶 Barque à Trang An", lien: "" }] }
         ];
 
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
@@ -206,7 +197,6 @@
             midC.style.alignItems = 'flex-end'; i.classList.add('active'); const t = i.getAttribute('data-target'); 
             if(t !== 'none') { document.getElementById(t).style.display = 'block'; gpsBtn.style.display = 'none'; } else { gpsBtn.style.display = 'flex'; }
         }));
-        
         document.querySelectorAll('.smart-input').forEach(i => { i.addEventListener('focus', e => { uiL.classList.add('keyboard-up'); e.target.closest('.focusable-view').classList.add('view-focused'); midC.style.alignItems = 'flex-start'; }); i.addEventListener('blur', e => { uiL.classList.remove('keyboard-up'); e.target.closest('.focusable-view').classList.remove('view-focused'); midC.style.alignItems = 'flex-end'; }); });
 
         let currentDashIndex = 0; let savedTodos = JSON.parse(localStorage.getItem('vn_todos')) || {};
@@ -241,17 +231,13 @@
         window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; showToast("🗑️ Photo effacée"); }; const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
 
         // ==========================================
-        // 🌍 MOTEUR 3D AVEC TA CLÉ PRIVÉE CESIUM 🌍
+        // 🌍 MOTEUR 3D PUR (AVEC TA CLÉ PRIVÉE) 🌍
         // ==========================================
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(),
-            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false,
-            baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                maximumLevel: 19
-            }))
+            terrainProvider: Cesium.createWorldTerrain(), // Activation des montagnes !
+            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
         
