@@ -19,9 +19,10 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; transition: all 0.3s ease; }
         .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
         
-        .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 250px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
+        .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 280px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
         .top-widget h1 { margin: 0 0 5px 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
         #countdown-container { font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; margin-top: 8px; }
+        .dual-clock { font-size: 11px; color: #ccc; margin-top: 8px; display: flex; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 8px; font-family: monospace; }
         
         .map-btn { position: absolute; right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 50; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); transition: 0.2s; }
         .refresh-btn { top: max(25px, env(safe-area-inset-top)); }
@@ -66,6 +67,12 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 9px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 2px; border-radius: 16px; width: 19%; text-transform: uppercase; }
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        /* DICTIONNAIRE AUDIO */
+        .speak-btn { background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 50%; width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .speak-btn:active { transform: scale(0.9); background: #38bdf8; }
+        .dico-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -80,6 +87,10 @@
         <div class="glass-panel top-widget">
             <h1>Vietnam 2026</h1>
             <div id="countdown-container">Calcul...</div>
+            <div class="dual-clock">
+                <div>🇻🇳 <span id="time-vn">--:--</span></div>
+                <div>🇫🇷 <span id="time-fr">--:--</span></div>
+            </div>
         </div>
 
         <div class="middle-container">
@@ -113,14 +124,12 @@
                     <div class="budget-gauge-bg"><div class="budget-gauge-fill" id="budget-gauge"></div></div>
                     <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:5px; color:#aaa;"><span>Dépensé: <span id="budget-spent" style="color:white;">0 €</span></span><span id="budget-percent">0%</span></div>
                 </div>
-
                 <h3 style="margin: 20px 0 5px 0; font-size: 14px; color: var(--primary);">🚕 Estimateur Grab</h3>
                 <div class="expense-form" style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
                     <input type="number" id="grab-km" class="expense-input smart-input" placeholder="Distance en km" inputmode="decimal" style="width: 100% !important; font-size:16px;">
                     <button class="expense-btn" onclick="estimateGrab()" style="margin-top:8px;">Calculer le prix juste</button>
                     <div id="grab-result" style="width:100%; text-align:center; margin-top:10px; font-weight:bold; color:#facc15; font-size:16px; display:none;"></div>
                 </div>
-
                 <h3 style="margin: 20px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Ajouter une dépense</h3>
                 <div class="expense-form">
                     <select id="exp-cat" class="expense-select"><option value="🍔">🍔 Repas</option><option value="🚕">🚕 Transp.</option><option value="🏨">🏨 Hôtel</option><option value="🍺">🍺 Bière</option><option value="🎟️">🎟️ Activité</option></select>
@@ -132,13 +141,23 @@
 
             <div id="view-vault" class="glass-panel app-view focusable-view">
                 <h2>🗄️ Coffre Hors-Ligne</h2>
-                <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
+
+                <div class="card" style="background:rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);">
+                    <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #38bdf8;">🗣️ Guide de Survie (Audio)</h3>
+                    <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Bonjour</div><div style="font-size:12px; color:#ccc;">Xin chào</div></div><button class="speak-btn" onclick="speakVN('Xin chào')">🔊</button></div>
+                    <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Merci</div><div style="font-size:12px; color:#ccc;">Cảm ơn</div></div><button class="speak-btn" onclick="speakVN('Cảm ơn')">🔊</button></div>
+                    <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Sans piment SVP</div><div style="font-size:12px; color:#ccc;">Không cay nhé</div></div><button class="speak-btn" onclick="speakVN('Không cay nhé')">🔊</button></div>
+                    <div class="dico-item" style="border:none;"><div><div style="font-weight:bold; font-size:14px;">C'est trop cher</div><div style="font-size:12px; color:#ccc;">Đắt quá</div></div><button class="speak-btn" onclick="speakVN('Đắt quá')">🔊</button></div>
+                </div>
+
+                <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
                 <input type="file" id="vault-photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <button class="expense-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('vault-photo-input').click()">Importer Image</button>
                     <button class="expense-delete" onclick="clearPhoto()" style="font-size:12px; color:#aaa;">🗑️ Effacer</button>
                 </div>
                 <img id="vault-photo-display" style="width:100%; border-radius:12px; margin-top:10px; display:none; border:1px solid var(--glass-border);">
+                
                 <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas (Texte)</h3>
                 <textarea id="vault-docs" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
                 <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">🏨 Adresses</h3>
@@ -156,6 +175,7 @@
     </div>
 
     <script>
+        // TON VRAI PROGRAMME SERA À COLLER ICI
         const MES_ETAPES = [
             {
                 id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14",
@@ -177,11 +197,32 @@
 
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
 
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-        window.forceAppRefresh = () => window.location.reload(true);
+        if ('serviceWorker' in navigator) { 
+            navigator.serviceWorker.register('sw.js').then(r => {
+                r.addEventListener('updatefound', () => {
+                    const n = r.installing;
+                    n.addEventListener('statechange', () => {
+                        if (n.state === 'installed' && navigator.serviceWorker.controller) {
+                            showToast("🔄 Nouvelle version ! Recharge...");
+                            setTimeout(() => window.location.reload(true), 1500);
+                        }
+                    });
+                });
+            }); 
+        }
+        window.forceAppRefresh = () => {
+            caches.keys().then(names => { for(let name of names) caches.delete(name); });
+            window.location.reload(true);
+        };
 
         const targetDate = new Date("Apr 13, 2026 12:10:00").getTime();
-        setInterval(() => { const d = targetDate - new Date().getTime(); document.getElementById("countdown-container").innerHTML = `✈️ - ${Math.floor(d / 86400000)}j ${Math.floor((d % 86400000)/3600000)}h ${Math.floor((d % 3600000)/60000)}m ${Math.floor((d % 60000)/1000)}s`; }, 1000);
+        setInterval(() => { 
+            const now = new Date();
+            const d = targetDate - now.getTime(); 
+            document.getElementById("countdown-container").innerHTML = `✈️ - ${Math.floor(d / 86400000)}j ${Math.floor((d % 86400000)/3600000)}h ${Math.floor((d % 3600000)/60000)}m ${Math.floor((d % 60000)/1000)}s`; 
+            document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'});
+            document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'});
+        }, 1000);
 
         const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view'), midC = document.querySelector('.middle-container'), uiL = document.getElementById('ui-layer');
         const gpsBtn = document.getElementById('gps-button');
@@ -229,6 +270,8 @@
 
         window.estimateGrab = () => { const km = parseFloat(document.getElementById('grab-km').value); if(!km || km <= 0) return; const prixVnd = Math.round((km * 15000) + 20000); const prixEur = (prixVnd / exRate).toFixed(2); const res = document.getElementById('grab-result'); res.style.display = 'block'; res.innerHTML = `Prix juste : ~${prixVnd.toLocaleString('fr-FR')} ₫ (${prixEur} €)`; };
 
+        window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); showToast("🗣️ Audio en cours..."); };
+
         let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
         fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
         const pVal = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0, fVal = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -251,25 +294,19 @@
         window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; showToast("🗑️ Photo effacée"); };
         const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
 
-        // CESIUM 3D (FIX CARTE NOIRE - SOURCE SATELLITE GRATUITE ESRI)
+        // CESIUM 3D (AVEC CARTE ESRI - GRATUITE ET ILLIMITÉE)
         const viewer = new Cesium.Viewer('cesiumContainer', {
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false,
-            baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                maximumLevel: 19
-            }))
+            baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', maximumLevel: 19 }))
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
         
         Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
-        
         [{ n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: e.n, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } }));
-        
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([2.3522, 48.8566, 105.8342, 21.0278]), width: 5, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([105.8342, 21.0278, 105.9800, 20.2539]), width: 6, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.3, color: Cesium.Color.fromCssColorString('#4ade80') }) }});
 
         const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = false; cc.enableLook = false; cc.enableTranslate = false; cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
-        
         viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), duration: 0 });
 
         window.geolocateMe = () => { showToast("📍 Recherche GPS..."); if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude), point: { pixelSize: 15, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 3 } }); showToast("✅ Position trouvée !"); }, () => showToast("❌ Active la localisation iPhone")); } else { showToast("❌ GPS non supporté"); } };
