@@ -140,7 +140,6 @@
 
             <div id="view-vault" class="glass-panel app-view focusable-view">
                 <h2>🗄️ Coffre Hors-Ligne</h2>
-
                 <div class="card" style="background:rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);">
                     <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #38bdf8;">🗣️ Guide de Survie (Audio)</h3>
                     <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Bonjour</div><div style="font-size:12px; color:#ccc;">Xin chào</div></div><button class="speak-btn" onclick="speakVN('Xin chào')">🔊</button></div>
@@ -148,7 +147,6 @@
                     <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Sans piment SVP</div><div style="font-size:12px; color:#ccc;">Không cay nhé</div></div><button class="speak-btn" onclick="speakVN('Không cay nhé')">🔊</button></div>
                     <div class="dico-item" style="border:none;"><div><div style="font-weight:bold; font-size:14px;">C'est trop cher</div><div style="font-size:12px; color:#ccc;">Đắt quá</div></div><button class="speak-btn" onclick="speakVN('Đắt quá')">🔊</button></div>
                 </div>
-
                 <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
                 <input type="file" id="vault-photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -156,7 +154,6 @@
                     <button class="expense-delete" onclick="clearPhoto()" style="font-size:12px; color:#aaa;">🗑️ Effacer</button>
                 </div>
                 <img id="vault-photo-display" style="width:100%; border-radius:12px; margin-top:10px; display:none; border:1px solid var(--glass-border);">
-                
                 <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas (Texte)</h3>
                 <textarea id="vault-docs" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
                 <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">🏨 Adresses</h3>
@@ -175,15 +172,8 @@
 
     <script>
         // LE BOUTON NUCLÉAIRE ANTI-CACHE
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(regs => {
-                for (let reg of regs) { reg.unregister(); }
-            });
-        }
-        window.forceAppRefresh = () => {
-            caches.keys().then(names => { for(let name of names) caches.delete(name); });
-            window.location.reload(true);
-        };
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(regs => { for (let reg of regs) { reg.unregister(); } }); }
+        window.forceAppRefresh = () => { caches.keys().then(names => { for(let name of names) caches.delete(name); }); window.location.reload(true); };
 
         const MES_ETAPES = [
             {
@@ -231,12 +221,14 @@
             document.getElementById('dash-content').innerHTML = `<div class="card" style="margin-bottom:0; background:rgba(0,0,0,0.5);"><h3 style="font-size:20px; color:white; margin:0 0 10px 0;">${etape.titre}</h3><p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">📅 ${etape.date}</p><p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">🏨 ${etape.logement}</p><p style="margin:0 0 10px 0; font-size:13px; color:#ccc;">🚌 ${etape.transport}</p>${etape.lien_resa ? `<a href="${etape.lien_resa}" target="_blank" class="resa-btn" style="background:var(--primary); color:black;">Ouvrir Réservation</a>` : ''}${progHtml}</div>`;
         }
         window.changeDash = (dir) => { currentDashIndex += dir; if(currentDashIndex < 0) currentDashIndex = 0; if(currentDashIndex >= MES_ETAPES.length) currentDashIndex = MES_ETAPES.length - 1; renderDashboard(); }; renderDashboard();
+        
         window.estimateGrab = () => { const km = parseFloat(document.getElementById('grab-km').value); if(!km || km <= 0) return; const prixVnd = Math.round((km * 15000) + 20000); const res = document.getElementById('grab-result'); res.style.display = 'block'; res.innerHTML = `Prix juste : ~${prixVnd.toLocaleString('fr-FR')} ₫`; };
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); showToast("🗣️ Audio en cours..."); };
 
         let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500; fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
         const pVal = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0, fVal = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
         const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur'); function cVND() { const v = pVal(iV.value); if(v>0){ iE.value = fVal(v/exRate,2); iV.value = fVal(v,0); } else iE.value = ''; } function cEUR() { const v = pVal(iE.value); if(v>0){ iV.value = fVal(Math.round(v*exRate),0); iE.value = fVal(v,2); } else iV.value = ''; } window.quickAdd = a => { iV.value = fVal(pVal(iV.value)+a,0); cVND(); }; window.resetConverter = () => { iV.value=''; iE.value=''; }; iV.addEventListener('input', cVND); iE.addEventListener('input', cEUR);
+        
         let tB = parseFloat(localStorage.getItem('vn_tb')) || 1500, exps = JSON.parse(localStorage.getItem('vn_exps')) || [];
         window.askTotalBudget = () => { let n = prompt("Budget total (€) ?", tB); if(n && !isNaN(pVal(n))){ tB = pVal(n); localStorage.setItem('vn_tb', tB); updateBudgetUI(); showToast("💾 Budget mis à jour"); }};
         window.addExpense = () => { const a = pVal(document.getElementById('exp-amount').value), c = document.getElementById('exp-cat').value, cur = document.getElementById('exp-currency').value; if(a<=0) return; exps.unshift({ id: Date.now(), cat: c, oA: a, cur: cur, aE: cur==='VND'?a/exRate:a, d: new Date().toLocaleDateString('fr-FR') }); localStorage.setItem('vn_exps', JSON.stringify(exps)); document.getElementById('exp-amount').value=''; document.getElementById('exp-amount').blur(); updateBudgetUI(); showToast("💰 Dépense ajoutée"); };
@@ -248,10 +240,14 @@
         window.savePhoto = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; showToast("📸 Photo enregistrée"); } catch(e) { alert("⚠️ Image trop lourde !"); } }; r.readAsDataURL(f); };
         window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; showToast("🗑️ Photo effacée"); }; const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
 
-        // SATELLITE ESRI + RETOUR DU TERRAIN 3D CESIUM
+        // ==========================================
+        // 🌍 MOTEUR 3D AVEC TA CLÉ PRIVÉE CESIUM 🌍
+        // ==========================================
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
+
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(), // C'est CA qui remet tes montagnes en 3D !
-            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false,
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false,
             baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                 maximumLevel: 19
@@ -260,12 +256,16 @@
         viewer.cesiumWidget.creditContainer.style.display = "none";
         
         Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
+        
         [{ n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: e.n, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } }));
+        
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([2.3522, 48.8566, 105.8342, 21.0278]), width: 5, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([105.8342, 21.0278, 105.9800, 20.2539]), width: 6, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.3, color: Cesium.Color.fromCssColorString('#4ade80') }) }});
 
-        const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = false; cc.enableLook = false; cc.enableTranslate = false; cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
+        const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
+        
         viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), duration: 0 });
+        
         window.geolocateMe = () => { showToast("📍 Recherche GPS..."); if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude), point: { pixelSize: 15, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 3 } }); showToast("✅ Position trouvée !"); }, () => showToast("❌ Active la localisation")); } else { showToast("❌ GPS non supporté"); } };
     </script>
 </body>
