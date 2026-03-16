@@ -403,10 +403,9 @@ window.syncTripit = async function(manual) {
     if (manual) btn.textContent = '⏳ Synchronisation...';
     try {
         const url = 'https://www.tripit.com/feed/ical/private/14F2E275-832749E335923B3F48CCAD13B98B210F/tripit.ics';
-        const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-        const res = await fetch(proxy);
-        const txt = await res.text();
-        if (!txt.includes('BEGIN:VCALENDAR')) throw new Error('Format invalide');
+        const proxies = ['https://corsproxy.io/?' + encodeURIComponent(url), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)];
+        let txt = ''; for (const p of proxies) { try { const r = await fetch(p, {signal: AbortSignal.timeout(8000)}); txt = await r.text(); if (txt.includes('BEGIN:VCALENDAR')) break; } catch(e) { continue; } }
+        if (!txt.includes('BEGIN:VCALENDAR')) throw new Error('Proxy error');
 
         const events = [];
         const lines = txt.split(/\r?\n/);
