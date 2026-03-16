@@ -16,9 +16,9 @@
         // TA CLÉ PRIVÉE
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
-        // LE MOTEUR 3D
+        // LE MOTEUR 3D CORRIGÉ (Syntaxe moderne)
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrainProvider: Cesium.createWorldTerrain(), // Les montagnes
+            terrain: Cesium.Terrain.fromWorldTerrain(), // LA BONNE LIGNE !
             animation: false,
             timeline: false,
             baseLayerPicker: false,
