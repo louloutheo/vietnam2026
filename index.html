@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - V3.7</title>
+    <title>Vietnam 2026 - V4.0 Masterclass</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -23,6 +23,10 @@
         .top-widget h1 { margin: 0 0 5px 0; font-size: 16px; color: var(--primary); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;}
         .sos-btn { background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 10px; font-weight: bold; cursor: pointer; }
         
+        /* BARRE DE PROGRESSION GLOBALE */
+        .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; background: #38bdf8; transition: width 0.5s; width: 0%; }
+
         .map-tools { display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
         .round-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); }
         
@@ -38,34 +42,45 @@
         
         .day-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; flex-shrink: 0;}
         .day-arrow { background: rgba(128,128,128,0.2); border: none; color: var(--text); font-size: 14px; padding: 4px 12px; border-radius: 8px; cursor: pointer; }
-        .weather-badge { font-size: 12px; padding: 4px 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: bold; margin-top:5px; display:inline-block; }
+        .weather-badge { font-size: 11px; padding: 3px 6px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: bold; }
         
-        /* ========================================= */
-        /* 🚀 NOUVEAU DESIGN TIMELINE JOUR PAR JOUR  */
-        /* ========================================= */
+        .section-title { font-size: 11px; text-transform: uppercase; color: var(--primary); margin: 10px 0 5px 0; font-weight: bold; }
+        .info-line { font-size: 13px; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; color: var(--text-muted); justify-content: space-between; }
+        .item-link { color: #38bdf8; text-decoration: none; font-size: 12px; font-weight: bold; margin-left: 5px;}
+        
+        /* DESIGN TIMELINE + BOARDING PASS */
         .timeline { border-left: 2px solid rgba(255,255,255,0.1); margin-left: 10px; padding-left: 15px; position: relative; margin-top:15px; }
         .timeline-item { position: relative; margin-bottom: 15px; }
         .timeline-dot { position: absolute; left: -22px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--glass-bg); border: 2px solid #ccc; z-index: 2; }
         
-        /* Code Couleur Précis */
         .dot-transport { border-color: #38bdf8; background: rgba(56, 189, 248, 0.2); }
         .dot-hotel { border-color: #a855f7; background: rgba(168, 85, 247, 0.2); }
         .dot-activity { border-color: var(--primary); background: rgba(74, 222, 128, 0.2); }
         
-        /* Animation "En cours" pour le premier item */
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
         .pulse-dot { animation: pulse 2s infinite; border-color: var(--primary) !important; background: var(--primary) !important;}
         
         .timeline-content { background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Le style Billet d'avion */
+        .ticket-style { background: rgba(56, 189, 248, 0.1); border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 8px; }
+
         .timeline-title { font-size: 10px; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 4px; display:flex; justify-content:space-between; align-items:center;}
         .timeline-text { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; justify-content: space-between; color:white; }
         
-        .item-link { background: rgba(56, 189, 248, 0.15); color: #38bdf8; text-decoration: none; font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(56, 189, 248, 0.3);}
-        .item-link:active { background: #38bdf8; color: black; }
-        
         .custom-add { display: flex; gap: 5px; margin-top: 15px; margin-left: 10px; }
         .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; width: 100%; box-sizing: border-box; }
-        /* ========================================= */
+        
+        /* JOURNAL & DICTÉE */
+        .journal-box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-top: 20px; border: 1px solid var(--glass-border); }
+        .star-rating { font-size: 20px; letter-spacing: 2px; cursor: pointer; color: #444; margin-bottom: 8px; text-align: center; }
+        .star-rating .active { color: #facc15; }
+        .keyword-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; justify-content: center; }
+        .chip { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 4px 8px; font-size: 10px; cursor: pointer; }
+        .chip:active { background: var(--primary); color: black; }
+        .journal-textarea { width: 100%; height: 60px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: white; border-radius: 8px; padding: 8px; box-sizing: border-box; font-size: 12px; resize: none; font-family: inherit; }
+        .mic-btn { background: #ef4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; margin-left: 5px; }
+        .mic-btn.recording { animation: pulse 1s infinite; background: #dc2626; }
 
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; flex-shrink: 0;}
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 9px; font-weight: 600; cursor: pointer; padding: 6px; border-radius: 12px; transition: 0.2s; width:22%;}
@@ -92,6 +107,9 @@
         
         .speak-btn { background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; padding: 8px; border-radius: 8px; cursor: pointer; flex-grow: 1; font-weight: bold; font-size: 11px; text-align: center; }
         .speak-btn:active { background: #38bdf8; color: black; }
+        
+        /* BILLETS VND CHEAT SHEET */
+        .vnd-bill { display:flex; justify-content:space-between; color:black; padding:5px 8px; border-radius:4px; font-weight:bold; margin-bottom:4px; font-size:11px;}
     </style>
 </head>
 <body>
@@ -114,6 +132,7 @@
                 <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">
                     🇻🇳 <span id="time-vn">--:--</span> | 🇫🇷 <span id="time-fr">--:--</span>
                 </div>
+                <div class="progress-container"><div id="trip-progress" class="progress-bar"></div></div>
             </div>
             <div class="map-tools">
                 <div class="round-btn" onclick="toggleTheme()" title="Mode Jour/Nuit">🌓</div>
@@ -134,12 +153,11 @@
                     <button class="toggle-btn" onclick="togglePanel()" id="toggle-panel-btn">🔽</button>
                 </div>
                 
-                <div id="day-content" style="flex-grow:1; margin-top:5px;">
-                    </div>
+                <div id="day-content" style="flex-grow:1; margin-top:5px;"></div>
             </div>
 
             <div id="view-budget" class="glass-panel app-view">
-                <h2>💰 Budget & Outils</h2>
+                <h2>💰 Outils & Budget</h2>
                 <div class="budget-grid">
                     <div class="tool-card">
                         <h3>💱 Taux Live</h3>
@@ -148,11 +166,21 @@
                         <div class="flex-row"><span>₫</span><input type="number" id="conv-vnd" class="custom-input" placeholder="VND" oninput="convertVndToEur()"></div>
                     </div>
                     <div class="tool-card">
-                        <h3>🚕 Anti-Arnaque</h3>
+                        <h3>🚕 Grab (Taxi)</h3>
                         <div style="font-size: 9px; color:#aaa; margin-bottom:8px;">~15k ₫/km + 20k base</div>
                         <div class="flex-row"><span>Km</span><input type="number" id="grab-km" class="custom-input" placeholder="Distance" oninput="calcGrab()"></div>
                         <div style="margin-top: 10px; font-weight:bold; color:var(--primary); font-size:14px; text-align:center;" id="grab-result">0 ₫</div>
                     </div>
+                </div>
+
+                <div class="card" style="padding:10px;">
+                    <h3 style="font-size:11px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0;">🚨 Mémo Visuel Billets (Anti-Arnaque)</h3>
+                    <div class="vnd-bill" style="background:#38bdf8;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
+                    <div class="vnd-bill" style="background:#fca5a5;"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
+                    <div class="vnd-bill" style="background:#4ade80;"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
+                    <div class="vnd-bill" style="background:#d97706; color:white;"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
+                    <div class="vnd-bill" style="background:#38bdf8;"><span>20k ₫ (Bleu = ⚠️ 500k)</span><span>~0.75 €</span></div>
+                    <div class="vnd-bill" style="background:#fde047;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
                 </div>
 
                 <div class="card" style="text-align:center; padding: 15px;">
@@ -171,9 +199,19 @@
             </div>
 
             <div id="view-vault" class="glass-panel app-view">
-                <h2>🧳 Sac à Dos</h2>
+                <h2>🧳 Sac à Dos & Survie</h2>
+                
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">✅ Check-list Départ</h3>
+                    <h3 style="font-size:11px; color:var(--primary); text-transform:uppercase; margin:0 0 5px 0;">🤝 Règles d'or Locales</h3>
+                    <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">
+                        <b style="color:white;">🚦 Traverser :</b> Marche doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br>
+                        <b style="color:white;">💰 Négociation :</b> Divise par 2 ou 3 au marché. Garde le sourire.<br>
+                        <b style="color:white;">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:11px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">✅ Check-list Départ</h3>
                     <div class="custom-add" style="margin-left:0; margin-bottom:10px; margin-top:0;">
                         <input type="text" id="check-input" class="custom-input" placeholder="Ajouter à la liste...">
                         <button onclick="addCheck()" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">+</button>
@@ -182,7 +220,7 @@
                 </div>
 
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">🗣️ Survie Audio</h3>
+                    <h3 style="font-size:11px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">🗣️ Survie Audio</h3>
                     <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;">
                         <button class="speak-btn" onclick="speakVN('Xin chào')">👋 Bonjour</button>
                         <button class="speak-btn" onclick="speakVN('Cảm ơn')">🙏 Merci</button>
@@ -190,17 +228,16 @@
                         <button class="speak-btn" style="color:var(--danger); border-color:rgba(239,68,68,0.5);" onclick="speakVN('Không cay nhé')">🌶️ Sans piment</button>
                         <button class="speak-btn" onclick="speakVN('Nhà vệ sinh ở đâu?')">🚽 Toilettes ?</button>
                     </div>
-                    
-                    <div style="font-size:11px; color:#aaa; margin-bottom:5px;">Traducteur (Réseau requis la 1ère fois)</div>
+                    <div style="font-size:10px; color:#aaa; margin-bottom:5px;">Traducteur (Réseau requis la 1ère fois)</div>
                     <div style="display:flex; gap:5px;">
                         <input type="text" id="trans-input" class="custom-input" placeholder="Taper une phrase en français...">
                         <button onclick="translateAndSpeak()" style="background:#38bdf8; color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">🔊</button>
                     </div>
-                    <div id="trans-result" style="margin-top:8px; font-size:13px; font-style:italic; color:var(--primary); text-align:center; min-height:15px;"></div>
+                    <div id="trans-result" style="margin-top:8px; font-size:12px; font-style:italic; color:var(--primary); text-align:center; min-height:15px;"></div>
                 </div>
 
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">📸 Albums</h3>
+                    <h3 style="font-size:11px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">📸 Albums</h3>
                     <div style="display:flex; gap:10px;">
                         <div style="flex:1;">
                             <div style="font-size:10px; margin-bottom:5px; color:#aaa;">Album Food</div>
@@ -243,19 +280,21 @@
         cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000; 
 
         Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
-        [{ n: "Paris", lo: 2.3522, la: 48.8566 }, { n: "Istanbul", lo: 28.9784, la: 41.0082 }, { n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 8, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: e.n, font: 'bold 10pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 2, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -8) } }));
+        
+        // PINS EMOJIS !
+        [{ n: "Paris", lo: 2.3522, la: 48.8566 }, { n: "Istanbul", lo: 28.9784, la: 41.0082 }, { n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 8, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: "📍 " + e.n, font: 'bold 11pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -8) } }));
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([2.3522, 48.8566, 28.9784, 41.0082]), width: 2, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }}); 
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([28.9784, 41.0082, 105.8342, 21.0278]), width: 2, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
 
         const DEFAULT_VOYAGE = [
-            { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "✈️ Vol Paris -> Istanbul -> Hanoï", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "https://www.google.com/maps/search/?api=1&query=Istanbul+Airport" }] },
-            { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "✈️ Arrivée Hanoï 14h00", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Balade Lac Hoan Kiem", lien: "https://www.google.com/maps/search/?api=1&query=Hoan+Kiem+Lake+Hanoi" }, { nom: "Dîner Bun Cha Hương Liên", lien: "https://www.google.com/maps/search/?api=1&query=Bun+Cha+Huong+Lien+Hanoi" }] },
-            { jour: 3, date: "15 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Quartier Vieux Hanoï", lien: "https://www.google.com/maps/search/?api=1&query=Old+Quarter+Hanoi" }, { nom: "Train Street", lien: "https://www.google.com/maps/search/?api=1&query=Train+Street+Hanoi" }] },
-            { jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000, transport: "🚌 Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "https://www.google.com/maps/search/?api=1&query=Hang+Mua+Ecolodge+Ninh+Binh" }], activites: [{ nom: "Barque à Trang An", lien: "https://www.google.com/maps/search/?api=1&query=Trang+An+Ninh+Binh" }, { nom: "Coucher de soleil Hang Mua", lien: "https://www.google.com/maps/search/?api=1&query=Mua+Caves+Ninh+Binh" }] }
+            { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "✈️ Vol Paris -> Istanbul -> Hanoï", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "https://www.google.com/maps/search/?api=1&query=Istanbul+Airport" }], journal: {stars:0, text:""} },
+            { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "✈️ Arrivée Hanoï 14h00", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Balade Lac Hoan Kiem", lien: "https://www.google.com/maps/search/?api=1&query=Hoan+Kiem+Lake+Hanoi" }, { nom: "Dîner Bun Cha Hương Liên", lien: "https://www.google.com/maps/search/?api=1&query=Bun+Cha+Huong+Lien+Hanoi" }], journal: {stars:0, text:""} },
+            { jour: 3, date: "15 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Quartier Vieux Hanoï", lien: "https://www.google.com/maps/search/?api=1&query=Old+Quarter+Hanoi" }, { nom: "Train Street", lien: "https://www.google.com/maps/search/?api=1&query=Train+Street+Hanoi" }], journal: {stars:0, text:""} },
+            { jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000, transport: "🚌 Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "https://www.google.com/maps/search/?api=1&query=Hang+Mua+Ecolodge+Ninh+Binh" }], activites: [{ nom: "Barque à Trang An", lien: "https://www.google.com/maps/search/?api=1&query=Trang+An+Ninh+Binh" }, { nom: "Coucher de soleil Hang Mua", lien: "https://www.google.com/maps/search/?api=1&query=Mua+Caves+Ninh+Binh" }], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v3_4')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v3_4', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v4_0')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v4_0', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) {
             if (!input) return ""; let trimmed = input.trim();
@@ -264,7 +303,19 @@
         }
 
         let currentDayIdx = 0; let isCollapsed = false;
-        function changeDay(dir) { currentDayIdx += dir; if(currentDayIdx < 0) currentDayIdx = 0; if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; renderDay(); }
+        
+        function changeDay(dir) { 
+            currentDayIdx += dir; 
+            if(currentDayIdx < 0) currentDayIdx = 0; 
+            if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; 
+            updateProgressBar();
+            renderDay(); 
+        }
+
+        function updateProgressBar() {
+            const prog = (currentDayIdx / (monVoyage.length - 1)) * 100;
+            document.getElementById('trip-progress').style.width = prog + '%';
+        }
 
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
@@ -283,6 +334,8 @@
 
         function renderDay() {
             const d = monVoyage[currentDayIdx];
+            if (!d.journal) d.journal = {stars:0, text:""}; // Patch sécurité si ancienne sauvegarde
+
             document.getElementById('day-title').innerText = `Jour ${d.jour}`; document.getElementById('day-date').innerText = `${d.date} - ${d.ville}`;
             updateCamera();
 
@@ -291,15 +344,15 @@
             .catch(() => document.getElementById('weather-box').innerText = `⛅ Météo indispo`);
 
             let html = '<div class="timeline">';
-            let isFirstNode = true; // Pour animer le premier élément
+            let isFirstNode = true; 
             
-            // 1. TRANSPORT
+            // 1. TRANSPORT (BOARDING PASS)
             if(d.transport) {
                 html += `
                 <div class="timeline-item">
                     <div class="timeline-dot dot-transport ${isFirstNode ? 'pulse-dot' : ''}"></div>
-                    <div class="timeline-content">
-                        <div class="timeline-title" style="color:#38bdf8;">🚌 Déplacement</div>
+                    <div class="timeline-content ticket-style">
+                        <div class="timeline-title" style="color:#38bdf8;">✈️ DÉPLACEMENT</div>
                         <div class="timeline-text">${d.transport}</div>
                     </div>
                 </div>`;
@@ -312,11 +365,8 @@
                 <div class="timeline-item">
                     <div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div>
                     <div class="timeline-content">
-                        <div class="timeline-title" style="color:#a855f7;">🏨 Logement <button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
-                        <div class="timeline-text">
-                            <span>${l.nom}</span>
-                            ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">Aller 📍</a>` : ''}
-                        </div>
+                        <div class="timeline-title" style="color:#a855f7;">🏨 LOGEMENT <button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
+                        <div class="timeline-text"><span>${l.nom}</span>${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">Carte</a>` : ''}</div>
                     </div>
                 </div>`;
                 isFirstNode = false;
@@ -328,28 +378,82 @@
                 <div class="timeline-item">
                     <div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div>
                     <div class="timeline-content">
-                        <div class="timeline-title" style="color:var(--primary);">🎟️ Programme <button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
-                        <div class="timeline-text">
-                            <span>${a.nom}</span>
-                            ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">Aller 📍</a>` : ''}
-                        </div>
+                        <div class="timeline-title" style="color:var(--primary);">🎟️ PROGRAMME <button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
+                        <div class="timeline-text"><span>${a.nom}</span>${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">Carte</a>` : ''}</div>
                     </div>
                 </div>`;
                 isFirstNode = false;
             });
 
-            html += '</div>'; // Fin de la timeline
+            html += '</div>'; 
 
-            // 4. FORMULAIRES D'AJOUT RAPIDE (Hors de la timeline)
             html += `<div style="font-size:10px; color:#666; text-transform:uppercase; font-weight:bold; margin-top:15px; margin-left:10px;">+ Ajouter une étape</div>`;
             html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto, note..."><input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps ou Adresse"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">+</button></div>`;
+
+            // =====================================
+            // 🎙️ LE JOURNAL DE BORD INTELLIGENT
+            // =====================================
+            let starsHtml = '';
+            for(let i=1; i<=5; i++) { starsHtml += `<span class="${i <= d.journal.stars ? 'active' : ''}" onclick="setStars(${currentDayIdx}, ${i})">★</span>`; }
+
+            html += `
+            <div class="journal-box">
+                <div style="font-size:11px; color:var(--primary); font-weight:bold; text-transform:uppercase; margin-bottom:5px; text-align:center;">📖 Bilan du jour</div>
+                <div class="star-rating">${starsHtml}</div>
+                <div class="keyword-chips">
+                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🥵 Chaleur extrême')">🥵 Chaud</span>
+                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🤤 Régal absolu')">🤤 Régal</span>
+                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🛵 Scooter trip')">🛵 Scooter</span>
+                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🤕 Fatigué(e)')">🤕 KO</span>
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <textarea id="journal-txt-${currentDayIdx}" class="journal-textarea" placeholder="Note du soir (Tape ou dicte...)" onblur="saveJournalText(${currentDayIdx})">${d.journal.text}</textarea>
+                    <button class="mic-btn" id="mic-${currentDayIdx}" onclick="startDictation(${currentDayIdx})">🎙️</button>
+                </div>
+            </div>`;
 
             document.getElementById('day-content').innerHTML = html;
         }
 
+        // Fonctions Édition & Journal
         window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
         window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
         window.addActivite = (dayIdx) => { const nom = document.getElementById('add-act-name').value; const lien = formatMapLink(document.getElementById('add-act-link').value); if(nom) { monVoyage[dayIdx].activites.push({nom: nom, lien: lien}); saveVoyage(); } };
+
+        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); };
+        window.addKeyword = (dayIdx, word) => { 
+            const txt = document.getElementById(`journal-txt-${dayIdx}`);
+            txt.value += `[${word}] `;
+            monVoyage[dayIdx].journal.text = txt.value;
+            saveVoyage();
+        };
+        window.saveJournalText = (dayIdx) => { 
+            monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; 
+            saveVoyage(); // On sauve à la fin de la frappe
+        };
+
+        // 🎙️ LA MAGIE DE LA DICTÉE VOCALE
+        window.startDictation = (dayIdx) => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert("Désolé, ton navigateur/téléphone ne supporte pas la dictée native Web."); return; }
+            
+            const btn = document.getElementById(`mic-${dayIdx}`);
+            const txtArea = document.getElementById(`journal-txt-${dayIdx}`);
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR'; // On écoute en Français
+            recognition.interimResults = false;
+
+            recognition.onstart = function() { btn.classList.add('recording'); };
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                txtArea.value += speechResult + " ";
+                monVoyage[dayIdx].journal.text = txtArea.value;
+                saveVoyage();
+            };
+            recognition.onerror = function() { btn.classList.remove('recording'); };
+            recognition.onend = function() { btn.classList.remove('recording'); };
+            recognition.start();
+        };
 
         window.togglePanel = () => {
             const panel = document.getElementById('view-etapes'); const btn = document.getElementById('toggle-panel-btn');
@@ -380,7 +484,8 @@
         function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:5px;"><span>${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--danger);cursor:pointer;">✕</button></div>`; }); document.getElementById('budget-spent').innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
         window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if(!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq }); localStorage.setItem('vn_b_exps_v3', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
         window.delExp = (idx) => { exps.splice(idx,1); localStorage.setItem('vn_b_exps_v3', JSON.stringify(exps)); updateBudget(); };
-        renderDay(); updateBudget();
+        
+        updateProgressBar(); renderDay(); updateBudget();
 
         let checklist = JSON.parse(localStorage.getItem('vn_checklist')) || [{t: "Passeports & Visas", c: false}, {t: "Permis de Conduire International", c: false}, {t: "Répulsif Moustique (50% DEET)", c: false}];
         function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { let checkedStyle = item.c ? "text-decoration: line-through; color: #666;" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;"><div style="display:flex; align-items:center; gap:10px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.2); accent-color:var(--primary);"><span style="${checkedStyle} font-size:13px;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:#666;cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist', JSON.stringify(checklist)); }
