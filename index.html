@@ -2,25 +2,23 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vietnam 2026 - Test 1</title>
+    <title>Vietnam 2026 - Reset</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background-color: #000; }
+        body, html { margin: 0; padding: 0; height: 100%; background-color: #000; overflow: hidden; }
         #cesiumContainer { width: 100vw; height: 100vh; display: block; }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
-
     <script>
-        // TA clé privée officielle
+        // TA CLÉ PRIVÉE
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
-        // Le moteur le plus basique possible avec les montagnes (Terrain)
+        // LE MOTEUR 3D
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrainProvider: Cesium.createWorldTerrain(),
+            terrainProvider: Cesium.createWorldTerrain(), // Les montagnes
             animation: false,
             timeline: false,
             baseLayerPicker: false,
@@ -30,13 +28,12 @@
             sceneModePicker: false
         });
 
-        // On enlève le logo Cesium
         viewer.cesiumWidget.creditContainer.style.display = "none";
 
-        // On fait voler la caméra direct vers le Vietnam
+        // Zoom sur le Vietnam
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 5000000),
-            duration: 2
+            duration: 0
         });
     </script>
 </body>
