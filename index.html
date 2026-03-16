@@ -42,11 +42,9 @@
         .badge-sync { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
         .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
 
-        /* FIX CLAVIER iOS */
         .view-focused { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; height: max-content !important; max-height: 50vh !important; border-radius: 0 0 24px 24px !important; padding: 15px !important; padding-top: calc(15px + env(safe-area-inset-top)) !important; margin: 0 !important; align-self: flex-start !important; z-index: 100 !important; transform: none !important; }
         #ui-layer.keyboard-up .top-widget, #ui-layer.keyboard-up .refresh-btn { transform: translateY(-200%); opacity: 0; }
 
-        /* INPUTS & BOUTONS */
         input[type="text"], input[type="number"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 60%; font-family: inherit; }
         input::placeholder { color: rgba(255,255,255,0.2); }
         .quick-btn { background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.5); color: var(--primary); padding: 10px; border-radius: 12px; flex: 1; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 13px; text-transform: uppercase; }
@@ -54,7 +52,6 @@
         .reset-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: var(--danger); }
         .sync-btn { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; width: 100%; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
 
-        /* BUDGET */
         .budget-gauge-bg { background: rgba(255,255,255,0.1); width: 100%; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
         .budget-gauge-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease, background 0.3s; }
         .expense-form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
@@ -65,11 +62,9 @@
         .expense-item:last-child { border-bottom: none; }
         .expense-delete { color: var(--danger); background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 0 5px; }
 
-        /* COFFRE */
         .vault-textarea { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 12px; color: white; padding: 12px; box-sizing: border-box; font-size: 14px; font-family: inherit; resize: none; min-height: 80px; margin-bottom: 15px; }
         .emergency-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8a8a; padding: 10px; border-radius: 12px; text-align: center; text-decoration: none; font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px; }
 
-        /* NAVIGATION BAS */
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 9px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 2px; border-radius: 16px; width: 19%; text-transform: uppercase; }
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
@@ -92,6 +87,12 @@
             
             <div id="view-etapes" class="glass-panel app-view focusable-view">
                 <h2>🗺️ Itinéraire <span id="sync-status" class="badge badge-sync">Hors-ligne</span></h2>
+                
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 15px; margin-bottom:15px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);">
+                    <div style="font-weight:bold; font-size:14px; color:#38bdf8;">📍 Hanoï</div>
+                    <div id="weather-info" style="font-size:16px; font-weight:bold;">Calcul...</div>
+                </div>
+
                 <input type="text" id="ical-url" class="expense-input smart-input" placeholder="Coller le lien .ics ici..." style="width:100% !important; margin-bottom:10px; font-size:12px; text-align:left;">
                 <button class="sync-btn" onclick="syncItinerary()">🔄 Synchroniser le Calendrier</button>
                 <div id="itinerary-list"></div>
@@ -141,10 +142,21 @@
 
             <div id="view-vault" class="glass-panel app-view focusable-view">
                 <h2>🗄️ Coffre Hors-Ligne</h2>
-                <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas</h3>
+                
+                <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
+                <input type="file" id="vault-photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <button class="expense-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('vault-photo-input').click()">Importer Image</button>
+                    <button class="expense-delete" onclick="clearPhoto()" style="font-size:12px; color:#aaa;">🗑️ Effacer</button>
+                </div>
+                <img id="vault-photo-display" style="width:100%; border-radius:12px; margin-top:10px; display:none; border:1px solid var(--glass-border);">
+
+                <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas (Texte)</h3>
                 <textarea id="vault-docs" class="vault-textarea smart-input" placeholder="Colle ici tes numéros de vol, PNR, e-Visa..."></textarea>
+                
                 <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">🏨 Adresses (Pour les Taxis)</h3>
                 <textarea id="vault-hotels" class="vault-textarea smart-input" placeholder="Colle les adresses en vietnamien..."></textarea>
+                
                 <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--danger);">🆘 Numéros d'Urgence</h3>
                 <a href="tel:113" class="emergency-btn">🚓 Police (113)</a>
                 <a href="tel:115" class="emergency-btn">🚑 Ambulance (115)</a>
@@ -186,6 +198,13 @@
             i.addEventListener('blur', e => { uiL.classList.remove('keyboard-up'); e.target.closest('.focusable-view').classList.remove('view-focused'); midC.style.alignItems = 'flex-end'; });
         });
 
+        // METEO (Hanoï via API Gratuite Open-Meteo)
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=21.0278&longitude=105.8342&current=temperature_2m,weather_code').then(r => r.json()).then(d => {
+            const t = d.current.temperature_2m, c = d.current.weather_code;
+            let emo = '🌤️'; if(c>50) emo='🌧️'; if(c>90) emo='⛈️'; if(c===0) emo='☀️';
+            const str = `${emo} ${t}°C`; document.getElementById('weather-info').innerText = str; localStorage.setItem('vn_weather', str);
+        }).catch(() => document.getElementById('weather-info').innerText = localStorage.getItem('vn_weather') || 'Indispo.');
+
         // ITINÉRAIRE & SYNC ENGINE
         const fakeItinerary = [{ date: "14 - 16 Avril", ville: "Hanoï", hotel: "Aimee House", lien: "https://booking.com" }, { date: "16 - 18 Avril", ville: "Ninh Binh", hotel: "Hang Mua Ecolodge", lien: "https://booking.com" }];
         function renderItinerary(data) {
@@ -222,10 +241,21 @@
             exps.slice(0,10).forEach(e => l.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${e.cat}</span><span style="color:#aaa;">${e.d}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${fVal(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="expense-delete" onclick="deleteExpense(${e.id})">×</button></div></div>`);
         } updateBudgetUI();
 
-        // COFFRE
-        const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels');
+        // COFFRE (TEXTE + PHOTO BASE64)
+        const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels'), vImg = document.getElementById('vault-photo-display');
         vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || '';
         vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value)); vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
+        
+        window.savePhoto = e => {
+            const f = e.target.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = ev => {
+                try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; } 
+                catch(e) { alert("⚠️ Image trop lourde pour le mode hors-ligne ! Fais une capture d'écran de ton QR Code pour réduire sa taille."); }
+            }; r.readAsDataURL(f);
+        };
+        window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; };
+        const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
 
         // CESIUM
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
