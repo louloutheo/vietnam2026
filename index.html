@@ -2,39 +2,259 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Vietnam 2026 - Reset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Vietnam 2026 - Masterclass</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background-color: #000; overflow: hidden; }
-        #cesiumContainer { width: 100vw; height: 100vh; display: block; }
+        :root { --primary: #4ade80; --danger: #ef4444; --glass-bg: rgba(20, 20, 20, 0.75); --glass-border: rgba(255, 255, 255, 0.15); }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #000; color: white; overflow: hidden; }
+        button, input, select, textarea, .nav-item { touch-action: manipulation; outline: none; }
+        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; transition: all 0.3s ease; }
+        .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
+        
+        .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 280px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
+        .top-widget h1 { margin: 0 0 5px 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        #countdown-container { font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; margin-top: 8px; }
+        .dual-clock { font-size: 11px; color: #ccc; margin-top: 8px; display: flex; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 8px; font-family: monospace; }
+        
+        .map-btn { position: absolute; right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 50; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); transition: 0.2s; }
+        .refresh-btn { top: max(25px, env(safe-area-inset-top)); }
+        .gps-btn { top: calc(max(25px, env(safe-area-inset-top)) + 60px); display: none; } 
+        .map-btn:active { transform: scale(0.85); background: var(--primary); color: black; }
+        
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .toast-show { opacity: 1 !important; }
+
+        .middle-container { flex-grow: 1; position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 20px; transition: all 0.3s ease; }
+        .app-view { display: none; width: 100%; max-width: 400px; max-height: 65vh; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .card { background: rgba(255, 255, 255, 0.08); padding: 15px; border-radius: 16px; margin-bottom: 12px; }
+        .card h3 { margin: 0 0 5px 0; font-size: 15px; display: flex; justify-content: space-between; align-items: flex-start; line-height: 1.3; }
+        .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; white-space: nowrap; margin-left: 10px; }
+        .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .badge-wait { background: rgba(255, 255, 255, 0.1); color: #ccc; }
+        .badge-fly { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+        .view-focused { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; height: max-content !important; max-height: 50vh !important; border-radius: 0 0 24px 24px !important; padding: 15px !important; padding-top: calc(15px + env(safe-area-inset-top)) !important; margin: 0 !important; align-self: flex-start !important; z-index: 100 !important; transform: none !important; }
+        input[type="text"], input[type="number"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 60%; font-family: inherit; }
+        input::placeholder { color: rgba(255,255,255,0.2); }
+        .quick-btn { background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.5); color: var(--primary); padding: 10px; border-radius: 12px; flex: 1; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 13px; text-transform: uppercase; }
+        .quick-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
+        .reset-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: var(--danger); }
+        .budget-gauge-bg { background: rgba(255,255,255,0.1); width: 100%; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .budget-gauge-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease, background 0.3s; }
+        .expense-form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .expense-input, .expense-select { background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: white; padding: 12px; border-radius: 12px; font-size: 16px; flex-grow: 1; }
+        .expense-input { text-align: left !important; width: auto !important; }
+        .expense-btn { background: var(--primary); color: black; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; width: 100%; margin-top: 10px; }
+        .resa-btn { display:inline-block; margin-top:10px; width:100%; box-sizing:border-box; background:rgba(255,255,255,0.1); color:white; padding:10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold; text-align:center; border: 1px solid rgba(255,255,255,0.2); }
+        
+        .todo-item { display: flex; align-items: center; margin-top: 8px; font-size: 13px; }
+        .todo-item input[type="checkbox"] { width: auto; margin-right: 10px; transform: scale(1.2); }
+        .todo-link { color: #38bdf8; text-decoration: none; margin-left: 5px; font-weight: bold; }
+
+        .dash-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .dash-arrow { background: rgba(255,255,255,0.1); border: none; color: white; font-size: 18px; padding: 5px 15px; border-radius: 8px; cursor: pointer; }
+
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 9px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 2px; border-radius: 16px; width: 19%; text-transform: uppercase; }
+        .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        .speak-btn { background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 50%; width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .speak-btn:active { transform: scale(0.9); background: #38bdf8; }
+        .dico-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
+    <div id="toast">✅ Action confirmée</div>
+
+    <div id="ui-layer">
+        <div class="map-btn refresh-btn" onclick="window.location.reload(true)">↻</div>
+        <div class="map-btn gps-btn" id="gps-button" onclick="geolocateMe()">🎯</div>
+
+        <div class="glass-panel top-widget">
+            <h1>Vietnam 2026</h1>
+            <div id="countdown-container">Calcul...</div>
+            <div class="dual-clock">
+                <div>🇻🇳 <span id="time-vn">--:--</span></div>
+                <div>🇫🇷 <span id="time-fr">--:--</span></div>
+            </div>
+        </div>
+
+        <div class="middle-container">
+            
+            <div id="view-etapes" class="glass-panel app-view focusable-view">
+                <div class="dash-nav">
+                    <button class="dash-arrow" onclick="changeDash(-1)">◀</button>
+                    <h2 id="dash-title" style="margin:0; font-size:16px; border:none; padding:0;">Calcul...</h2>
+                    <button class="dash-arrow" onclick="changeDash(1)">▶</button>
+                </div>
+                <div id="dash-content"></div>
+            </div>
+
+            <div id="view-converter" class="glass-panel app-view focusable-view">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">
+                    <h2>💱 Convertisseur</h2><div id="rate-info" style="font-size: 10px; color: #aaa; text-transform: uppercase;">1 € = Calcul...</div>
+                </div>
+                <div class="card" style="display: flex; justify-content: space-between; padding: 15px;"><span style="font-size: 28px;">🇻🇳</span><input type="text" id="input-vnd" placeholder="0" inputmode="decimal" class="smart-input"><span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold; align-self:center;">VND</span></div>
+                <div class="card" style="display: flex; justify-content: space-between; padding: 15px;"><span style="font-size: 28px;">🇪🇺</span><input type="text" id="input-eur" placeholder="0" inputmode="decimal" class="smart-input"><span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold; align-self:center;">EUR</span></div>
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
+                    <button class="quick-btn reset-btn" onclick="resetConverter()">C</button>
+                    <button class="quick-btn" onclick="quickAdd(100000)">100k</button><button class="quick-btn" onclick="quickAdd(500000)">500k</button><button class="quick-btn" onclick="quickAdd(1000000)">1M</button>
+                </div>
+            </div>
+
+            <div id="view-budget" class="glass-panel app-view focusable-view">
+                <h2>💰 Budget Tracker</h2>
+                <div class="card" style="padding: 15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:end;"><div><span style="font-size:24px; font-weight:bold; color:var(--primary);" id="budget-left">0 €</span></div><div style="font-size:12px; color:#888;">Sur <span id="budget-total" onclick="askTotalBudget()" style="text-decoration:underline; cursor:pointer;">1500 €</span></div></div>
+                    <div style="font-size:14px; color:white; margin-top:5px; padding:5px; background:rgba(255,255,255,0.1); border-radius:8px; display:inline-block;">👉 Reste <b id="budget-per-day" style="color:#facc15;">0 € / jour</b></div>
+                    <div class="budget-gauge-bg"><div class="budget-gauge-fill" id="budget-gauge"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:5px; color:#aaa;"><span>Dépensé: <span id="budget-spent" style="color:white;">0 €</span></span><span id="budget-percent">0%</span></div>
+                </div>
+                <h3 style="margin: 20px 0 5px 0; font-size: 14px; color: var(--primary);">🚕 Estimateur Grab</h3>
+                <div class="expense-form" style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+                    <input type="number" id="grab-km" class="expense-input smart-input" placeholder="Distance en km" inputmode="decimal" style="width: 100% !important; font-size:16px;">
+                    <button class="expense-btn" onclick="estimateGrab()" style="margin-top:8px;">Calculer le prix juste</button>
+                    <div id="grab-result" style="width:100%; text-align:center; margin-top:10px; font-weight:bold; color:#facc15; font-size:16px; display:none;"></div>
+                </div>
+                <h3 style="margin: 20px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Ajouter une dépense</h3>
+                <div class="expense-form">
+                    <select id="exp-cat" class="expense-select"><option value="🍔">🍔 Repas</option><option value="🚕">🚕 Transp.</option><option value="🏨">🏨 Hôtel</option><option value="🍺">🍺 Bière</option><option value="🎟️">🎟️ Activité</option></select>
+                    <input type="number" id="exp-amount" class="expense-input smart-input" placeholder="Montant" inputmode="decimal" style="width: 80px !important;">
+                    <select id="exp-currency" class="expense-select"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
+                </div>
+                <button class="expense-btn" onclick="addExpense()">Ajouter</button>
+            </div>
+
+            <div id="view-vault" class="glass-panel app-view focusable-view">
+                <h2>🗄️ Coffre Hors-Ligne</h2>
+                <div class="card" style="background:rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);">
+                    <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #38bdf8;">🗣️ Guide de Survie (Audio)</h3>
+                    <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Bonjour</div><div style="font-size:12px; color:#ccc;">Xin chào</div></div><button class="speak-btn" onclick="speakVN('Xin chào')">🔊</button></div>
+                    <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Merci</div><div style="font-size:12px; color:#ccc;">Cảm ơn</div></div><button class="speak-btn" onclick="speakVN('Cảm ơn')">🔊</button></div>
+                    <div class="dico-item"><div><div style="font-weight:bold; font-size:14px;">Sans piment SVP</div><div style="font-size:12px; color:#ccc;">Không cay nhé</div></div><button class="speak-btn" onclick="speakVN('Không cay nhé')">🔊</button></div>
+                    <div class="dico-item" style="border:none;"><div><div style="font-weight:bold; font-size:14px;">C'est trop cher</div><div style="font-size:12px; color:#ccc;">Đắt quá</div></div><button class="speak-btn" onclick="speakVN('Đắt quá')">🔊</button></div>
+                </div>
+                <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
+                <input type="file" id="vault-photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <button class="expense-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('vault-photo-input').click()">Importer Image</button>
+                    <button class="expense-delete" onclick="clearPhoto()" style="font-size:12px; color:#aaa;">🗑️ Effacer</button>
+                </div>
+                <img id="vault-photo-display" style="width:100%; border-radius:12px; margin-top:10px; display:none; border:1px solid var(--glass-border);">
+                <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas (Texte)</h3>
+                <textarea id="vault-docs" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
+                <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">🏨 Adresses</h3>
+                <textarea id="vault-hotels" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
+            </div>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-item active" data-target="none"><span class="nav-icon">🌍</span>Globe</div>
+            <div class="nav-item" data-target="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
+            <div class="nav-item" data-target="view-converter"><span class="nav-icon">💱</span>Monnaie</div>
+            <div class="nav-item" data-target="view-budget"><span class="nav-icon">💰</span>Budget</div>
+            <div class="nav-item" data-target="view-vault"><span class="nav-icon">🗄️</span>Coffre</div>
+        </div>
+    </div>
+
     <script>
-        // TA CLÉ PRIVÉE
+        // ==========================================
+        // 🌍 MOTEUR 3D - LE CODE QUI A MARCHÉ 🌍
+        // ==========================================
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
-        // LE MOTEUR 3D CORRIGÉ (Syntaxe moderne)
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(), // LA BONNE LIGNE !
-            animation: false,
-            timeline: false,
-            baseLayerPicker: false,
-            geocoder: false,
-            homeButton: false,
-            navigationHelpButton: false,
-            sceneModePicker: false
+            terrainProvider: Cesium.createWorldTerrain(),
+            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false
         });
-
         viewer.cesiumWidget.creditContainer.style.display = "none";
+        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 5000000), duration: 0 });
 
-        // Zoom sur le Vietnam
-        viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 5000000),
-            duration: 0
-        });
+        const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
+
+        // Les Pins et Lignes
+        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
+        [{ n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: e.n, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } }));
+        viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([2.3522, 48.8566, 105.8342, 21.0278]), width: 5, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
+        viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([105.8342, 21.0278, 105.9800, 20.2539]), width: 6, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.3, color: Cesium.Color.fromCssColorString('#4ade80') }) }});
+
+
+        // ==========================================
+        // 🚀 LOGIQUE DE L'APPLICATION 🚀
+        // ==========================================
+        
+        // Ton Itinéraire
+        const MES_ETAPES = [
+            { id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14", logement: "Aimee House", transport: "Vol aller", lien_resa: "https://booking.com", programme: [{ id: "td1", texte: "🍜 Bun Cha Huong Lien", lien: "" }] },
+            { id: "step_2", titre: "Ninh Binh", date: "16 Avril - 18 Avril", date_debut_iso: "2026-04-16", logement: "Hang Mua Ecolodge", transport: "Bus 12GO", lien_resa: "https://12go.asia", programme: [{ id: "td3", texte: "🛶 Barque à Trang An", lien: "" }] }
+        ];
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
+
+        // Chronos
+        const targetDate = new Date("Apr 13, 2026 12:10:00").getTime();
+        setInterval(() => { 
+            const now = new Date(); const d = targetDate - now.getTime(); 
+            document.getElementById("countdown-container").innerHTML = `✈️ - ${Math.floor(d / 86400000)}j ${Math.floor((d % 86400000)/3600000)}h ${Math.floor((d % 3600000)/60000)}m ${Math.floor((d % 60000)/1000)}s`; 
+            document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'});
+            document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+        // UI Navigation
+        const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view'), midC = document.querySelector('.middle-container'), uiL = document.getElementById('ui-layer');
+        const gpsBtn = document.getElementById('gps-button');
+        
+        navItems.forEach(i => i.addEventListener('click', () => { 
+            navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; v.classList.remove('view-focused'); }); 
+            midC.style.alignItems = 'flex-end'; i.classList.add('active'); const t = i.getAttribute('data-target'); 
+            if(t !== 'none') { document.getElementById(t).style.display = 'block'; gpsBtn.style.display = 'none'; } else { gpsBtn.style.display = 'flex'; }
+        }));
+        document.querySelectorAll('.smart-input').forEach(i => { i.addEventListener('focus', e => { uiL.classList.add('keyboard-up'); e.target.closest('.focusable-view').classList.add('view-focused'); midC.style.alignItems = 'flex-start'; }); i.addEventListener('blur', e => { uiL.classList.remove('keyboard-up'); e.target.closest('.focusable-view').classList.remove('view-focused'); midC.style.alignItems = 'flex-end'; }); });
+
+        // Dashboard
+        let currentDashIndex = 0; let savedTodos = JSON.parse(localStorage.getItem('vn_todos')) || {};
+        function saveTodo(id, checked) { savedTodos[id] = checked; localStorage.setItem('vn_todos', JSON.stringify(savedTodos)); showToast(checked ? "✅ Fait" : "⏳ À faire"); }
+
+        function renderDashboard() {
+            const now = new Date().getTime(); const dateDepart = new Date("2026-04-13T00:00:00").getTime(); const dateArrivee = new Date("2026-04-14T14:00:00").getTime();
+            if(now >= dateDepart && now < dateArrivee && currentDashIndex === 0) { document.getElementById('dash-title').innerHTML = `L'Heure a sonné <span class="badge badge-fly">🛫 En Vol</span>`; document.getElementById('dash-content').innerHTML = `<div class="card" style="margin-bottom:0; background:rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5);"><h3 style="font-size:20px; color:white; margin:0 0 10px 0; text-align:center;">✈️ En route pour le Vietnam !</h3><p style="text-align:center; font-size:14px; color:#ccc;">Détends-toi, profite du vol.</p></div>`; return; }
+            const etape = MES_ETAPES[currentDashIndex]; let statusBadge = now < targetDate ? '<span class="badge badge-wait">⏳ À venir</span>' : '<span class="badge badge-ok">📍 Actuel</span>';
+            document.getElementById('dash-title').innerHTML = `Étape ${currentDashIndex + 1}/${MES_ETAPES.length} ${statusBadge}`;
+            let progHtml = ''; if(etape.programme && etape.programme.length > 0) { progHtml = '<h4 style="margin: 15px 0 5px 0; font-size: 13px; color: var(--primary);">📋 À faire ici :</h4>'; etape.programme.forEach(p => { const isChecked = savedTodos[p.id] ? "checked" : ""; const linkHtml = p.lien ? `<a href="${p.lien}" target="_blank" class="todo-link">[Lien]</a>` : ''; progHtml += `<div class="todo-item"><input type="checkbox" onchange="saveTodo('${p.id}', this.checked)" ${isChecked}> <span>${p.texte}</span> ${linkHtml}</div>`; }); }
+            document.getElementById('dash-content').innerHTML = `<div class="card" style="margin-bottom:0; background:rgba(0,0,0,0.5);"><h3 style="font-size:20px; color:white; margin:0 0 10px 0;">${etape.titre}</h3><p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">📅 ${etape.date}</p><p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">🏨 ${etape.logement}</p><p style="margin:0 0 10px 0; font-size:13px; color:#ccc;">🚌 ${etape.transport}</p>${etape.lien_resa ? `<a href="${etape.lien_resa}" target="_blank" class="resa-btn" style="background:var(--primary); color:black;">Ouvrir Réservation</a>` : ''}${progHtml}</div>`;
+        }
+        window.changeDash = (dir) => { currentDashIndex += dir; if(currentDashIndex < 0) currentDashIndex = 0; if(currentDashIndex >= MES_ETAPES.length) currentDashIndex = MES_ETAPES.length - 1; renderDashboard(); }; renderDashboard();
+        
+        // Grab & Audio
+        window.estimateGrab = () => { const km = parseFloat(document.getElementById('grab-km').value); if(!km || km <= 0) return; const prixVnd = Math.round((km * 15000) + 20000); const res = document.getElementById('grab-result'); res.style.display = 'block'; res.innerHTML = `Prix juste : ~${prixVnd.toLocaleString('fr-FR')} ₫`; };
+        window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); showToast("🗣️ Audio en cours..."); };
+        window.geolocateMe = () => { showToast("📍 Recherche GPS..."); if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude), point: { pixelSize: 15, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 3 } }); showToast("✅ Position trouvée !"); }, () => showToast("❌ Active la localisation")); } else { showToast("❌ GPS non supporté"); } };
+
+        // Convertisseur
+        let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500; fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
+        const pVal = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0, fVal = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+        const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur'); function cVND() { const v = pVal(iV.value); if(v>0){ iE.value = fVal(v/exRate,2); iV.value = fVal(v,0); } else iE.value = ''; } function cEUR() { const v = pVal(iE.value); if(v>0){ iV.value = fVal(Math.round(v*exRate),0); iE.value = fVal(v,2); } else iV.value = ''; } window.quickAdd = a => { iV.value = fVal(pVal(iV.value)+a,0); cVND(); }; window.resetConverter = () => { iV.value=''; iE.value=''; }; iV.addEventListener('input', cVND); iE.addEventListener('input', cEUR);
+        
+        // Budget
+        let tB = parseFloat(localStorage.getItem('vn_tb')) || 1500, exps = JSON.parse(localStorage.getItem('vn_exps')) || [];
+        window.askTotalBudget = () => { let n = prompt("Budget total (€) ?", tB); if(n && !isNaN(pVal(n))){ tB = pVal(n); localStorage.setItem('vn_tb', tB); updateBudgetUI(); showToast("💾 Budget mis à jour"); }};
+        window.addExpense = () => { const a = pVal(document.getElementById('exp-amount').value), c = document.getElementById('exp-cat').value, cur = document.getElementById('exp-currency').value; if(a<=0) return; exps.unshift({ id: Date.now(), cat: c, oA: a, cur: cur, aE: cur==='VND'?a/exRate:a, d: new Date().toLocaleDateString('fr-FR') }); localStorage.setItem('vn_exps', JSON.stringify(exps)); document.getElementById('exp-amount').value=''; document.getElementById('exp-amount').blur(); updateBudgetUI(); showToast("💰 Dépense ajoutée"); };
+        window.deleteExpense = id => { exps = exps.filter(e => e.id !== id); localStorage.setItem('vn_exps', JSON.stringify(exps)); updateBudgetUI(); showToast("🗑️ Dépense supprimée"); };
+        function updateBudgetUI() { document.getElementById('budget-total').innerText = fVal(tB,0)+' €'; let sE = exps.reduce((s,e)=>s+e.aE,0), p = Math.min((sE/tB)*100,100); let rest = tB-sE; let daysLeft = 15; let perDay = rest / daysLeft; document.getElementById('budget-spent').innerText = fVal(sE,2)+' €'; document.getElementById('budget-left').innerText = fVal(rest,2)+' €'; document.getElementById('budget-per-day').innerText = fVal(perDay,2)+' € / jour'; const g = document.getElementById('budget-gauge'); g.style.width = p+'%'; g.style.background = p>85?'var(--danger)':p>65?'#facc15':'var(--primary)'; document.getElementById('budget-percent').innerText = Math.round(p)+'%'; const l = document.getElementById('expense-list'); l.innerHTML = exps.length===0?'<div style="color:#666; font-size:12px; text-align:center;">Aucune dépense.</div>':''; exps.slice(0,10).forEach(e => l.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${e.cat}</span><span style="color:#aaa;">${e.d}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${fVal(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="expense-delete" onclick="deleteExpense(${e.id})">×</button></div></div>`); } updateBudgetUI();
+
+        // Coffre
+        const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels'), vImg = document.getElementById('vault-photo-display');
+        vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || ''; vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value)); vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
+        window.savePhoto = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; showToast("📸 Photo enregistrée"); } catch(e) { alert("⚠️ Image trop lourde !"); } }; r.readAsDataURL(f); };
+        window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; showToast("🗑️ Photo effacée"); }; const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
     </script>
 </body>
 </html>
