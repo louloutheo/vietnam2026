@@ -144,9 +144,9 @@
         <div id="view-etapes" class="glass app-view focusable-view">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <span style="font-size:16px;font-weight:bold;">🗺️ Itinéraire</span>
-                <span id="sync-badge" class="badge b-sync">Hors-ligne</span>
+                <span id="sync-badge" class="badge b-ok">✅ À jour</span>
             </div>
-            <button class="btn btn-blue" onclick="syncTripit(true)">🔄 Sync TripIt</button>
+            <button class="btn btn-blue" onclick="syncTripit(true)">🗺️ Voir l'itinéraire</button>
             <div id="itinerary-list"><p style="color:#555;font-size:12px;text-align:center;">Appuie sur Sync TripIt</p></div>
         </div>
 
@@ -396,62 +396,92 @@ window.gpsMe = () => {
     }, () => alert('GPS non disponible'));
 };
 
-// ── TRIPIT SYNC ──
-window.syncTripit = async function(manual) {
-    const btn = document.querySelector('.btn-blue');
-    const badge = document.getElementById('sync-badge');
-    if (manual) btn.textContent = '⏳ Synchronisation...';
-    try {
-        const url = 'https://www.tripit.com/feed/ical/private/14F2E275-832749E335923B3F48CCAD13B98B210F/tripit.ics';
-        const proxies = ['https://corsproxy.io/?' + encodeURIComponent(url), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)];
-        let txt = ''; for (const p of proxies) { try { const r = await fetch(p, {signal: AbortSignal.timeout(8000)}); txt = await r.text(); if (txt.includes('BEGIN:VCALENDAR')) break; } catch(e) { continue; } }
-        if (!txt.includes('BEGIN:VCALENDAR')) throw new Error('Proxy error');
+// ── ITINÉRAIRE EN DUR ──
+const MES_ETAPES = [
+    {
+        num:'01', ville:'Hanoï', emoji:'🏯',
+        dates:'13 — 16 avr.', badge:'b-ok', statut:'Confirmé',
+        logement:'Aimee House Vũ Miên',
+        transport:'Vol aller BIO→HAN · Turkish Airlines · 13 avr. 12:10',
+        url:'https://flights.booking.com/booking/order-details/524c0995388af2e3d9d2ccc0ca3e0b8d7bf87a1f2d113687d51d9439c52406f3450e22128043b3482563cdc53b8ead16be3bad8f7a85ba40157c20a7a4a276846b6ee1f0b76616cd50028338e406',
+        activites:['🏯 Vieux quartier · Hoan Kiem','🍜 Phở & Bún chả','🚡 Quartier de Tây Hồ']
+    },
+    {
+        num:'02', ville:'Ninh Bình', emoji:'⛰️',
+        dates:'16 — 17 avr.', badge:'b-ok', statut:'Confirmé',
+        logement:'Hang Mua Ecolodge · €42,91',
+        transport:'Bus Hanoi → Ninh Binh ~2h · À réserver',
+        url:'https://secure.booking.com/confirmation.fr.html?auth_key=C71J5NHRuV2YNHPn',
+        activites:['⛰️ Hang Mua · 500 marches','🚣 Tam Coc en barque','🛕 Bai Dinh']
+    },
+    {
+        num:'03', ville:'Pu Luong', emoji:'🌾',
+        dates:'17 — 19 avr.', badge:'b-ok', statut:'Confirmé',
+        logement:'Puluong Valley Home · €65,91',
+        transport:'Navette Ninh Binh → Pu Luong · À réserver',
+        url:'https://secure.booking.com/confirmation.fr.html?auth_key=1ctGj5G0KrmMDzIQ',
+        activites:['🌾 Rizières en terrasses','🛵 Scooter entre villages','🏊 Cascade Ban Hieu']
+    },
+    {
+        num:'04', ville:'Lan Ha Bay', emoji:'🚢',
+        dates:'19 — 21 avr.', badge:'b-warn', statut:'⚠ Pickup manquant',
+        logement:'Croisière 5★ · Cabine balcon · 2 nuits à bord',
+        transport:'Transport Pu Luong → Lan Ha · À réserver',
+        url:'https://www.getyourguide.com',
+        activites:['🚢 Croisière 5★ Lan Ha + Ha Long','🛶 Kayak dans les baies','🌅 Coucher de soleil']
+    },
+    {
+        num:'05', ville:'Phong Nha', emoji:'🦇',
+        dates:'21 — 23 avr.', badge:'b-wait', statut:'En attente',
+        logement:'Chambre · Bố Trạch · Airbnb · Hôte Levi Tĩnh',
+        transport:'Bus nuit Lan Ha → Phong Nha · À réserver',
+        url:'https://www.airbnb.fr/trips/v1/reservation-details/ro/RESERVATION2_CHECKIN/HM3JTME24B',
+        activites:['🦇 Hang Tien Cave · Oxalis · P3MPSE','🕳️ Paradise Cave','🎿 Dark Cave · Zipline']
+    },
+    {
+        num:'06', ville:'Huế', emoji:'🏛️',
+        dates:'23 — 24 avr.', badge:'b-ok', statut:'Confirmé',
+        logement:'Maison de ville · Airbnb · Hôte Trang',
+        transport:'Bus Phong Nha → Hué ~5h · À réserver',
+        url:'https://www.airbnb.fr',
+        activites:['🏛️ Cité Impériale · UNESCO','⛵ Bateau Dragon · Rivière des Parfums','🍱 Bún bò Huế']
+    },
+    {
+        num:'07', ville:'Hội An', emoji:'🏮',
+        dates:'24 — 27 avr.', badge:'b-ok', statut:'Confirmé',
+        logement:'Hoian Tranquil Lodge – Chon Binh Yen · ★★★★ · €122,04',
+        transport:'Transfert Hué → Hoi An via col Hải Vân · 24 avr. 06:30',
+        url:'https://secure.booking.com/confirmation.fr.html?auth_key=wNaHHf5yECbdNEs8',
+        activites:['🏮 Vieille ville aux lanternes · UNESCO','🍳 Cours de cuisine','🏖️ Plage An Bang']
+    },
+    {
+        num:'08', ville:'Đà Nẵng', emoji:'✈️',
+        dates:'27 — 28 avr.', badge:'b-ok', statut:'Confirmé',
+        logement:'Transit · Vol retour 27 avr. 22:55',
+        transport:'Grab Hoi An → Da Nang ~45min · À organiser',
+        url:'https://flights.booking.com/booking/order-details/524c0995388af2e3d9d2ccc0ca3e0b8d7bf87a1f2d113687d51d9439c52406f3450e22128043b3482563cdc53b8ead16be3bad8f7a85ba40157c20a7a4a276846b6ee1f0b76616cd50028338e406',
+        activites:['🌉 Golden Bridge · Ba Na Hills','🏖️ My Khe Beach','✈️ Vol HAN→BIO 22:55']
+    },
+];
 
-        const events = [];
-        const lines = txt.split(/\r?\n/);
-        let ev = null;
-        lines.forEach(l => {
-            if (l.startsWith('BEGIN:VEVENT')) ev = {};
-            else if (l.startsWith('END:VEVENT')) { if (ev?.title) events.push(ev); ev = null; }
-            else if (ev) {
-                if (l.startsWith('SUMMARY:')) ev.title = l.slice(8).replace(/\\,/g, ',');
-                if (l.startsWith('LOCATION:')) ev.loc = l.slice(9).replace(/\\,/g, ',');
-                if (l.startsWith('DTSTART')) {
-                    const raw = l.split(':')[1]?.replace(/[^0-9]/g, '') || '';
-                    ev.dateRaw = raw;
-                    if (raw.length >= 8) ev.date = `${raw.slice(6,8)}/${raw.slice(4,6)}/${raw.slice(0,4)}`;
-                }
-                if (l.startsWith('URL:')) ev.url = l.slice(4);
-            }
-        });
-        events.sort((a,b) => (a.dateRaw||'').localeCompare(b.dateRaw||''));
-        localStorage.setItem('vn_trip', JSON.stringify(events));
-        renderItinerary(events);
-        badge.className = 'badge b-ok'; badge.textContent = '✅ À jour';
-        if (manual) { btn.textContent = '✅ Synchronisé !'; setTimeout(() => btn.textContent = '🔄 Sync TripIt', 2500); }
-    } catch(e) {
-        const cached = JSON.parse(localStorage.getItem('vn_trip') || '[]');
-        if (cached.length) { renderItinerary(cached); badge.className = 'badge b-warn'; badge.textContent = '🟠 Cache'; }
-        if (manual) { btn.textContent = '❌ Erreur réseau'; setTimeout(() => btn.textContent = '🔄 Sync TripIt', 2500); }
-    }
-};
-
-function renderItinerary(events) {
+function renderItinerary() {
     const list = document.getElementById('itinerary-list');
-    if (!events.length) { list.innerHTML = '<p style="color:#555;font-size:12px;text-align:center;">Transfère tes emails à plans@tripit.com puis sync !</p>'; return; }
-    list.innerHTML = events.map(e => `
+    const badge = document.getElementById('sync-badge');
+    badge.className = 'badge b-ok'; badge.textContent = '✅ À jour';
+    list.innerHTML = MES_ETAPES.map(e => `
         <div class="card">
-            <div class="card-title">${e.title} <span class="badge b-sync">TripIt</span></div>
-            <div class="sub">📅 ${e.date || '?'}</div>
-            ${e.loc ? `<div class="sub">📍 ${e.loc}</div>` : ''}
-            ${e.url ? `<a href="${e.url}" target="_blank" class="resa-btn">Ouvrir la réservation ↗</a>` : ''}
+            <div class="card-title">${e.emoji} ${e.ville} <span class="badge ${e.badge}">${e.statut}</span></div>
+            <div class="sub">📅 ${e.dates}</div>
+            <div class="sub">🏨 ${e.logement}</div>
+            <div class="sub">🚌 ${e.transport}</div>
+            <div style="margin-top:8px;">${e.activites.map(a => `<div class="sub">• ${a}</div>`).join('')}</div>
+            <a href="${e.url}" target="_blank" class="resa-btn">Ouvrir la réservation ↗</a>
         </div>
     `).join('');
 }
 
-const cachedTrip = JSON.parse(localStorage.getItem('vn_trip') || '[]');
-renderItinerary(cachedTrip);
-setTimeout(() => syncTripit(false), 2000);
+window.syncTripit = () => renderItinerary();
+renderItinerary();
 
 // ── CHECKLISTS ──
 const CHECKS_DEPART = [
