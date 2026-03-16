@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - V3.6</title>
+    <title>Vietnam 2026 - V3.7</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -38,15 +38,35 @@
         
         .day-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; flex-shrink: 0;}
         .day-arrow { background: rgba(128,128,128,0.2); border: none; color: var(--text); font-size: 14px; padding: 4px 12px; border-radius: 8px; cursor: pointer; }
-        .weather-badge { font-size: 11px; padding: 3px 6px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: bold; }
+        .weather-badge { font-size: 12px; padding: 4px 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: bold; margin-top:5px; display:inline-block; }
         
-        .section-title { font-size: 11px; text-transform: uppercase; color: var(--primary); margin: 10px 0 5px 0; font-weight: bold; }
-        .info-line { font-size: 13px; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; color: var(--text-muted); justify-content: space-between; }
-        .item-link { color: #38bdf8; text-decoration: none; font-size: 12px; font-weight: bold; margin-left: 5px;}
+        /* ========================================= */
+        /* 🚀 NOUVEAU DESIGN TIMELINE JOUR PAR JOUR  */
+        /* ========================================= */
+        .timeline { border-left: 2px solid rgba(255,255,255,0.1); margin-left: 10px; padding-left: 15px; position: relative; margin-top:15px; }
+        .timeline-item { position: relative; margin-bottom: 15px; }
+        .timeline-dot { position: absolute; left: -22px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--glass-bg); border: 2px solid #ccc; z-index: 2; }
         
-        .custom-add { display: flex; gap: 5px; margin-top: 5px; }
-        .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 13px; width: 100%; box-sizing: border-box; }
+        /* Code Couleur Précis */
+        .dot-transport { border-color: #38bdf8; background: rgba(56, 189, 248, 0.2); }
+        .dot-hotel { border-color: #a855f7; background: rgba(168, 85, 247, 0.2); }
+        .dot-activity { border-color: var(--primary); background: rgba(74, 222, 128, 0.2); }
         
+        /* Animation "En cours" pour le premier item */
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+        .pulse-dot { animation: pulse 2s infinite; border-color: var(--primary) !important; background: var(--primary) !important;}
+        
+        .timeline-content { background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .timeline-title { font-size: 10px; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 4px; display:flex; justify-content:space-between; align-items:center;}
+        .timeline-text { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; justify-content: space-between; color:white; }
+        
+        .item-link { background: rgba(56, 189, 248, 0.15); color: #38bdf8; text-decoration: none; font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(56, 189, 248, 0.3);}
+        .item-link:active { background: #38bdf8; color: black; }
+        
+        .custom-add { display: flex; gap: 5px; margin-top: 15px; margin-left: 10px; }
+        .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; width: 100%; box-sizing: border-box; }
+        /* ========================================= */
+
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; flex-shrink: 0;}
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 9px; font-weight: 600; cursor: pointer; padding: 6px; border-radius: 12px; transition: 0.2s; width:22%;}
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
@@ -106,14 +126,16 @@
                 <div class="day-nav">
                     <button class="day-arrow" onclick="changeDay(-1)">◀</button>
                     <div style="text-align:center; display:flex; flex-direction:column; align-items:center;">
-                        <h2 id="day-title" style="margin:0; border:none; padding:0; color:var(--text); font-size:15px;">Jour 1</h2>
-                        <div id="day-date" style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">...</div>
-                        <span id="weather-box" class="weather-badge">⛅ Météo...</span>
+                        <h2 id="day-title" style="margin:0; border:none; padding:0; color:var(--text); font-size:16px;">Jour 1</h2>
+                        <div id="day-date" style="font-size:12px; color:var(--text-muted);">...</div>
+                        <div id="weather-box" class="weather-badge">⛅ Météo...</div>
                     </div>
                     <button class="day-arrow" onclick="changeDay(1)">▶</button>
                     <button class="toggle-btn" onclick="togglePanel()" id="toggle-panel-btn">🔽</button>
                 </div>
-                <div id="day-content" class="card" style="margin-top:10px; flex-grow:1;"></div>
+                
+                <div id="day-content" style="flex-grow:1; margin-top:5px;">
+                    </div>
             </div>
 
             <div id="view-budget" class="glass-panel app-view">
@@ -137,31 +159,30 @@
                     <div style="font-size:12px; color:var(--text-muted);">Total dépensé sur place</div>
                     <div style="font-size:24px; font-weight:bold; color:var(--primary); margin:5px 0;" id="budget-spent">0 €</div>
                 </div>
-                <div class="section-title">Ajouter un ticket</div>
-                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                    <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" style="width: 50%; margin:0;">
-                    <select id="exp-currency" class="custom-input" style="width:auto; margin:0;"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
+                <div class="custom-add" style="margin-left:0;">
+                    <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" style="width: 50%;">
+                    <select id="exp-currency" class="custom-input" style="width:auto;"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
                 </div>
-                <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo)" style="margin:0;">
+                <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo)" style="margin-top:5px;">
                 <button onclick="addExpense()" style="width:100%; background:var(--primary); color:#000; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-top:8px; cursor:pointer;">Noter la dépense</button>
-                <div class="section-title" style="margin-top:15px;">Dernières dépenses</div>
+                
+                <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-top:20px; margin-bottom:5px;">Historique</h3>
                 <div id="expense-list"></div>
             </div>
 
             <div id="view-vault" class="glass-panel app-view">
-                <h2>🧳 Sac à Dos de Survie</h2>
-                
+                <h2>🧳 Sac à Dos</h2>
                 <div class="card">
-                    <div class="section-title" style="margin-top:0;">✅ Check-list Départ</div>
-                    <div class="custom-add" style="margin-bottom:10px;">
-                        <input type="text" id="check-input" class="custom-input" placeholder="Ajouter un truc à pas oublier...">
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">✅ Check-list Départ</h3>
+                    <div class="custom-add" style="margin-left:0; margin-bottom:10px; margin-top:0;">
+                        <input type="text" id="check-input" class="custom-input" placeholder="Ajouter à la liste...">
                         <button onclick="addCheck()" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">+</button>
                     </div>
                     <div id="checklist-container"></div>
                 </div>
 
                 <div class="card">
-                    <div class="section-title" style="margin-top:0;">🗣️ Dico Audio (Viêtnamien)</div>
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">🗣️ Survie Audio</h3>
                     <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;">
                         <button class="speak-btn" onclick="speakVN('Xin chào')">👋 Bonjour</button>
                         <button class="speak-btn" onclick="speakVN('Cảm ơn')">🙏 Merci</button>
@@ -170,7 +191,7 @@
                         <button class="speak-btn" onclick="speakVN('Nhà vệ sinh ở đâu?')">🚽 Toilettes ?</button>
                     </div>
                     
-                    <div style="font-size:11px; color:#aaa; margin-bottom:5px;">Traducteur Libre (Réseau requis la 1ère fois)</div>
+                    <div style="font-size:11px; color:#aaa; margin-bottom:5px;">Traducteur (Réseau requis la 1ère fois)</div>
                     <div style="display:flex; gap:5px;">
                         <input type="text" id="trans-input" class="custom-input" placeholder="Taper une phrase en français...">
                         <button onclick="translateAndSpeak()" style="background:#38bdf8; color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">🔊</button>
@@ -179,7 +200,7 @@
                 </div>
 
                 <div class="card">
-                    <div class="section-title" style="margin-top:0;">📸 Albums & Souvenirs</div>
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">📸 Albums</h3>
                     <div style="display:flex; gap:10px;">
                         <div style="flex:1;">
                             <div style="font-size:10px; margin-bottom:5px; color:#aaa;">Album Food</div>
@@ -269,22 +290,65 @@
             .then(res => res.json()).then(data => { const temp = Math.round(data.daily.temperature_2m_max[0]); document.getElementById('weather-box').innerText = `🌡️ ${temp}°C prévu`; })
             .catch(() => document.getElementById('weather-box').innerText = `⛅ Météo indispo`);
 
-            let html = '';
-            if(d.transport) html += `<div class="section-title">🚌 Déplacement</div><div class="info-line"><span>${d.transport}</span></div>`;
-            html += `<div class="section-title">🏨 Logement(s)</div>`;
-            if(d.logements.length === 0) html += `<div class="info-line" style="font-size:12px; color:#666;">Aucun</div>`;
-            d.logements.forEach((l, idx) => { html += `<div class="info-line"><span>📍 ${l.nom} ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;cursor:pointer;">✕</button></div>`; });
-            html += `<div class="custom-add"><input type="text" id="add-log-name" class="custom-input" placeholder="Ajouter hôtel..."><input type="text" id="add-log-link" class="custom-input" placeholder="Adresse ou Lien Maps"><button onclick="addLogement(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
-            html += `<div class="section-title">🎟️ Programme & Notes</div>`;
-            if(d.activites.length === 0) html += `<div class="info-line" style="font-size:12px; color:#666;">Quartier libre !</div>`;
-            d.activites.forEach((a, idx) => { html += `<div class="info-line"><span>👉 ${a.nom} ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;cursor:pointer;">✕</button></div>`; });
-            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Ajouter visite, resto..."><input type="text" id="add-act-link" class="custom-input" placeholder="Adresse ou Lien Maps"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
+            let html = '<div class="timeline">';
+            let isFirstNode = true; // Pour animer le premier élément
+            
+            // 1. TRANSPORT
+            if(d.transport) {
+                html += `
+                <div class="timeline-item">
+                    <div class="timeline-dot dot-transport ${isFirstNode ? 'pulse-dot' : ''}"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title" style="color:#38bdf8;">🚌 Déplacement</div>
+                        <div class="timeline-text">${d.transport}</div>
+                    </div>
+                </div>`;
+                isFirstNode = false;
+            }
+            
+            // 2. LOGEMENTS
+            d.logements.forEach((l, idx) => {
+                html += `
+                <div class="timeline-item">
+                    <div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title" style="color:#a855f7;">🏨 Logement <button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
+                        <div class="timeline-text">
+                            <span>${l.nom}</span>
+                            ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">Aller 📍</a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+                isFirstNode = false;
+            });
+
+            // 3. ACTIVITÉS
+            d.activites.forEach((a, idx) => {
+                html += `
+                <div class="timeline-item">
+                    <div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title" style="color:var(--primary);">🎟️ Programme <button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
+                        <div class="timeline-text">
+                            <span>${a.nom}</span>
+                            ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">Aller 📍</a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+                isFirstNode = false;
+            });
+
+            html += '</div>'; // Fin de la timeline
+
+            // 4. FORMULAIRES D'AJOUT RAPIDE (Hors de la timeline)
+            html += `<div style="font-size:10px; color:#666; text-transform:uppercase; font-weight:bold; margin-top:15px; margin-left:10px;">+ Ajouter une étape</div>`;
+            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto, note..."><input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps ou Adresse"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">+</button></div>`;
+
             document.getElementById('day-content').innerHTML = html;
         }
 
         window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
         window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
-        window.addLogement = (dayIdx) => { const nom = document.getElementById('add-log-name').value; const lien = formatMapLink(document.getElementById('add-log-link').value); if(nom) { monVoyage[dayIdx].logements.push({nom: nom, lien: lien}); saveVoyage(); } };
         window.addActivite = (dayIdx) => { const nom = document.getElementById('add-act-name').value; const lien = formatMapLink(document.getElementById('add-act-link').value); if(nom) { monVoyage[dayIdx].activites.push({nom: nom, lien: lien}); saveVoyage(); } };
 
         window.togglePanel = () => {
@@ -306,9 +370,6 @@
 
         setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); }, 1000);
 
-        // ==========================================
-        // 💱 BUDGET & CONVERTISSEUR
-        // ==========================================
         let exchangeRate = parseFloat(localStorage.getItem('vn_exchange_rate')) || 27500;
         fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exchangeRate = d.rates.VND; localStorage.setItem('vn_exchange_rate', exchangeRate); document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct)`; }).catch(() => { document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne)`; });
         window.convertEurToVnd = () => { let eur = parseFloat(document.getElementById('conv-eur').value) || 0; document.getElementById('conv-vnd').value = Math.round(eur * exchangeRate); };
@@ -316,65 +377,18 @@
         window.calcGrab = () => { let km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { let price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
         let exps = JSON.parse(localStorage.getItem('vn_b_exps_v3')) || [];
-        function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="justify-content:space-between; border-bottom:1px solid var(--glass-border); padding-bottom:5px;"><span>${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--danger);cursor:pointer;">✕</button></div>`; }); document.getElementById('budget-spent').innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
+        function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:5px;"><span>${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--danger);cursor:pointer;">✕</button></div>`; }); document.getElementById('budget-spent').innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
         window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if(!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq }); localStorage.setItem('vn_b_exps_v3', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
         window.delExp = (idx) => { exps.splice(idx,1); localStorage.setItem('vn_b_exps_v3', JSON.stringify(exps)); updateBudget(); };
-        
         renderDay(); updateBudget();
 
-        // ==========================================
-        // 🧳 CHECK-LIST, DICO AUDIO & ALBUMS
-        // ==========================================
-        
-        // CHECKLIST
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist')) || [
-            {t: "Passeports & Visas imprimés", c: false}, {t: "Répulsif Moustiques Tropical", c: false}, {t: "Adaptateur Prise (Optionnel)", c: false}
-        ];
-        function updateChecklist() {
-            let html = '';
-            checklist.forEach((item, idx) => {
-                let checkedStyle = item.c ? "text-decoration: line-through; color: #666;" : "color: var(--text);";
-                html += `<div class="info-line" style="align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.2); accent-color:var(--primary);">
-                        <span style="${checkedStyle} font-size:13px;">${item.t}</span>
-                    </div>
-                    <button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--danger);cursor:pointer;font-weight:bold;">✕</button>
-                </div>`;
-            });
-            document.getElementById('checklist-container').innerHTML = html;
-            localStorage.setItem('vn_checklist', JSON.stringify(checklist));
-        }
-        window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); };
-        window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); };
-        window.addCheck = () => { const v = document.getElementById('check-input').value; if(v) { checklist.push({t: v, c: false}); document.getElementById('check-input').value = ''; updateChecklist(); } };
-        updateChecklist();
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist')) || [{t: "Passeports & Visas", c: false}, {t: "Permis de Conduire International", c: false}, {t: "Répulsif Moustique (50% DEET)", c: false}];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { let checkedStyle = item.c ? "text-decoration: line-through; color: #666;" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;"><div style="display:flex; align-items:center; gap:10px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.2); accent-color:var(--primary);"><span style="${checkedStyle} font-size:13px;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:#666;cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist', JSON.stringify(checklist)); }
+        window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value; if(v) { checklist.push({t: v, c: false}); document.getElementById('check-input').value = ''; updateChecklist(); } }; updateChecklist();
 
-        // TRADUCTEUR AUDIO
-        window.speakVN = (text) => {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'vi-VN';
-            speechSynthesis.speak(utterance);
-        };
+        window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
+        window.translateAndSpeak = async () => { const input = document.getElementById('trans-input').value; if(!input) return; const resDiv = document.getElementById('trans-result'); resDiv.innerText = "⏳ Traduction..."; try { const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=fr|vi`); const data = await response.json(); const translated = data.responseData.translatedText; resDiv.innerText = `« ${translated} »`; speakVN(translated); } catch(e) { resDiv.innerText = "❌ Pas de réseau"; } };
 
-        window.translateAndSpeak = async () => {
-            const input = document.getElementById('trans-input').value;
-            if(!input) return;
-            const resDiv = document.getElementById('trans-result');
-            resDiv.innerText = "⏳ Traduction en cours...";
-            try {
-                // Appel à l'API gratuite MyMemory Translation
-                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=fr|vi`);
-                const data = await response.json();
-                const translated = data.responseData.translatedText;
-                resDiv.innerText = `« ${translated} »`;
-                speakVN(translated); // Prononce la traduction !
-            } catch(e) {
-                resDiv.innerText = "❌ Traduction impossible (Pas de réseau)";
-            }
-        };
-
-        // ALBUMS
         let photos = JSON.parse(localStorage.getItem('vn_photos')) || { food: [], receipt: [] };
         function renderPhotos(cat) { const gal = document.getElementById(`gallery-${cat}`); gal.innerHTML = ''; photos[cat].forEach((p, idx) => { gal.innerHTML += `<div style="position:relative;"><img src="${p}" style="height:60px; width:60px; object-fit:cover; border-radius:8px; border:1px solid var(--glass-border);"><button onclick="delPhoto('${cat}', ${idx})" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:8px; cursor:pointer;">✕</button></div>`; }); }
         window.savePhoto = (e, cat) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { photos[cat].unshift(ev.target.result); localStorage.setItem('vn_photos', JSON.stringify(photos)); renderPhotos(cat); }; r.readAsDataURL(f); };
