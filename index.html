@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - V3.0</title>
+    <title>Vietnam 2026 - V3.1</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -26,13 +26,12 @@
         .map-tools { display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
         .round-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); }
         
-        /* CONTENEUR DU TIROIR MOBILE */
         .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin: 10px 0; width: 100%; position: relative; pointer-events: none;}
         
-        .app-view { display: none; width: 100%; max-width: 400px; max-height: 45vh; overflow-y: auto; padding: 15px; box-sizing: border-box; pointer-events: auto; display:flex; flex-direction:column;}
+        /* CORRECTION DU BUG D'AFFICHAGE ICI */
+        .app-view { display: none; flex-direction: column; width: 100%; max-width: 400px; max-height: 45vh; overflow-y: auto; padding: 15px; box-sizing: border-box; pointer-events: auto; }
         .app-view h2 { margin: 0 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
         
-        /* ETAT RÉDUIT DU TIROIR */
         .collapsed { max-height: 90px !important; overflow: hidden !important; }
         .toggle-btn { background: rgba(255,255,255,0.1); border: none; color: var(--text); border-radius: 50%; width: 26px; height: 26px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         
@@ -60,25 +59,13 @@
         ::-webkit-scrollbar { width: 3px; background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* ========================================= */
-        /* 💻 RESPONSIVE PC : PANNEAU LATÉRAL FIXE 💻 */
-        /* ========================================= */
-        @media (min-width: 600px) { /* Déclenche plus tôt (pour les demi-écrans PC) */
+        @media (min-width: 600px) {
             .middle-container {
-                position: absolute !important;
-                left: 10px !important;
-                top: 80px !important; /* Sous l'horloge */
-                bottom: 70px !important; /* Au dessus du menu */
-                width: 320px !important; /* Largeur fixe fine */
-                align-items: flex-start !important;
-                justify-content: flex-start !important;
-                margin: 0 !important;
+                position: absolute !important; left: 10px !important; top: 80px !important; bottom: 70px !important; 
+                width: 320px !important; align-items: flex-start !important; justify-content: flex-start !important; margin: 0 !important;
             }
-            .app-view {
-                max-height: 100% !important; /* Prend toute la hauteur gauche */
-                width: 100% !important;
-            }
-            .toggle-btn { display: none !important; } /* On cache le bouton "réduire" sur PC */
+            .app-view { max-height: 100% !important; width: 100% !important; }
+            .toggle-btn { display: none !important; } 
         }
     </style>
 </head>
@@ -121,7 +108,6 @@
                     <button class="day-arrow" onclick="changeDay(1)">▶</button>
                     <button class="toggle-btn" onclick="togglePanel()" id="toggle-panel-btn">🔽</button>
                 </div>
-                
                 <div id="day-content" class="card" style="margin-top:10px; flex-grow:1;"></div>
             </div>
 
@@ -160,8 +146,8 @@
         </div>
 
         <div class="glass-panel nav-container">
-            <div class="nav-item active" data-target="view-etapes"><span class="nav-icon">📅</span>Planning</div>
-            <div class="nav-item" data-target="none"><span class="nav-icon">🌍</span>Carte</div>
+            <div class="nav-item active" data-target="view-etapes" id="tab-planning"><span class="nav-icon">📅</span>Planning</div>
+            <div class="nav-item" data-target="none" id="tab-carte"><span class="nav-icon">🌍</span>Carte</div>
             <div class="nav-item" data-target="view-budget"><span class="nav-icon">💸</span>Budget</div>
             <div class="nav-item" data-target="view-vault"><span class="nav-icon">📸</span>Albums</div>
         </div>
@@ -185,9 +171,6 @@
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([2.3522, 48.8566, 28.9784, 41.0082]), width: 2, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }}); 
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([28.9784, 41.0082, 105.8342, 21.0278]), width: 2, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
 
-        // ==========================================
-        // 📝 TON VRAI ITINÉRAIRE
-        // ==========================================
         const DEFAULT_VOYAGE = [
             {
                 jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000,
@@ -216,18 +199,38 @@
         function saveVoyage() { localStorage.setItem('vn_mon_voyage', JSON.stringify(monVoyage)); renderDay(); }
 
         let currentDayIdx = 0;
+        let isCollapsed = false; // Gestion du tiroir
+
         function changeDay(dir) { currentDayIdx += dir; if(currentDayIdx < 0) currentDayIdx = 0; if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; renderDay(); }
+
+        // MOTEUR CAMERA INTELLIGENT
+        function updateCamera() {
+            const d = monVoyage[currentDayIdx];
+            const isClose = d.zoomMap < 1000000;
+            const isMobile = window.innerWidth < 600;
+
+            // Offset de base (inclinaison 3D)
+            let latOffset = isClose ? 0.02 : 0;
+
+            // LE PETIT JEU : Si on est sur mobile ET que le tiroir est OUVERT, on décale la ville vers le haut
+            const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
+            if (isMobile && !isCollapsed && planningIsActive) {
+                latOffset += (d.zoomMap * 0.0000018); // Ratio magique selon le zoom
+            }
+
+            viewer.camera.flyTo({ 
+                destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat - latOffset, d.zoomMap), 
+                orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, 
+                duration: 1.2 // Animation fluide
+            });
+        }
 
         function renderDay() {
             const d = monVoyage[currentDayIdx];
             document.getElementById('day-title').innerText = `Jour ${d.jour}`;
             document.getElementById('day-date').innerText = `${d.date} - ${d.ville}`;
 
-            const isClose = d.zoomMap < 1000000;
-            viewer.camera.flyTo({ 
-                destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat - (isClose ? 0.05 : 0), d.zoomMap), 
-                orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, duration: 1.5 
-            });
+            updateCamera();
 
             fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&daily=temperature_2m_max,weathercode&timezone=Asia%2FHo_Chi_Minh`)
             .then(res => res.json()).then(data => { const temp = Math.round(data.daily.temperature_2m_max[0]); document.getElementById('weather-box').innerText = `🌡️ ${temp}°C prévu`; })
@@ -238,13 +241,13 @@
             
             html += `<div class="section-title">🏨 Logement(s)</div>`;
             if(d.logements.length === 0) html += `<div class="info-line" style="font-size:12px; color:#666;">Aucun</div>`;
-            d.logements.forEach((l, idx) => { html += `<div class="info-line"><span>📍 ${l.nom} ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;">✕</button></div>`; });
-            html += `<div class="custom-add"><input type="text" id="add-log-name" class="custom-input" placeholder="Ajouter hôtel..."><input type="text" id="add-log-link" class="custom-input" placeholder="Lien Maps"><button onclick="addLogement(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold;">+</button></div>`;
+            d.logements.forEach((l, idx) => { html += `<div class="info-line"><span>📍 ${l.nom} ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;cursor:pointer;">✕</button></div>`; });
+            html += `<div class="custom-add"><input type="text" id="add-log-name" class="custom-input" placeholder="Ajouter hôtel..."><input type="text" id="add-log-link" class="custom-input" placeholder="Lien Maps"><button onclick="addLogement(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
 
             html += `<div class="section-title">🎟️ Programme & Notes</div>`;
             if(d.activites.length === 0) html += `<div class="info-line" style="font-size:12px; color:#666;">Quartier libre !</div>`;
-            d.activites.forEach((a, idx) => { html += `<div class="info-line"><span>👉 ${a.nom} ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;">✕</button></div>`; });
-            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Ajouter visite, note..."><input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold;">+</button></div>`;
+            d.activites.forEach((a, idx) => { html += `<div class="info-line"><span>👉 ${a.nom} ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;cursor:pointer;">✕</button></div>`; });
+            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Ajouter visite, note..."><input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
 
             document.getElementById('day-content').innerHTML = html;
         }
@@ -254,25 +257,41 @@
         window.addLogement = (dayIdx) => { const nom = document.getElementById('add-log-name').value; const lien = document.getElementById('add-log-link').value; if(nom) { monVoyage[dayIdx].logements.push({nom: nom, lien: lien}); saveVoyage(); } };
         window.addActivite = (dayIdx) => { const nom = document.getElementById('add-act-name').value; const lien = document.getElementById('add-act-link').value; if(nom) { monVoyage[dayIdx].activites.push({nom: nom, lien: lien}); saveVoyage(); } };
 
-        // LOGIQUE TIROIR MOBILE
-        let isCollapsed = false;
         window.togglePanel = () => {
             const panel = document.getElementById('view-etapes');
             const btn = document.getElementById('toggle-panel-btn');
             isCollapsed = !isCollapsed;
             if(isCollapsed) { panel.classList.add('collapsed'); btn.innerText = '🔼'; } 
             else { panel.classList.remove('collapsed'); btn.innerText = '🔽'; }
+            updateCamera(); // La caméra bouge avec le tiroir !
         };
 
         function toggleTheme() { document.body.classList.toggle('light-theme'); }
+        
         const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view');
-        navItems.forEach(i => i.addEventListener('click', () => { navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; }); i.classList.add('active'); const t = i.getAttribute('data-target'); if(t !== 'none') { document.getElementById(t).style.display = 'flex'; if(t === 'view-etapes') { document.getElementById('view-etapes').classList.remove('collapsed'); document.getElementById('toggle-panel-btn').innerText='🔽'; isCollapsed=false; } } }));
+        navItems.forEach(i => i.addEventListener('click', () => { 
+            navItems.forEach(n => n.classList.remove('active')); 
+            views.forEach(v => { v.style.display = 'none'; }); 
+            i.classList.add('active'); 
+            const t = i.getAttribute('data-target'); 
+            if(t !== 'none') { 
+                document.getElementById(t).style.display = 'flex'; 
+                if(t === 'view-etapes') { 
+                    document.getElementById('view-etapes').classList.remove('collapsed'); 
+                    document.getElementById('toggle-panel-btn').innerText='🔽'; 
+                    isCollapsed=false; 
+                } 
+            }
+            updateCamera(); // Recentre si on clique sur Carte
+        }));
+
         setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); }, 1000);
 
         let exps = JSON.parse(localStorage.getItem('vn_b_exps')) || [];
-        function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="justify-content:space-between; border-bottom:1px solid var(--glass-border); padding-bottom:5px;"><span>${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--danger); cursor:pointer;">✕</button></div>`; }); document.getElementById('budget-spent').innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
+        function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="justify-content:space-between; border-bottom:1px solid var(--glass-border); padding-bottom:5px;"><span>${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--danger);cursor:pointer;">✕</button></div>`; }); document.getElementById('budget-spent').innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
         window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if(!amt) return; const eurEq = cur === 'VND' ? (amt / 27500).toFixed(2) : amt; exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq }); localStorage.setItem('vn_b_exps', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
         window.delExp = (idx) => { exps.splice(idx,1); localStorage.setItem('vn_b_exps', JSON.stringify(exps)); updateBudget(); };
+        
         renderDay(); updateBudget();
 
         let photos = JSON.parse(localStorage.getItem('vn_photos')) || { food: [], receipt: [] };
