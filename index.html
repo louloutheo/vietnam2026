@@ -1,784 +1,320 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
-    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4ade80;
-            --danger: #ef4444;
-            --warn: #facc15;
-            --blue: #38bdf8;
-            --glass: rgba(15,15,15,0.82);
-            --border: rgba(255,255,255,0.12);
-        }
-        *, *::before, *::after { box-sizing: border-box; }
-        body, html { margin:0; padding:0; height:100%; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#000; color:#fff; overflow:hidden; }
-        button, input, select, textarea, .nav-item { touch-action:manipulation; outline:none; }
-        #cesiumContainer { width:100vw; height:100vh; position:absolute; top:0; left:0; z-index:1; }
-        #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; padding:env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing:border-box; }
-        .glass { pointer-events:auto; background:var(--glass); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid var(--border); border-radius:20px; }
-
-        /* TOP WIDGET */
-        .top-bar { display:flex; gap:10px; align-items:flex-start; margin-top:15px; }
-        .top-widget { padding:12px 16px; flex:1; max-width:220px; }
-        .top-widget h1 { margin:0 0 4px; font-size:18px; color:var(--primary); text-transform:uppercase; letter-spacing:1px; }
-        #countdown { font-family:monospace; font-size:12px; font-weight:bold; }
-        .weather-chip { padding:10px 14px; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:bold; }
-        .top-actions { display:flex; flex-direction:column; gap:8px; }
-        .icon-btn { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; pointer-events:auto; background:var(--glass); border:1px solid var(--border); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transition:.2s; }
-        .icon-btn:active { transform:scale(0.85); background:var(--primary); color:#000; }
-
-        /* MIDDLE */
-        .middle { flex:1; display:flex; justify-content:flex-end; align-items:flex-end; margin-bottom:16px; position:relative; }
-        .app-view { display:none; width:100%; max-width:400px; max-height:62vh; overflow-y:auto; padding:18px; }
-        .app-view::-webkit-scrollbar { width:0; }
-        .view-focused { position:fixed !important; top:0 !important; left:0 !important; right:0 !important; width:100% !important; max-width:100% !important; max-height:52vh !important; border-radius:0 0 20px 20px !important; padding:15px !important; padding-top:calc(15px + env(safe-area-inset-top)) !important; z-index:100 !important; }
-        #ui-layer.kb-up .top-bar, #ui-layer.kb-up .nav-bar { transform:translateY(-300%); opacity:0; }
-
-        /* NAV */
-        .nav-bar { display:flex; justify-content:space-around; align-items:center; padding:8px 6px; margin-bottom:12px; width:100%; align-self:center; max-width:420px; pointer-events:auto; }
-        .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; color:#666; font-size:8px; font-weight:700; cursor:pointer; padding:7px 6px; border-radius:14px; text-transform:uppercase; letter-spacing:.5px; flex:1; transition:.2s; }
-        .nav-item.active { color:var(--primary); background:rgba(74,222,128,.12); }
-        .nav-icon { font-size:19px; }
-
-        /* CARDS */
-        .card { background:rgba(255,255,255,.07); padding:13px; border-radius:14px; margin-bottom:10px; }
-        .card-title { margin:0 0 6px; font-size:14px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; line-height:1.3; }
-        .badge { font-size:9px; padding:2px 7px; border-radius:10px; white-space:nowrap; flex-shrink:0; }
-        .b-ok { background:rgba(74,222,128,.2); color:var(--primary); }
-        .b-sync { background:rgba(56,189,248,.2); color:var(--blue); }
-        .b-warn { background:rgba(250,204,21,.2); color:var(--warn); }
-        .b-danger { background:rgba(239,68,68,.2); color:var(--danger); }
-        .sub { font-size:12px; color:#aaa; margin:3px 0; }
-        .resa-btn { display:block; width:100%; margin-top:10px; padding:9px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; color:#fff; text-decoration:none; font-size:11px; font-weight:bold; text-align:center; }
-
-        /* SECTION TITLE */
-        .sec { font-size:11px; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.8px; margin:14px 0 8px; }
-
-        /* FORMS */
-        .row { display:flex; gap:8px; flex-wrap:wrap; }
-        .btn { padding:10px 14px; border-radius:12px; font-weight:800; cursor:pointer; font-size:12px; text-transform:uppercase; border:none; transition:.15s; }
-        .btn:active { transform:scale(.94); }
-        .btn-primary { background:var(--primary); color:#000; }
-        .btn-outline { background:rgba(74,222,128,.12); border:1px solid rgba(74,222,128,.4); color:var(--primary); flex:1; }
-        .btn-danger { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); color:var(--danger); }
-        .btn-blue { background:rgba(56,189,248,.12); border:1px solid rgba(56,189,248,.4); color:var(--blue); width:100%; margin-bottom:12px; }
-        .input, .select { background:rgba(0,0,0,.5); border:1px solid var(--border); color:#fff; padding:11px; border-radius:12px; font-size:15px; }
-        .input { flex:1; }
-        input[type=text].big, input[type=number].big { background:transparent; border:none; color:#fff; font-size:22px; font-weight:bold; text-align:right; width:55%; font-family:inherit; }
-        input::placeholder { color:rgba(255,255,255,.2); }
-        textarea.input { width:100%; resize:none; min-height:75px; margin-bottom:12px; font-family:inherit; font-size:13px; }
-
-        /* BUDGET GAUGE */
-        .gauge-bg { background:rgba(255,255,255,.1); width:100%; height:10px; border-radius:8px; overflow:hidden; margin-top:8px; }
-        .gauge-fill { height:100%; width:0%; border-radius:8px; transition:width .5s, background .3s; }
-
-        /* EXPENSE LIST */
-        .exp-item { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; }
-        .exp-item:last-child { border-bottom:none; }
-        .del-btn { color:var(--danger); background:transparent; border:none; font-size:17px; cursor:pointer; padding:0 4px; }
-
-        /* CHECKLIST */
-        .check-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.04); cursor:pointer; }
-        .check-box { width:18px; height:18px; border:1.5px solid rgba(255,255,255,.3); border-radius:5px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; transition:.2s; }
-        .check-box.done { background:var(--primary); border-color:var(--primary); color:#000; }
-        .check-label { font-size:12px; line-height:1.4; flex:1; }
-        .check-label.done { text-decoration:line-through; color:#555; }
-
-        /* DICO */
-        .phrase-card { background:rgba(255,255,255,.06); border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
-        .phrase-fr { font-size:12px; color:#aaa; }
-        .phrase-vn { font-size:14px; font-weight:bold; color:#fff; margin-top:3px; }
-        .speak-btn { background:rgba(74,222,128,.15); border:1px solid rgba(74,222,128,.3); color:var(--primary); padding:8px 12px; border-radius:10px; font-size:16px; cursor:pointer; flex-shrink:0; }
-
-        /* COUNTERS */
-        .counter-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.05); }
-        .counter-item:last-child { border-bottom:none; }
-        .counter-label { font-size:13px; flex:1; }
-        .counter-controls { display:flex; align-items:center; gap:10px; }
-        .counter-val { font-size:20px; font-weight:bold; color:var(--primary); min-width:30px; text-align:center; }
-        .counter-btn { width:32px; height:32px; border-radius:50%; border:none; font-size:18px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-        .c-plus { background:rgba(74,222,128,.2); color:var(--primary); }
-        .c-minus { background:rgba(255,255,255,.08); color:#888; }
-
-        /* JOURNAL */
-        .journal-entry { background:rgba(255,255,255,.06); border-radius:12px; padding:12px; margin-bottom:8px; }
-        .journal-date { font-size:10px; color:#666; margin-bottom:4px; }
-        .journal-text { font-size:13px; line-height:1.5; }
-
-        /* GRAB */
-        .grab-result { background:rgba(74,222,128,.1); border:1px solid rgba(74,222,128,.3); border-radius:12px; padding:14px; margin-top:12px; text-align:center; }
-        .grab-price { font-size:28px; font-weight:bold; color:var(--primary); }
-        .grab-sub { font-size:11px; color:#aaa; margin-top:4px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Vietnam 2026</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<style>
+:root{--g:#4ade80;--r:#ef4444;--y:#facc15;--b:#38bdf8;--glass:rgba(12,12,12,0.86);--border:rgba(255,255,255,0.11);}
+*,*::before,*::after{box-sizing:border-box;}
+body,html{margin:0;padding:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#000;color:#fff;overflow:hidden;}
+button,input,select,textarea,.nav-item{touch-action:manipulation;outline:none;}
+#cesiumContainer{width:100vw;height:100vh;position:absolute;inset:0;z-index:1;}
+#ui-layer{position:absolute;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px;}
+.glass{pointer-events:auto;background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:20px;}
+.top-bar{display:flex;gap:8px;align-items:flex-start;margin-top:14px;}
+.top-widget{padding:11px 15px;flex:1;max-width:200px;}
+.top-widget h1{margin:0 0 2px;font-size:17px;color:var(--g);text-transform:uppercase;letter-spacing:1px;font-weight:800;}
+#countdown{font-family:monospace;font-size:11px;font-weight:bold;opacity:.8;}
+.weather-chip{padding:9px 12px;font-size:12px;font-weight:bold;white-space:nowrap;}
+.offline-chip{padding:6px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#555;}
+.icon-btn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;pointer-events:auto;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(20px);transition:.15s;flex-shrink:0;}
+.icon-btn:active{transform:scale(.82);background:var(--g);color:#000;}
+.middle{flex:1;display:flex;justify-content:flex-end;align-items:flex-end;margin-bottom:14px;}
+.app-view{display:none;width:100%;max-width:400px;max-height:63vh;overflow-y:auto;padding:16px;}
+.app-view::-webkit-scrollbar{width:0;}
+.view-focused{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;max-width:100%!important;max-height:54vh!important;border-radius:0 0 20px 20px!important;padding:14px!important;padding-top:calc(14px + env(safe-area-inset-top))!important;z-index:100!important;}
+#ui-layer.kb-up .top-bar,#ui-layer.kb-up .nav-bar{transform:translateY(-300%);opacity:0;transition:.2s;}
+.nav-bar{display:flex;justify-content:space-around;padding:7px 4px;margin-bottom:10px;width:100%;max-width:430px;align-self:center;pointer-events:auto;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#555;font-size:7.5px;font-weight:700;cursor:pointer;padding:6px 4px;border-radius:13px;text-transform:uppercase;letter-spacing:.4px;flex:1;transition:.15s;}
+.nav-item.active{color:var(--g);background:rgba(74,222,128,.1);}
+.nav-icon{font-size:18px;}
+.card{background:rgba(255,255,255,.06);padding:12px;border-radius:14px;margin-bottom:9px;}
+.badge{font-size:8.5px;padding:2px 6px;border-radius:8px;white-space:nowrap;flex-shrink:0;font-weight:700;}
+.b-ok{background:rgba(74,222,128,.18);color:var(--g);}
+.b-blue{background:rgba(56,189,248,.18);color:var(--b);}
+.b-warn{background:rgba(250,204,21,.18);color:var(--y);}
+.b-danger{background:rgba(239,68,68,.18);color:var(--r);}
+.b-past{background:rgba(255,255,255,.05);color:#333;}
+.sub{font-size:11.5px;color:#888;margin:2px 0;line-height:1.4;}
+.resa-btn{display:block;width:100%;margin-top:9px;padding:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#ccc;text-decoration:none;font-size:11px;font-weight:600;text-align:center;}
+.sec{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.8px;margin:13px 0 7px;}
+.today-hero{background:linear-gradient(135deg,rgba(74,222,128,.08),rgba(56,189,248,.06));border:1px solid rgba(74,222,128,.18);border-radius:16px;padding:15px;margin-bottom:10px;}
+.today-city{font-size:22px;font-weight:800;color:#fff;line-height:1;}
+.today-dates{font-size:11px;color:var(--g);margin-top:3px;}
+.today-next{font-size:11px;color:#555;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.quick-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:13px;padding:12px;cursor:pointer;text-align:center;transition:.12s;}
+.quick-card:active{background:rgba(255,255,255,.1);transform:scale(.95);}
+.quick-icon{font-size:22px;margin-bottom:3px;}
+.quick-label{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.4px;}
+.quick-val{font-size:13px;font-weight:700;color:#fff;margin-top:2px;}
+.step-card{border-radius:14px;padding:12px;margin-bottom:8px;border-left:3px solid transparent;}
+.step-past{background:rgba(255,255,255,.02);border-color:#1a1a1a;opacity:.5;}
+.step-current{background:rgba(74,222,128,.07);border-color:var(--g);}
+.step-upcoming{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07);}
+.step-urgent{background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.3);}
+.step-num{font-size:9px;color:#333;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px;}
+.gauge-bg{background:rgba(255,255,255,.08);width:100%;height:8px;border-radius:6px;overflow:hidden;margin-top:6px;}
+.gauge-fill{height:100%;border-radius:6px;transition:width .5s,background .3s;}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.cat-item{background:rgba(255,255,255,.04);border-radius:9px;padding:8px;text-align:center;}
+.row{display:flex;gap:7px;flex-wrap:wrap;}
+.btn{padding:9px 13px;border-radius:11px;font-weight:800;cursor:pointer;font-size:11.5px;text-transform:uppercase;border:none;transition:.12s;font-family:inherit;}
+.btn:active{transform:scale(.93);}
+.btn-primary{background:var(--g);color:#000;}
+.btn-outline{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--g);flex:1;}
+.btn-red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--r);}
+.input,.select{background:rgba(0,0,0,.5);border:1px solid var(--border);color:#fff;padding:10px;border-radius:11px;font-size:14px;font-family:inherit;}
+.input{flex:1;}
+input[type=text].big,input[type=number].big{background:transparent;border:none;color:#fff;font-size:22px;font-weight:bold;text-align:right;width:55%;font-family:inherit;}
+input::placeholder{color:rgba(255,255,255,.18);}
+textarea.input{width:100%;resize:none;min-height:72px;margin-bottom:10px;}
+.exp-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12.5px;}
+.exp-item:last-child{border-bottom:none;}
+.del-btn{color:var(--r);background:transparent;border:none;font-size:17px;cursor:pointer;}
+.check-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
+.check-box{width:17px;height:17px;border:1.5px solid rgba(255,255,255,.2);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:.15s;}
+.check-box.done{background:var(--g);border-color:var(--g);color:#000;}
+.check-label{font-size:12px;line-height:1.4;flex:1;}
+.check-label.done{text-decoration:line-through;color:#333;}
+.progress-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-bottom:8px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--g);border-radius:2px;transition:width .4s;}
+.phrase-card{background:rgba(255,255,255,.05);border-radius:11px;padding:11px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.speak-btn{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:var(--g);padding:7px 11px;border-radius:9px;font-size:15px;cursor:pointer;flex-shrink:0;}
+.counter-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.counter-item:last-child{border-bottom:none;}
+.counter-val{font-size:20px;font-weight:bold;color:var(--g);min-width:28px;text-align:center;}
+.counter-btn{width:30px;height:30px;border-radius:50%;border:none;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.c-plus{background:rgba(74,222,128,.15);color:var(--g);}
+.c-minus{background:rgba(255,255,255,.06);color:#444;}
+.journal-entry{background:rgba(255,255,255,.04);border-radius:11px;padding:11px;margin-bottom:7px;}
+.journal-date{font-size:9px;color:#333;margin-bottom:3px;}
+.journal-text{font-size:12.5px;line-height:1.5;}
+.grab-result{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);border-radius:11px;padding:12px;margin-top:9px;text-align:center;}
+.grab-price{font-size:26px;font-weight:bold;color:var(--g);}
+.emg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.emg-btn{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.22);border-radius:13px;padding:13px 10px;text-align:center;text-decoration:none;display:block;transition:.12s;}
+.emg-btn:active{background:rgba(239,68,68,.2);}
+.emg-icon{font-size:20px;margin-bottom:3px;}
+.emg-label{font-size:10px;font-weight:700;color:var(--r);text-transform:uppercase;}
+.emg-sub{font-size:9px;color:#555;margin-top:1px;}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(74,222,128,.95);color:#000;padding:9px 18px;border-radius:18px;font-size:12.5px;font-weight:700;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
 </head>
 <body>
 <div id="cesiumContainer"></div>
+<div id="toast"></div>
 <div id="ui-layer">
-
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div class="glass top-widget">
-            <h1>Vietnam 2026</h1>
-            <div id="countdown">...</div>
-        </div>
-        <div class="glass weather-chip" id="weather-chip">🌤️ ...</div>
-        <div class="top-actions">
-            <div class="icon-btn" onclick="gpsMe()" title="GPS">📍</div>
-            <div class="icon-btn" onclick="forceRefresh()" title="Refresh">↻</div>
-        </div>
-    </div>
-
-    <!-- MIDDLE PANELS -->
-    <div class="middle">
-
-        <!-- ÉTAPES -->
-        <div id="view-etapes" class="glass app-view focusable-view">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <span style="font-size:16px;font-weight:bold;">🗺️ Itinéraire</span>
-                <span id="sync-badge" class="badge b-ok">✅ À jour</span>
-            </div>
-            <button class="btn btn-blue" onclick="syncTripit(true)">🗺️ Voir l'itinéraire</button>
-            <div id="itinerary-list"><p style="color:#555;font-size:12px;text-align:center;">Appuie sur Sync TripIt</p></div>
-        </div>
-
-        <!-- CHECKLIST -->
-        <div id="view-check" class="glass app-view">
-            <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">✅ Checklist</div>
-            <div class="sec">Avant le départ</div>
-            <div id="checklist-depart"></div>
-            <div class="sec">À chaque hôtel</div>
-            <div id="checklist-hotel"></div>
-        </div>
-
-        <!-- CONVERTISSEUR -->
-        <div id="view-converter" class="glass app-view focusable-view">
-            <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
-                <span style="font-size:16px;font-weight:bold;">💱 Convertisseur</span>
-                <span id="rate-info" style="font-size:10px;color:#666;">1 € = ...</span>
-            </div>
-            <div class="card" style="display:flex;justify-content:space-between;padding:12px;">
-                <span style="font-size:26px;">🇻🇳</span>
-                <input type="text" id="input-vnd" class="big smart-input" placeholder="0" inputmode="decimal">
-                <span style="font-size:13px;color:#666;align-self:center;margin-left:8px;font-weight:bold;">VND</span>
-            </div>
-            <div class="card" style="display:flex;justify-content:space-between;padding:12px;">
-                <span style="font-size:26px;">🇪🇺</span>
-                <input type="text" id="input-eur" class="big smart-input" placeholder="0" inputmode="decimal">
-                <span style="font-size:13px;color:#666;align-self:center;margin-left:8px;font-weight:bold;">EUR</span>
-            </div>
-            <div class="row" style="margin-top:12px;">
-                <button class="btn btn-danger" onclick="resetConv()">C</button>
-                <button class="btn btn-outline" onclick="qadd(50000)">50k</button>
-                <button class="btn btn-outline" onclick="qadd(100000)">100k</button>
-                <button class="btn btn-outline" onclick="qadd(500000)">500k</button>
-                <button class="btn btn-outline" onclick="qadd(1000000)">1M</button>
-            </div>
-            <div class="sec">Estimateur Grab 🛺</div>
-            <div class="card">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <input type="number" id="grab-km" class="input" placeholder="Distance km" inputmode="decimal" style="font-size:15px;">
-                    <button class="btn btn-outline" onclick="calcGrab()">Calculer</button>
-                </div>
-                <div id="grab-result" style="display:none;" class="grab-result">
-                    <div class="grab-price" id="grab-vnd"></div>
-                    <div class="grab-sub" id="grab-eur"></div>
-                    <div style="font-size:10px;color:#666;margin-top:6px;">Tarif Grab ~6 500 ₫/km · Anti-arnaque ✅</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BUDGET -->
-        <div id="view-budget" class="glass app-view focusable-view">
-            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">💰 Budget</div>
-            <div class="card" style="padding:14px;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;">
-                    <div><span style="font-size:22px;font-weight:bold;color:var(--primary);" id="b-left">0 €</span><span style="font-size:11px;color:#aaa;"> restants</span></div>
-                    <div style="font-size:11px;color:#666;">Sur <span id="b-total" onclick="setBudget()" style="text-decoration:underline;cursor:pointer;">1500 €</span></div>
-                </div>
-                <div class="gauge-bg"><div class="gauge-fill" id="b-gauge"></div></div>
-                <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:5px;color:#666;"><span>Dépensé: <span id="b-spent" style="color:#fff;">0 €</span></span><span id="b-pct">0%</span></div>
-            </div>
-            <div class="row" style="margin-top:4px;">
-                <select id="exp-cat" class="select" style="flex:1;">
-                    <option value="🍜">🍜 Repas</option>
-                    <option value="🚕">🚕 Transport</option>
-                    <option value="🏨">🏨 Hôtel</option>
-                    <option value="🍺">🍺 Boisson</option>
-                    <option value="🎟️">🎟️ Activité</option>
-                    <option value="🛍️">🛍️ Shopping</option>
-                </select>
-                <input type="number" id="exp-amount" class="input smart-input" placeholder="Montant" inputmode="decimal" style="width:90px;flex:none;">
-                <select id="exp-cur" class="select"><option value="VND">₫</option><option value="EUR">€</option></select>
-            </div>
-            <button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="addExp()">+ Ajouter</button>
-            <div class="sec">Dernières dépenses</div>
-            <div id="exp-list"></div>
-        </div>
-
-        <!-- DICO -->
-        <div id="view-dico" class="glass app-view">
-            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">🗣️ Dico de Survie</div>
-            <div id="dico-list"></div>
-        </div>
-
-        <!-- FUN -->
-        <div id="view-fun" class="glass app-view">
-            <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">🎮 Stats du Voyage</div>
-            <div class="sec">Compteurs</div>
-            <div id="counters-list"></div>
-            <div class="sec">Journal de bord</div>
-            <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <textarea id="journal-input" class="input smart-input focusable-view" placeholder="Ce soir... (3 lignes max)" rows="2" style="flex:1;min-height:60px;margin:0;"></textarea>
-                <button class="btn btn-outline" style="align-self:flex-end;" onclick="addJournal()">+</button>
-            </div>
-            <div id="journal-list"></div>
-        </div>
-
-        <!-- COFFRE -->
-        <div id="view-coffre" class="glass app-view focusable-view">
-            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">🗄️ Coffre Offline</div>
-            <div class="sec">📸 QR Code / Visa</div>
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-                <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('photo-input').click()">Importer</button>
-                <button class="del-btn" onclick="clearPhoto()">🗑️</button>
-            </div>
-            <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
-            <img id="vault-img" style="width:100%;border-radius:12px;display:none;border:1px solid var(--border);margin-bottom:12px;">
-            <div class="sec">✈️ Vols & Codes</div>
-            <textarea id="vault-docs" class="input smart-input" placeholder="Références vols, numéros de confirmation..."></textarea>
-            <div class="sec">🏨 Adresses & Contacts</div>
-            <textarea id="vault-hotels" class="input smart-input" placeholder="Adresses hôtels, numéros locaux..."></textarea>
-            <div class="sec">🚨 Urgences</div>
-            <a href="tel:+84113" class="resa-btn" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#ff8a8a;">🚑 Ambulance Vietnam · 113</a>
-            <a href="tel:+84114" class="resa-btn" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#ff8a8a;">🚒 Pompiers Vietnam · 114</a>
-        </div>
-    </div>
-
-    <!-- NAV BAR -->
-    <div class="glass nav-bar">
-        <div class="nav-item active" data-v="none"><span class="nav-icon">🌍</span>Globe</div>
-        <div class="nav-item" data-v="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
-        <div class="nav-item" data-v="view-check"><span class="nav-icon">✅</span>Check</div>
-        <div class="nav-item" data-v="view-converter"><span class="nav-icon">💱</span>Cash</div>
-        <div class="nav-item" data-v="view-budget"><span class="nav-icon">💰</span>Budget</div>
-        <div class="nav-item" data-v="view-dico"><span class="nav-icon">🗣️</span>Dico</div>
-        <div class="nav-item" data-v="view-fun"><span class="nav-icon">🎮</span>Fun</div>
-        <div class="nav-item" data-v="view-coffre"><span class="nav-icon">🗄️</span>Coffre</div>
-    </div>
+<div class="top-bar">
+  <div class="glass top-widget"><h1>Vietnam 2026</h1><div id="countdown">...</div></div>
+  <div class="glass weather-chip" id="weather-chip">🌤️ ...</div>
+  <div class="glass offline-chip" id="offline-chip">● Offline</div>
+  <div style="display:flex;flex-direction:column;gap:7px;">
+    <div class="icon-btn" onclick="gpsMe()">📍</div>
+    <div class="icon-btn" onclick="location.reload(true)">↻</div>
+  </div>
 </div>
-
-<!-- FIREBASE -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const firebaseConfig = {
-    apiKey: "AIzaSyA3FpIWbIjJNK-TaiqFsZJG5XewiLBpJ_Q",
-    authDomain: "vietnam-2026.firebaseapp.com",
-    projectId: "vietnam-2026",
-    storageBucket: "vietnam-2026.firebasestorage.app",
-    messagingSenderId: "472100185718",
-    appId: "1:472100185718:web:a89bde58f2606d64f56157"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// SYNC CHECKS avec Firebase
-window.fbSaveChecks = async (data) => {
-    try { await setDoc(doc(db, 'trip', 'checks'), { data: JSON.stringify(data) }); } catch(e) {}
-};
-window.fbSaveCounters = async (data) => {
-    try { await setDoc(doc(db, 'trip', 'counters'), { data: JSON.stringify(data) }); } catch(e) {}
-};
-window.fbSaveJournal = async (data) => {
-    try { await setDoc(doc(db, 'trip', 'journal'), { data: JSON.stringify(data) }); } catch(e) {}
-};
-window.fbSaveBudget = async (exps, total) => {
-    try { await setDoc(doc(db, 'trip', 'budget'), { exps: JSON.stringify(exps), total }); } catch(e) {}
-};
-
-// LOAD depuis Firebase au démarrage
-window.fbLoad = async () => {
-    try {
-        const checks = await getDoc(doc(db, 'trip', 'checks'));
-        if (checks.exists()) { window._checks = JSON.parse(checks.data().data); renderChecklists(); }
-        const counters = await getDoc(doc(db, 'trip', 'counters'));
-        if (counters.exists()) { window._counters = JSON.parse(counters.data().data); renderCounters(); }
-        const journal = await getDoc(doc(db, 'trip', 'journal'));
-        if (journal.exists()) { window._journal = JSON.parse(journal.data().data); renderJournal(); }
-        const budget = await getDoc(doc(db, 'trip', 'budget'));
-        if (budget.exists()) { window._exps = JSON.parse(budget.data().exps); window._tb = budget.data().total; updateBudgetUI(); }
-        console.log('✅ Firebase chargé');
-    } catch(e) { console.log('Firebase offline, mode local'); }
-};
-
-// REALTIME SYNC — si ta copine coche quelque chose, tu le vois !
-onSnapshot(doc(db, 'trip', 'checks'), (snap) => {
-    if (snap.exists()) { window._checks = JSON.parse(snap.data().data); renderChecklists(); }
-});
-onSnapshot(doc(db, 'trip', 'counters'), (snap) => {
-    if (snap.exists()) { window._counters = JSON.parse(snap.data().data); renderCounters(); }
-});
-onSnapshot(doc(db, 'trip', 'journal'), (snap) => {
-    if (snap.exists()) { window._journal = JSON.parse(snap.data().data); renderJournal(); }
-});
-
-setTimeout(() => window.fbLoad && window.fbLoad(), 500);
-</script>
-
-<script>
-// ── PWA ──
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(r => r.addEventListener('updatefound', () => {
-        const n = r.installing;
-        n.addEventListener('statechange', () => { if (n.state === 'installed' && navigator.serviceWorker.controller) location.reload(true); });
-    }));
-}
-window.forceRefresh = () => location.reload(true);
-
-// ── COUNTDOWN ──
-const target = new Date("Apr 13, 2026 12:10:00").getTime();
-setInterval(() => {
-    const d = target - Date.now();
-    if (d < 0) { document.getElementById('countdown').innerHTML = '🛬 Au Vietnam !'; return; }
-    document.getElementById('countdown').innerHTML = `✈️ J-${Math.floor(d/86400000)} · ${Math.floor((d%86400000)/3600000)}h${Math.floor((d%3600000)/60000)}m`;
-}, 1000);
-
-// ── NAVIGATION ──
-const navItems = document.querySelectorAll('.nav-item');
-const allViews = document.querySelectorAll('.app-view');
-const uiL = document.getElementById('ui-layer');
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        navItems.forEach(n => n.classList.remove('active'));
-        allViews.forEach(v => { v.style.display = 'none'; v.classList.remove('view-focused'); });
-        item.classList.add('active');
-        const t = item.getAttribute('data-v');
-        if (t !== 'none') document.getElementById(t).style.display = 'block';
-    });
-});
-document.querySelectorAll('.smart-input').forEach(el => {
-    el.addEventListener('focus', e => { uiL.classList.add('kb-up'); e.target.closest('.focusable-view')?.classList.add('view-focused'); });
-    el.addEventListener('blur', e => { uiL.classList.remove('kb-up'); e.target.closest('.focusable-view')?.classList.remove('view-focused'); });
-});
-
-// ── MÉTÉO ──
-fetch('https://api.open-meteo.com/v1/forecast?latitude=21.0278&longitude=105.8342&current=temperature_2m,weather_code')
-    .then(r => r.json()).then(d => {
-        const t = d.current.temperature_2m, c = d.current.weather_code;
-        let e = '🌤️'; if (c===0) e='☀️'; else if (c>80) e='🌧️'; else if (c>70) e='⛈️'; else if (c>50) e='🌦️';
-        const s = `${e} ${t}°C · Hanoï`;
-        document.getElementById('weather-chip').textContent = s;
-        localStorage.setItem('vn_w', s);
-    }).catch(() => { document.getElementById('weather-chip').textContent = localStorage.getItem('vn_w') || '🌤️ --°C'; });
-
-// ── GPS ──
-window.gpsMe = () => {
-    navigator.geolocation?.getCurrentPosition(pos => {
-        const { latitude: la, longitude: lo } = pos.coords;
-        if (window._viewer) {
-            window._viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(lo, la, 80000),
-                orientation: { pitch: Cesium.Math.toRadians(-45) },
-                duration: 2.5
-            });
-        }
-    }, () => alert('GPS non disponible'));
-};
-
-// ── ITINÉRAIRE EN DUR ──
-const MES_ETAPES = [
-    {
-        num:'01', ville:'Hanoï', emoji:'🏯',
-        dates:'13 — 16 avr.', badge:'b-ok', statut:'Confirmé',
-        logement:'Aimee House Vũ Miên',
-        transport:'Vol aller BIO→HAN · Turkish Airlines · 13 avr. 12:10',
-        url:'https://flights.booking.com/booking/order-details/524c0995388af2e3d9d2ccc0ca3e0b8d7bf87a1f2d113687d51d9439c52406f3450e22128043b3482563cdc53b8ead16be3bad8f7a85ba40157c20a7a4a276846b6ee1f0b76616cd50028338e406',
-        activites:['🏯 Vieux quartier · Hoan Kiem','🍜 Phở & Bún chả','🚡 Quartier de Tây Hồ']
-    },
-    {
-        num:'02', ville:'Ninh Bình', emoji:'⛰️',
-        dates:'16 — 17 avr.', badge:'b-ok', statut:'Confirmé',
-        logement:'Hang Mua Ecolodge · €42,91',
-        transport:'Bus Hanoi → Ninh Binh ~2h · À réserver',
-        url:'https://secure.booking.com/confirmation.fr.html?auth_key=C71J5NHRuV2YNHPn',
-        activites:['⛰️ Hang Mua · 500 marches','🚣 Tam Coc en barque','🛕 Bai Dinh']
-    },
-    {
-        num:'03', ville:'Pu Luong', emoji:'🌾',
-        dates:'17 — 19 avr.', badge:'b-ok', statut:'Confirmé',
-        logement:'Puluong Valley Home · €65,91',
-        transport:'Navette Ninh Binh → Pu Luong · À réserver',
-        url:'https://secure.booking.com/confirmation.fr.html?auth_key=1ctGj5G0KrmMDzIQ',
-        activites:['🌾 Rizières en terrasses','🛵 Scooter entre villages','🏊 Cascade Ban Hieu']
-    },
-    {
-        num:'04', ville:'Lan Ha Bay', emoji:'🚢',
-        dates:'19 — 21 avr.', badge:'b-warn', statut:'⚠ Pickup manquant',
-        logement:'Croisière 5★ · Cabine balcon · 2 nuits à bord',
-        transport:'Transport Pu Luong → Lan Ha · À réserver',
-        url:'https://www.getyourguide.com',
-        activites:['🚢 Croisière 5★ Lan Ha + Ha Long','🛶 Kayak dans les baies','🌅 Coucher de soleil']
-    },
-    {
-        num:'05', ville:'Phong Nha', emoji:'🦇',
-        dates:'21 — 23 avr.', badge:'b-wait', statut:'En attente',
-        logement:'Chambre · Bố Trạch · Airbnb · Hôte Levi Tĩnh',
-        transport:'Bus nuit Lan Ha → Phong Nha · À réserver',
-        url:'https://www.airbnb.fr/trips/v1/reservation-details/ro/RESERVATION2_CHECKIN/HM3JTME24B',
-        activites:['🦇 Hang Tien Cave · Oxalis · P3MPSE','🕳️ Paradise Cave','🎿 Dark Cave · Zipline']
-    },
-    {
-        num:'06', ville:'Huế', emoji:'🏛️',
-        dates:'23 — 24 avr.', badge:'b-ok', statut:'Confirmé',
-        logement:'Maison de ville · Airbnb · Hôte Trang',
-        transport:'Bus Phong Nha → Hué ~5h · À réserver',
-        url:'https://www.airbnb.fr',
-        activites:['🏛️ Cité Impériale · UNESCO','⛵ Bateau Dragon · Rivière des Parfums','🍱 Bún bò Huế']
-    },
-    {
-        num:'07', ville:'Hội An', emoji:'🏮',
-        dates:'24 — 27 avr.', badge:'b-ok', statut:'Confirmé',
-        logement:'Hoian Tranquil Lodge – Chon Binh Yen · ★★★★ · €122,04',
-        transport:'Transfert Hué → Hoi An via col Hải Vân · 24 avr. 06:30',
-        url:'https://secure.booking.com/confirmation.fr.html?auth_key=wNaHHf5yECbdNEs8',
-        activites:['🏮 Vieille ville aux lanternes · UNESCO','🍳 Cours de cuisine','🏖️ Plage An Bang']
-    },
-    {
-        num:'08', ville:'Đà Nẵng', emoji:'✈️',
-        dates:'27 — 28 avr.', badge:'b-ok', statut:'Confirmé',
-        logement:'Transit · Vol retour 27 avr. 22:55',
-        transport:'Grab Hoi An → Da Nang ~45min · À organiser',
-        url:'https://flights.booking.com/booking/order-details/524c0995388af2e3d9d2ccc0ca3e0b8d7bf87a1f2d113687d51d9439c52406f3450e22128043b3482563cdc53b8ead16be3bad8f7a85ba40157c20a7a4a276846b6ee1f0b76616cd50028338e406',
-        activites:['🌉 Golden Bridge · Ba Na Hills','🏖️ My Khe Beach','✈️ Vol HAN→BIO 22:55']
-    },
-];
-
-function renderItinerary() {
-    const list = document.getElementById('itinerary-list');
-    const badge = document.getElementById('sync-badge');
-    badge.className = 'badge b-ok'; badge.textContent = '✅ À jour';
-    list.innerHTML = MES_ETAPES.map(e => `
-        <div class="card">
-            <div class="card-title">${e.emoji} ${e.ville} <span class="badge ${e.badge}">${e.statut}</span></div>
-            <div class="sub">📅 ${e.dates}</div>
-            <div class="sub">🏨 ${e.logement}</div>
-            <div class="sub">🚌 ${e.transport}</div>
-            <div style="margin-top:8px;">${e.activites.map(a => `<div class="sub">• ${a}</div>`).join('')}</div>
-            <a href="${e.url}" target="_blank" class="resa-btn">Ouvrir la réservation ↗</a>
-        </div>
-    `).join('');
-}
-
-window.syncTripit = () => renderItinerary();
-renderItinerary();
-
-// ── CHECKLISTS ──
-const CHECKS_DEPART = [
-    'Passeport (valide > 6 mois)', 'Visa Vietnam (e-visa)', 'Assurance voyage',
-    'Adaptateur prise universel', 'Anti-moustiques DEET 50%', 'Crème solaire SPF 50',
-    'Médicaments (Smecta, Imodium, Doliprane)', 'Carte bancaire internationale',
-    'Cash euros à convertir', 'Téléphone + chargeur', 'Batterie externe',
-    'Écouteurs', 'Vêtements légers', 'Imperméable léger', 'Chaussures de marche'
-];
-const CHECKS_HOTEL = [
-    'Chargeur téléphone', 'Chargeur batterie externe', 'Brosse à dents',
-    'Lunettes / lentilles', 'Médicaments', 'Passeport', 'Portefeuille / cash',
-    'Clé chambre rendue', 'Rien oublié dans le coffre', 'Rien oublié dans la salle de bain'
-];
-
-window._checks = JSON.parse(localStorage.getItem('vn_checks') || '{}');
-
-function renderChecklists() {
-    renderCheckGroup('checklist-depart', CHECKS_DEPART, 'dep');
-    renderCheckGroup('checklist-hotel', CHECKS_HOTEL, 'hot');
-}
-
-function renderCheckGroup(containerId, items, prefix) {
-    const el = document.getElementById(containerId);
-    el.innerHTML = items.map((label, i) => {
-        const key = `${prefix}-${i}`;
-        const done = window._checks[key] || false;
-        return `<div class="check-item" onclick="toggleCheck('${key}')">
-            <div class="check-box ${done ? 'done' : ''}">${done ? '✓' : ''}</div>
-            <div class="check-label ${done ? 'done' : ''}">${label}</div>
-        </div>`;
-    }).join('');
-}
-
-window.toggleCheck = key => {
-    window._checks[key] = !window._checks[key];
-    localStorage.setItem('vn_checks', JSON.stringify(window._checks));
-    window.fbSaveChecks?.(window._checks);
-    renderChecklists();
-};
-
-renderChecklists();
-
-// ── CONVERTISSEUR ──
-let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
-fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => {
-    exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate);
-    document.getElementById('rate-info').textContent = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ 🟢`;
-}).catch(() => { document.getElementById('rate-info').textContent = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ 🟠`; });
-
-const pv = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0;
-const fv = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
-const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur');
-iV.addEventListener('input', () => { const v=pv(iV.value); if(v>0){iE.value=fv(v/exRate,2);iV.value=fv(v,0);}else iE.value=''; });
-iE.addEventListener('input', () => { const v=pv(iE.value); if(v>0){iV.value=fv(Math.round(v*exRate),0);iE.value=fv(v,2);}else iV.value=''; });
-window.qadd = a => { iV.value=fv(pv(iV.value)+a,0); iV.dispatchEvent(new Event('input')); };
-window.resetConv = () => { iV.value=''; iE.value=''; };
-
-// ── GRAB ESTIMATEUR ──
-window.calcGrab = () => {
-    const km = parseFloat(document.getElementById('grab-km').value) || 0;
-    if (!km) return;
-    const vnd = Math.round(km * 6500);
-    const eur = (vnd / exRate).toFixed(2);
-    const el = document.getElementById('grab-result');
-    document.getElementById('grab-vnd').textContent = fv(vnd) + ' ₫';
-    document.getElementById('grab-eur').textContent = `≈ ${eur} € · ${km} km`;
-    el.style.display = 'block';
-};
-
-// ── BUDGET ──
-window._tb = parseFloat(localStorage.getItem('vn_tb')) || 1500;
-window._exps = JSON.parse(localStorage.getItem('vn_exps') || '[]');
-
-window.setBudget = () => {
-    const n = prompt('Budget total (€) ?', window._tb);
-    if (n && !isNaN(pv(n))) { window._tb = pv(n); localStorage.setItem('vn_tb', window._tb); updateBudgetUI(); window.fbSaveBudget?.(window._exps, window._tb); }
-};
-window.addExp = () => {
-    const a = pv(document.getElementById('exp-amount').value);
-    const cat = document.getElementById('exp-cat').value;
-    const cur = document.getElementById('exp-currency')?.value || document.getElementById('exp-cur').value;
-    if (!a) return;
-    const inEur = cur === 'VND' ? a / exRate : a;
-    window._exps.unshift({ id: Date.now(), cat, oA: a, cur, aE: inEur, d: new Date().toLocaleDateString('fr-FR') });
-    localStorage.setItem('vn_exps', JSON.stringify(window._exps));
-    window.fbSaveBudget?.(window._exps, window._tb);
-    document.getElementById('exp-amount').value = '';
-    updateBudgetUI();
-};
-window.deleteExp = id => {
-    window._exps = window._exps.filter(e => e.id !== id);
-    localStorage.setItem('vn_exps', JSON.stringify(window._exps));
-    window.fbSaveBudget?.(window._exps, window._tb);
-    updateBudgetUI();
-};
-function updateBudgetUI() {
-    const spent = window._exps.reduce((s,e) => s + e.aE, 0);
-    const pct = Math.min((spent / window._tb) * 100, 100);
-    document.getElementById('b-total').textContent = fv(window._tb) + ' €';
-    document.getElementById('b-spent').textContent = fv(spent,2) + ' €';
-    document.getElementById('b-left').textContent = fv(window._tb - spent, 2) + ' €';
-    const g = document.getElementById('b-gauge');
-    g.style.width = pct + '%';
-    g.style.background = pct > 85 ? 'var(--danger)' : pct > 65 ? 'var(--warn)' : 'var(--primary)';
-    document.getElementById('b-pct').textContent = Math.round(pct) + '%';
-    const l = document.getElementById('exp-list');
-    l.innerHTML = window._exps.length === 0 ? '<p style="color:#444;font-size:11px;text-align:center;">Aucune dépense</p>' :
-        window._exps.slice(0,15).map(e => `<div class="exp-item">
-            <div><span style="font-size:15px;margin-right:8px;">${e.cat}</span><span style="color:#555;">${e.d}</span></div>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <strong>${fv(e.oA, e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong>
-                <button class="del-btn" onclick="deleteExp(${e.id})">×</button>
-            </div>
-        </div>`).join('');
-}
-updateBudgetUI();
-
-// ── DICO VIETNAMIEN ──
-const PHRASES = [
-    { fr: 'Bonjour', vn: 'Xin chào', ph: 'Sin chao' },
-    { fr: 'Merci', vn: 'Cảm ơn', ph: 'Gam ern' },
-    { fr: 'Combien ça coûte ?', vn: 'Bao nhiêu tiền ?', ph: 'Bao nhiêu tien ?' },
-    { fr: 'Trop cher !', vn: 'Đắt quá !', ph: 'Dat koua !' },
-    { fr: 'Sans piment SVP', vn: 'Không cay ạ', ph: 'Khong cay a' },
-    { fr: 'L\'addition SVP', vn: 'Tính tiền đi', ph: 'Tinh tien di' },
-    { fr: 'Où sont les toilettes ?', vn: 'Nhà vệ sinh ở đâu ?', ph: 'Nha ve sinh o dau ?' },
-    { fr: 'Je ne comprends pas', vn: 'Tôi không hiểu', ph: 'Toi khong hieu' },
-    { fr: 'Appelez la police !', vn: 'Gọi cảnh sát !', ph: 'Goi canh sat !' },
-    { fr: 'Délicieux !', vn: 'Ngon quá !', ph: 'Ngon koua !' },
-    { fr: 'Bière SVP', vn: 'Một bia nhé', ph: 'Mot bia nhe' },
-    { fr: 'Je suis perdu', vn: 'Tôi bị lạc đường', ph: 'Toi bi lac duong' },
-];
-
-document.getElementById('dico-list').innerHTML = PHRASES.map(p => `
-    <div class="phrase-card">
-        <div>
-            <div class="phrase-fr">${p.fr}</div>
-            <div class="phrase-vn">${p.vn}</div>
-            <div style="font-size:10px;color:#555;margin-top:2px;">${p.ph}</div>
-        </div>
-        <button class="speak-btn" onclick="speak('${p.vn}')">🔊</button>
+<div class="middle">
+  <!-- TODAY -->
+  <div id="view-today" class="glass app-view" style="display:block;">
+    <div class="today-hero">
+      <div style="font-size:10px;color:var(--b);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Étape actuelle</div>
+      <div class="today-city" id="today-city">🏯 Hanoï</div>
+      <div class="today-dates" id="today-dates">13 — 16 avr.</div>
+      <div class="today-next" id="today-next">⏭ Prochain : Ninh Bình</div>
     </div>
-`).join('');
-
-window.speak = text => {
-    if (!window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'vi-VN'; u.rate = 0.85;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
-};
-
-// ── COMPTEURS FUN ──
-const COUNTER_DEFS = [
-    { key: 'banhmi', label: '🥖 Bánh mì mangés', icon: '🥖' },
-    { key: 'pho', label: '🍜 Phở avalés', icon: '🍜' },
-    { key: 'biere', label: '🍺 Bières Bia Hoi', icon: '🍺' },
-    { key: 'arnaque', label: '🥷 Arnaques évitées', icon: '🥷' },
-    { key: 'moto', label: '🛵 Traversées moto', icon: '🛵' },
-    { key: 'photo', label: '📸 Photos prises', icon: '📸' },
+    <div class="quick-grid">
+      <div class="quick-card" onclick="showView('view-budget')"><div class="quick-icon">💰</div><div class="quick-label">Budget restant</div><div class="quick-val" id="today-budget">—</div></div>
+      <div class="quick-card" onclick="showView('view-converter')"><div class="quick-icon">🛺</div><div class="quick-label">Grab 5km</div><div class="quick-val">~33 000₫</div></div>
+      <div class="quick-card" onclick="showView('view-coffre')"><div class="quick-icon">🗄️</div><div class="quick-label">Mes papiers</div><div class="quick-val" style="font-size:10px;">Coffre offline</div></div>
+      <div class="quick-card" onclick="showView('view-etapes')"><div class="quick-icon">🧭</div><div class="quick-label">Itinéraire</div><div class="quick-val" style="font-size:10px;">8 étapes</div></div>
+    </div>
+    <div class="sec">Météo</div>
+    <div class="card" style="display:flex;align-items:center;gap:12px;"><div style="font-size:30px;" id="tw-emoji">🌤️</div><div><div style="font-size:20px;font-weight:800;" id="tw-temp">--°C</div><div class="sub" id="tw-desc">Chargement...</div></div></div>
+    <div class="sec">🚨 Urgences</div>
+    <div class="emg-grid">
+      <a href="tel:113" class="emg-btn"><div class="emg-icon">🚑</div><div class="emg-label">Ambulance</div><div class="emg-sub">113</div></a>
+      <a href="tel:115" class="emg-btn"><div class="emg-icon">👮</div><div class="emg-label">Police</div><div class="emg-sub">115</div></a>
+      <a href="tel:114" class="emg-btn"><div class="emg-icon">🚒</div><div class="emg-label">Pompiers</div><div class="emg-sub">114</div></a>
+      <a href="tel:+33970006169" class="emg-btn"><div class="emg-icon">🇫🇷</div><div class="emg-label">Ambassade FR</div><div class="emg-sub">Hanoi</div></a>
+    </div>
+  </div>
+  <!-- ÉTAPES -->
+  <div id="view-etapes" class="glass app-view"><div style="font-size:15px;font-weight:700;margin-bottom:12px;">🧭 Itinéraire</div><div id="itinerary-list"></div></div>
+  <!-- CHECK -->
+  <div id="view-check" class="glass app-view">
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">✅ Checklist</div>
+    <div class="progress-bar"><div class="progress-fill" id="check-pf" style="width:0%"></div></div>
+    <div class="sub" id="check-lbl" style="margin-bottom:12px;">0 / 0</div>
+    <div class="sec">Avant le départ</div><div id="ck-depart"></div>
+    <div class="sec">Bagage cabine</div><div id="ck-cabine"></div>
+    <div class="sec">À chaque hôtel</div><div id="ck-hotel"></div>
+  </div>
+  <!-- CASH -->
+  <div id="view-converter" class="glass app-view focusable-view">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;"><span style="font-size:15px;font-weight:700;">💱 Cash</span><span id="rate-info" style="font-size:9px;color:#555;">1€=...</span></div>
+    <div class="card" style="display:flex;justify-content:space-between;padding:11px;"><span style="font-size:24px;">🇻🇳</span><input type="text" id="input-vnd" class="big smart-input" placeholder="0" inputmode="decimal"><span style="font-size:12px;color:#555;align-self:center;margin-left:6px;font-weight:700;">VND</span></div>
+    <div class="card" style="display:flex;justify-content:space-between;padding:11px;"><span style="font-size:24px;">🇪🇺</span><input type="text" id="input-eur" class="big smart-input" placeholder="0" inputmode="decimal"><span style="font-size:12px;color:#555;align-self:center;margin-left:6px;font-weight:700;">EUR</span></div>
+    <div class="row" style="margin-top:10px;"><button class="btn btn-red" onclick="resetConv()">C</button><button class="btn btn-outline" onclick="qadd(50000)">50k</button><button class="btn btn-outline" onclick="qadd(100000)">100k</button><button class="btn btn-outline" onclick="qadd(500000)">500k</button><button class="btn btn-outline" onclick="qadd(1000000)">1M</button></div>
+    <div class="sec">Repères prix</div>
+    <div class="card"><div class="sub">🥐 Bánh mì · 20 000–35 000₫ (~1€)</div><div class="sub">🍜 Phở local · 40 000–80 000₫</div><div class="sub">🍺 Bia Hoi · 10 000–20 000₫</div><div class="sub">🛺 Grab 5km · ~30 000–40 000₫</div><div class="sub">🏨 Hôtel 3★ · 400 000–800 000₫</div></div>
+    <div class="sec">Estimateur Grab 🛺</div>
+    <div class="card"><div class="row"><input type="number" id="grab-km" class="input smart-input" placeholder="Distance km" inputmode="decimal"><button class="btn btn-outline" onclick="calcGrab()">Calculer</button></div><div id="grab-result" style="display:none;" class="grab-result"><div class="grab-price" id="grab-vnd"></div><div class="sub" id="grab-eur" style="margin-top:4px;"></div><div style="font-size:9px;color:#555;margin-top:3px;">Estimation ±20% · Vérifier dans Grab</div></div></div>
+  </div>
+  <!-- BUDGET -->
+  <div id="view-budget" class="glass app-view focusable-view">
+    <div style="font-size:15px;font-weight:700;margin-bottom:10px;">💰 Budget</div>
+    <div class="card" style="padding:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;"><div><span style="font-size:22px;font-weight:800;color:var(--g);" id="b-left">0€</span><span style="font-size:10px;color:#555;"> restants</span></div><div style="font-size:10px;color:#444;">Sur <span id="b-total" onclick="setBudget()" style="text-decoration:underline;cursor:pointer;color:#777;">1500€</span></div></div>
+      <div class="gauge-bg"><div class="gauge-fill" id="b-gauge"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:5px;color:#555;"><span>Dépensé : <span id="b-spent" style="color:#aaa;">0€</span></span><span id="b-pct">0%</span></div>
+    </div>
+    <div class="card"><div class="sub" id="b-perday">--</div><div class="sub" id="b-proj" style="margin-top:3px;">--</div></div>
+    <div class="sec">Par catégorie</div><div class="cat-grid" id="cat-grid"></div>
+    <div class="sec">Ajouter</div>
+    <div class="row"><select id="exp-cat" class="select" style="flex:1;"><option value="🍜">🍜 Repas</option><option value="🚕">🚕 Transport</option><option value="🏨">🏨 Hôtel</option><option value="🍺">🍺 Boisson</option><option value="🎟️">🎟️ Activité</option><option value="🛍️">🛍️ Shopping</option></select><input type="number" id="exp-amount" class="input smart-input" placeholder="Montant" inputmode="decimal" style="width:90px;flex:none;"><select id="exp-cur" class="select"><option value="VND">₫</option><option value="EUR">€</option></select></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="addExp()">+ Ajouter</button>
+    <div class="sec">Dernières dépenses</div><div id="exp-list"></div>
+  </div>
+  <!-- DICO -->
+  <div id="view-dico" class="glass app-view"><div style="font-size:15px;font-weight:700;margin-bottom:12px;">🗣️ Dico survie</div><div id="dico-list"></div></div>
+  <!-- FUN -->
+  <div id="view-fun" class="glass app-view">
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">🎮 Stats du voyage</div>
+    <div class="sec">Compteurs</div><div id="counters-list"></div>
+    <div class="sec">Journal de bord</div>
+    <div style="display:flex;gap:7px;margin-bottom:9px;"><textarea id="journal-input" class="input smart-input focusable-view" placeholder="Ce soir... (3 lignes)" rows="2" style="flex:1;min-height:56px;margin:0;"></textarea><button class="btn btn-outline" style="align-self:flex-end;padding:9px 12px;" onclick="addJournal()">+</button></div>
+    <div id="journal-list"></div>
+  </div>
+  <!-- COFFRE -->
+  <div id="view-coffre" class="glass app-view focusable-view">
+    <div style="font-size:15px;font-weight:700;margin-bottom:12px;">🗄️ Coffre offline</div>
+    <div class="sec">🚨 Urgences rapides</div>
+    <div class="emg-grid">
+      <a href="tel:113" class="emg-btn"><div class="emg-icon">🚑</div><div class="emg-label">Ambulance</div><div class="emg-sub">113</div></a>
+      <a href="tel:115" class="emg-btn"><div class="emg-icon">👮</div><div class="emg-label">Police</div><div class="emg-sub">115</div></a>
+      <a href="tel:114" class="emg-btn"><div class="emg-icon">🚒</div><div class="emg-label">Pompiers</div><div class="emg-sub">114</div></a>
+      <a href="tel:+33970006169" class="emg-btn"><div class="emg-icon">🇫🇷</div><div class="emg-label">Ambassade FR</div><div class="emg-sub">Hanoi</div></a>
+    </div>
+    <div class="sec">📸 QR / Visa</div>
+    <div style="display:flex;gap:7px;align-items:center;margin-bottom:9px;"><button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('photo-input').click()">Importer photo</button><button class="del-btn" onclick="clearPhoto()" style="font-size:13px;color:#333;">🗑️</button></div>
+    <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
+    <img id="vault-img" style="width:100%;border-radius:11px;display:none;border:1px solid var(--border);margin-bottom:10px;">
+    <div class="sec">✈️ Références vols</div>
+    <textarea id="vault-docs" class="input smart-input" placeholder="Codes réservation, vols..."></textarea>
+    <div class="sec">🏨 Adresses & contacts</div>
+    <textarea id="vault-hotels" class="input smart-input" placeholder="Adresses hôtels, numéros locaux..."></textarea>
+  </div>
+</div>
+<div class="glass nav-bar">
+  <div class="nav-item active" data-v="view-today"><span class="nav-icon">🏠</span>Auj.</div>
+  <div class="nav-item" data-v="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
+  <div class="nav-item" data-v="view-check"><span class="nav-icon">✅</span>Check</div>
+  <div class="nav-item" data-v="view-converter"><span class="nav-icon">💱</span>Cash</div>
+  <div class="nav-item" data-v="view-budget"><span class="nav-icon">💰</span>Budget</div>
+  <div class="nav-item" data-v="view-dico"><span class="nav-icon">🗣️</span>Dico</div>
+  <div class="nav-item" data-v="view-fun"><span class="nav-icon">🎮</span>Fun</div>
+  <div class="nav-item" data-v="view-coffre"><span class="nav-icon">🗄️</span>Coffre</div>
+</div>
+</div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,doc,setDoc,getDoc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const app=initializeApp({apiKey:"AIzaSyA3FpIWbIjJNK-TaiqFsZJG5XewiLBpJ_Q",authDomain:"vietnam-2026.firebaseapp.com",projectId:"vietnam-2026",storageBucket:"vietnam-2026.firebasestorage.app",messagingSenderId:"472100185718",appId:"1:472100185718:web:a89bde58f2606d64f56157"});
+const db=getFirestore(app);
+window.fbSave=async(col,data)=>{try{await setDoc(doc(db,'trip',col),{data:JSON.stringify(data)});}catch(e){}};
+window.fbLoad=async()=>{try{const keys=[['checks',d=>{window._checks=d;renderChecklists();}],['counters',d=>{window._counters=d;renderCounters();}],['journal',d=>{window._journal=d;renderJournal();}],['budget',d=>{window._exps=d.exps||[];window._tb=d.tb||1500;updateBudgetUI();}]];for(const[k,fn]of keys){const s=await getDoc(doc(db,'trip',k));if(s.exists())fn(JSON.parse(s.data().data));}document.getElementById('offline-chip').style.color='var(--g)';document.getElementById('offline-chip').textContent='● Synced';}catch(e){}};
+['checks','counters','journal'].forEach(k=>onSnapshot(doc(db,'trip',k),s=>{if(!s.exists())return;const d=JSON.parse(s.data().data);if(k==='checks'){window._checks=d;renderChecklists();}if(k==='counters'){window._counters=d;renderCounters();}if(k==='journal'){window._journal=d;renderJournal();}}));
+setTimeout(()=>window.fbLoad?.(),700);
+</script>
+<script>
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').then(r=>r.addEventListener('updatefound',()=>{const n=r.installing;n.addEventListener('statechange',()=>{if(n.state==='installed'&&navigator.serviceWorker.controller)location.reload(true);});}));
+window.toast=(msg,dur=2000)=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);};
+const TARGET=new Date("Apr 13, 2026 12:10:00").getTime();
+const updCD=()=>{const d=TARGET-Date.now();document.getElementById('countdown').textContent=d<0?'🛬 Bon voyage !':'✈️ J-'+Math.floor(d/86400000)+' · '+Math.floor((d%86400000)/3600000)+'h'+Math.floor((d%3600000)/60000)+'m';};
+setInterval(updCD,1000);updCD();
+const ETAPES=[
+{num:'01',ville:'Hanoï',emoji:'🏯',dates:'13–16 avr.',start:'2026-04-13',end:'2026-04-16',badge:'b-ok',statut:'Confirmé',logement:'Aimee House Vũ Miên',transport:'Vol BIO→HAN · Turkish Airlines · 13 avr. 12:10',url:'https://flights.booking.com/booking/order-details/524c0995388af2e3d9d2ccc0ca3e0b8d7bf87a1f2d113687d51d9439c52406f3450e22128043b3482563cdc53b8ead16be3bad8f7a85ba40157c20a7a4a276846b6ee1f0b76616cd50028338e406',act:['🏯 Vieux quartier · Hoan Kiem','🍜 Phở & Bún chả','🚡 Tây Hồ']},
+{num:'02',ville:'Ninh Bình',emoji:'⛰️',dates:'16–17 avr.',start:'2026-04-16',end:'2026-04-17',badge:'b-ok',statut:'Confirmé',logement:'Hang Mua Ecolodge · €42,91',transport:'Bus Hanoi → Ninh Binh ~2h · À réserver',url:'https://secure.booking.com/confirmation.fr.html?auth_key=C71J5NHRuV2YNHPn',act:['⛰️ Hang Mua · 500 marches','🚣 Tam Coc en barque','🛕 Bai Dinh']},
+{num:'03',ville:'Pu Luong',emoji:'🌾',dates:'17–19 avr.',start:'2026-04-17',end:'2026-04-19',badge:'b-ok',statut:'Confirmé',logement:'Puluong Valley Home · €65,91',transport:'Navette Ninh Binh → Pu Luong · À réserver',url:'https://secure.booking.com/confirmation.fr.html?auth_key=1ctGj5G0KrmMDzIQ',act:['🌾 Rizières en terrasses','🛵 Scooter entre villages','🏊 Cascade Ban Hieu']},
+{num:'04',ville:'Lan Ha Bay',emoji:'🚢',dates:'19–21 avr.',start:'2026-04-19',end:'2026-04-21',badge:'b-warn',statut:'⚠ Pickup manquant',logement:'Croisière 5★ · Cabine balcon',transport:'Transport Pu Luong → Lan Ha · À réserver',url:'https://www.getyourguide.com',act:['🚢 Croisière 5★ Lan Ha + Ha Long','🛶 Kayak','🌅 Coucher de soleil']},
+{num:'05',ville:'Phong Nha',emoji:'🦇',dates:'21–23 avr.',start:'2026-04-21',end:'2026-04-23',badge:'b-warn',statut:'En attente',logement:'Chambre · Bố Trạch · Airbnb · Levi Tĩnh',transport:'Bus nuit Lan Ha → Phong Nha · À réserver',url:'https://www.airbnb.fr/trips/v1/reservation-details/ro/RESERVATION2_CHECKIN/HM3JTME24B',act:['🦇 Hang Tien Cave · Oxalis P3MPSE','🕳️ Paradise Cave','🎿 Dark Cave']},
+{num:'06',ville:'Huế',emoji:'🏛️',dates:'23–24 avr.',start:'2026-04-23',end:'2026-04-24',badge:'b-warn',statut:'⚠ Modifier transfert',logement:'Maison de ville · Airbnb · Hôte Trang',transport:'Bus Phong Nha → Hué ~5h · À réserver',url:'https://www.airbnb.fr',act:['🏛️ Cité Impériale · UNESCO','⛵ Bateau Dragon','🍱 Bún bò Huế']},
+{num:'07',ville:'Hội An',emoji:'🏮',dates:'24–27 avr.',start:'2026-04-24',end:'2026-04-27',badge:'b-ok',statut:'Confirmé',logement:'Hoian Tranquil Lodge ★★★★ · €122,04',transport:'Transfert Hué → Hoi An via Hải Vân · 24 avr. 06:30',url:'https://secure.booking.com/confirmation.fr.html?auth_key=wNaHHf5yECbdNEs8',act:['🏮 Vieille ville · UNESCO','🍳 Cours de cuisine','🏖️ Plage An Bang']},
+{num:'08',ville:'Đà Nẵng',emoji:'✈️',dates:'27–28 avr.',start:'2026-04-27',end:'2026-04-28',badge:'b-ok',statut:'Confirmé',logement:'Transit · Vol retour 27 avr. 22:55',transport:'Grab Hoi An → Da Nang ~45min',url:'https://flights.booking.com/booking/order-details/524c0995388af2e3d9d2ccc0ca3e0b8d7bf87a1f2d113687d51d9439c52406f3450e22128043b3482563cdc53b8ead16be3bad8f7a85ba40157c20a7a4a276846b6ee1f0b76616cd50028338e406',act:['🌉 Golden Bridge · Ba Na Hills','🏖️ My Khe Beach','✈️ Vol HAN→BIO 22:55']},
 ];
-window._counters = JSON.parse(localStorage.getItem('vn_counters') || '{}');
-
-function renderCounters() {
-    document.getElementById('counters-list').innerHTML = COUNTER_DEFS.map(c => `
-        <div class="counter-item">
-            <div class="counter-label">${c.label}</div>
-            <div class="counter-controls">
-                <button class="counter-btn c-minus" onclick="adjCounter('${c.key}', -1)">−</button>
-                <div class="counter-val">${window._counters[c.key] || 0}</div>
-                <button class="counter-btn c-plus" onclick="adjCounter('${c.key}', 1)">+</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-window.adjCounter = (key, delta) => {
-    window._counters[key] = Math.max(0, (window._counters[key] || 0) + delta);
-    localStorage.setItem('vn_counters', JSON.stringify(window._counters));
-    window.fbSaveCounters?.(window._counters);
-    renderCounters();
-};
+function getStepIdx(){const t=new Date().toISOString().split('T')[0];let c=0;ETAPES.forEach((e,i)=>{if(t>=e.start&&t<e.end)c=i;else if(t>=e.end&&i<ETAPES.length-1)c=i+1;});return c;}
+function renderItinerary(){const t=new Date().toISOString().split('T')[0];document.getElementById('itinerary-list').innerHTML=ETAPES.map((e,i)=>{const past=t>=e.end,cur=t>=e.start&&t<e.end,cls=past?'step-past':cur?'step-current':(e.badge==='b-warn'||e.badge==='b-danger')?'step-urgent':'step-upcoming';const sb=past?'<span class="badge b-past">Passé</span>':cur?'<span class="badge b-ok">● Maintenant</span>':`<span class="badge ${e.badge}">${e.statut}</span>`;const days=Math.ceil((new Date(e.start)-new Date())/86400000);const dl=!past&&!cur&&days>0?`<div class="sub" style="color:var(--b);">Dans ${days} jour${days>1?'s':''}</div>`:'';return`<div class="step-card ${cls}"><div class="step-num">Étape ${e.num}</div><div style="font-size:14px;font-weight:600;display:flex;justify-content:space-between;gap:6px;align-items:flex-start;margin-bottom:5px;"><span>${e.emoji} ${e.ville}</span>${sb}</div><div class="sub">📅 ${e.dates}</div><div class="sub">🏨 ${e.logement}</div><div class="sub">🚌 ${e.transport}</div>${dl}<details style="margin-top:7px;"><summary style="font-size:10px;color:#333;cursor:pointer;">Activités ▾</summary><div style="margin-top:5px;">${e.act.map(a=>`<div class="sub">• ${a}</div>`).join('')}</div></details><a href="${e.url}" target="_blank" class="resa-btn">Ouvrir réservation ↗</a></div>`;}).join('');}
+function updateToday(){const i=getStepIdx(),e=ETAPES[i],nx=ETAPES[i+1];document.getElementById('today-city').textContent=`${e.emoji} ${e.ville}`;document.getElementById('today-dates').textContent=e.dates;if(nx){const d=Math.max(0,Math.ceil((new Date(nx.start)-new Date())/86400000));document.getElementById('today-next').textContent=`⏭ Prochain : ${nx.emoji} ${nx.ville} dans ${d}j`;}else document.getElementById('today-next').textContent='🏁 Dernière étape !';}
+renderItinerary();updateToday();
+const navItems=document.querySelectorAll('.nav-item'),uiL=document.getElementById('ui-layer');
+window.showView=id=>{document.querySelectorAll('.app-view').forEach(v=>v.style.display='none');document.getElementById(id).style.display='block';navItems.forEach(n=>n.classList.toggle('active',n.getAttribute('data-v')===id));};
+navItems.forEach(it=>it.addEventListener('click',()=>showView(it.getAttribute('data-v'))));
+document.querySelectorAll('.smart-input').forEach(el=>{el.addEventListener('focus',e=>{uiL.classList.add('kb-up');e.target.closest('.focusable-view')?.classList.add('view-focused');});el.addEventListener('blur',e=>{uiL.classList.remove('kb-up');e.target.closest('.focusable-view')?.classList.remove('view-focused');});});
+fetch('https://api.open-meteo.com/v1/forecast?latitude=21.0278&longitude=105.8342&current=temperature_2m,weather_code').then(r=>r.json()).then(d=>{const t=d.current.temperature_2m,c=d.current.weather_code;let e='🌤️',desc='Nuageux';if(c===0){e='☀️';desc='Ensoleillé';}else if(c<=3){e='⛅';desc='Partiellement nuageux';}else if(c<=48){e='🌫️';desc='Brouillard';}else if(c<=67){e='🌧️';desc='Pluie';}else if(c<=82){e='🌦️';desc='Averses';}else{e='⛈️';desc='Orage';}document.getElementById('weather-chip').textContent=`${e} ${t}°C`;document.getElementById('tw-emoji').textContent=e;document.getElementById('tw-temp').textContent=`${t}°C`;document.getElementById('tw-desc').textContent=desc+' · Hanoï';localStorage.setItem('vn_w',JSON.stringify({e,t,desc}));}).catch(()=>{const w=JSON.parse(localStorage.getItem('vn_w')||'{"e":"🌤️","t":"--","desc":"Cache"}');document.getElementById('weather-chip').textContent=`${w.e} ${w.t}°C`;document.getElementById('tw-emoji').textContent=w.e;document.getElementById('tw-temp').textContent=`${w.t}°C`;document.getElementById('tw-desc').textContent=w.desc;});
+window.gpsMe=()=>navigator.geolocation?.getCurrentPosition(p=>{window._viewer?.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,80000),orientation:{pitch:Cesium.Math.toRadians(-45)},duration:2.5});toast('📍 Position trouvée !');},()=>toast('❌ GPS indisponible'));
+let exRate=parseFloat(localStorage.getItem('vn_rate'))||27500;
+fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r=>r.json()).then(d=>{exRate=d.rates.VND;localStorage.setItem('vn_rate',exRate);document.getElementById('rate-info').textContent=`1€=${exRate.toLocaleString('fr-FR')}₫🟢`;}).catch(()=>{document.getElementById('rate-info').textContent=`1€=${exRate.toLocaleString('fr-FR')}₫🟠`;});
+const pv=v=>parseFloat(String(v).replace(/\s/g,'').replace(',','.'))||0,fv=(n,d=0)=>n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const iV=document.getElementById('input-vnd'),iE=document.getElementById('input-eur');
+iV.addEventListener('input',()=>{const v=pv(iV.value);v>0?iE.value=fv(v/exRate,2):iE.value='';});
+iE.addEventListener('input',()=>{const v=pv(iE.value);v>0?iV.value=fv(Math.round(v*exRate),0):iV.value='';});
+window.qadd=a=>{iV.value=fv(pv(iV.value)+a,0);iV.dispatchEvent(new Event('input'));};
+window.resetConv=()=>{iV.value='';iE.value='';};
+window.calcGrab=()=>{const km=parseFloat(document.getElementById('grab-km').value)||0;if(!km)return;const mid=Math.round(km*6500),lo=Math.round(km*5500),hi=Math.round(km*8000);document.getElementById('grab-vnd').textContent=fv(mid)+'₫';document.getElementById('grab-eur').textContent=`≈${(mid/exRate).toFixed(2)}€ · Fourchette ${fv(lo)}–${fv(hi)}₫`;document.getElementById('grab-result').style.display='block';};
+window._exps=JSON.parse(localStorage.getItem('vn_exps')||'[]');
+window._tb=parseFloat(localStorage.getItem('vn_tb')||'1500');
+window.setBudget=()=>{const n=prompt('Budget total (€) ?',window._tb);if(n&&!isNaN(pv(n))){window._tb=pv(n);localStorage.setItem('vn_tb',window._tb);updateBudgetUI();window.fbSave?.('budget',{exps:window._exps,tb:window._tb});}};
+window.addExp=()=>{const a=pv(document.getElementById('exp-amount').value),cat=document.getElementById('exp-cat').value,cur=document.getElementById('exp-cur').value;if(!a)return;window._exps.unshift({id:Date.now(),cat,oA:a,cur,aE:cur==='VND'?a/exRate:a,d:new Date().toLocaleDateString('fr-FR')});localStorage.setItem('vn_exps',JSON.stringify(window._exps));window.fbSave?.('budget',{exps:window._exps,tb:window._tb});document.getElementById('exp-amount').value='';updateBudgetUI();toast(`✅ ${cat} ajouté !`);};
+window.deleteExp=id=>{window._exps=window._exps.filter(e=>e.id!==id);localStorage.setItem('vn_exps',JSON.stringify(window._exps));window.fbSave?.('budget',{exps:window._exps,tb:window._tb});updateBudgetUI();toast('🗑️ Supprimé');};
+function updateBudgetUI(){const spent=window._exps.reduce((s,e)=>s+e.aE,0),pct=Math.min((spent/window._tb)*100,100);document.getElementById('b-total').textContent=fv(window._tb)+'€';document.getElementById('b-spent').textContent=fv(spent,2)+'€';document.getElementById('b-left').textContent=fv(window._tb-spent,2)+'€';document.getElementById('today-budget').textContent=fv(window._tb-spent,0)+'€';const g=document.getElementById('b-gauge');g.style.width=pct+'%';g.style.background=pct>85?'var(--r)':pct>65?'var(--y)':'var(--g)';document.getElementById('b-pct').textContent=Math.round(pct)+'%';const ts=new Date('2026-04-13'),te=new Date('2026-04-28'),totalD=(te-ts)/86400000,elapsed=Math.max(1,Math.min(totalD,(new Date()-ts)/86400000)),remaining=Math.max(1,(te-new Date())/86400000),ppd=spent/elapsed,proj=spent+ppd*remaining,diff=proj-window._tb;document.getElementById('b-perday').textContent=`💸 Moy/jour : ${fv(ppd,2)}€ · Reste ${Math.round(remaining)}j`;document.getElementById('b-proj').textContent=diff>0?`⚠️ Projection : +${fv(diff,0)}€ au-dessus`:`✅ Projection : ${fv(Math.abs(diff),0)}€ sous budget`;const cats={};window._exps.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.aE;});document.getElementById('cat-grid').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([c,v])=>`<div class="cat-item"><div style="font-size:16px;">${c}</div><div style="font-size:12px;font-weight:700;">${fv(v,2)}€</div></div>`).join('')||'<div class="sub" style="grid-column:span 2;text-align:center;color:#333;">Aucune dépense</div>';document.getElementById('exp-list').innerHTML=window._exps.length===0?'<p style="color:#333;font-size:11px;text-align:center;">Aucune dépense</p>':window._exps.slice(0,15).map(e=>`<div class="exp-item"><div><span style="font-size:14px;margin-right:7px;">${e.cat}</span><span style="color:#333;">${e.d}</span></div><div style="display:flex;align-items:center;gap:7px;"><strong>${fv(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="del-btn" onclick="deleteExp(${e.id})">×</button></div></div>`).join('');}
+updateBudgetUI();
+const CKD=['Passeport (valide > 6 mois)','Visa Vietnam (e-visa)','Assurance voyage','Adaptateur universel','Anti-moustiques DEET 50%','Crème solaire SPF 50','Médicaments (Smecta, Imodium, Doliprane)','Carte bancaire internationale','Cash euros','Téléphone + chargeur','Batterie externe'];
+const CKC=['Passeport & documents','Téléphone chargé','Écouteurs','Veste légère (froid avion)','Médicaments d\'urgence'];
+const CKH=['Chargeur téléphone','Chargeur batterie','Brosse à dents','Lunettes / lentilles','Médicaments','Passeport','Portefeuille','Clé chambre rendue','Coffre vérifié','Salle de bain vérifiée'];
+window._checks=JSON.parse(localStorage.getItem('vn_checks')||'{}');
+function renderCKG(id,items,pfx){document.getElementById(id).innerHTML=items.map((l,i)=>{const k=`${pfx}-${i}`,done=window._checks[k]||false;return`<div class="check-item" onclick="toggleCK('${k}')"><div class="check-box ${done?'done':''}">${done?'✓':''}</div><div class="check-label ${done?'done':''}">${l}</div></div>`;}).join('');}
+function renderChecklists(){renderCKG('ck-depart',CKD,'dep');renderCKG('ck-cabine',CKC,'cab');renderCKG('ck-hotel',CKH,'hot');const all=[...CKD.map((_,i)=>`dep-${i}`),...CKC.map((_,i)=>`cab-${i}`),...CKH.map((_,i)=>`hot-${i}`)],done=all.filter(k=>window._checks[k]).length;document.getElementById('check-pf').style.width=`${Math.round(done/all.length*100)}%`;document.getElementById('check-lbl').textContent=`${done} / ${all.length} complétés`;}
+window.toggleCK=k=>{window._checks[k]=!window._checks[k];localStorage.setItem('vn_checks',JSON.stringify(window._checks));window.fbSave?.('checks',window._checks);renderChecklists();toast(window._checks[k]?'✅ Coché !':'↩️ Décoché');};
+renderChecklists();
+const PH=[{fr:'Bonjour',vn:'Xin chào',ph:'Sin chao'},{fr:'Merci',vn:'Cảm ơn',ph:'Gam ern'},{fr:'Combien ?',vn:'Bao nhiêu tiền ?',ph:'Bao nhiêu tien ?'},{fr:'Trop cher !',vn:'Đắt quá !',ph:'Dat koua !'},{fr:'Sans piment SVP',vn:'Không cay ạ',ph:'Khong cay a'},{fr:"L'addition",vn:'Tính tiền đi',ph:'Tinh tien di'},{fr:'Toilettes ?',vn:'Nhà vệ sinh ở đâu ?',ph:'Nha ve sinh o dau ?'},{fr:'Je comprends pas',vn:'Tôi không hiểu',ph:'Toi khong hieu'},{fr:'Appelez la police !',vn:'Gọi cảnh sát !',ph:'Goi canh sat !'},{fr:'Délicieux !',vn:'Ngon quá !',ph:'Ngon koua !'},{fr:'Une bière',vn:'Một bia nhé',ph:'Mot bia nhe'},{fr:'Je suis perdu',vn:'Tôi bị lạc đường',ph:'Toi bi lac duong'}];
+document.getElementById('dico-list').innerHTML=PH.map(p=>`<div class="phrase-card"><div><div style="font-size:11px;color:#444;">${p.fr}</div><div style="font-size:14px;font-weight:700;margin-top:2px;">${p.vn}</div><div style="font-size:9px;color:#333;margin-top:1px;">${p.ph}</div></div><button class="speak-btn" onclick="speak('${p.vn}')">🔊</button></div>`).join('');
+window.speak=t=>{const u=new SpeechSynthesisUtterance(t);u.lang='vi-VN';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);};
+const CTRS=[{key:'banhmi',label:'🥖 Bánh mì mangés'},{key:'pho',label:'🍜 Phở avalés'},{key:'biere',label:'🍺 Bières Bia Hoi'},{key:'arnaque',label:'🥷 Arnaques évitées'},{key:'moto',label:'🛵 Traversées moto'},{key:'photo',label:'📸 Photos prises'}];
+window._counters=JSON.parse(localStorage.getItem('vn_counters')||'{}');
+function renderCounters(){document.getElementById('counters-list').innerHTML=CTRS.map(c=>`<div class="counter-item"><div style="font-size:13px;flex:1;">${c.label}</div><div style="display:flex;align-items:center;gap:9px;"><button class="counter-btn c-minus" onclick="adjC('${c.key}',-1)">−</button><div class="counter-val">${window._counters[c.key]||0}</div><button class="counter-btn c-plus" onclick="adjC('${c.key}',1)">+</button></div></div>`).join('');}
+window.adjC=(k,d)=>{window._counters[k]=Math.max(0,(window._counters[k]||0)+d);localStorage.setItem('vn_counters',JSON.stringify(window._counters));window.fbSave?.('counters',window._counters);renderCounters();if(d>0)toast(CTRS.find(c=>c.key===k)?.label.split(' ')[0]+' +1 !');};
 renderCounters();
-
-// ── JOURNAL ──
-window._journal = JSON.parse(localStorage.getItem('vn_journal') || '[]');
-
-window.addJournal = () => {
-    const txt = document.getElementById('journal-input').value.trim();
-    if (!txt) return;
-    window._journal.unshift({ date: new Date().toLocaleDateString('fr-FR'), text: txt });
-    localStorage.setItem('vn_journal', JSON.stringify(window._journal));
-    window.fbSaveJournal?.(window._journal);
-    document.getElementById('journal-input').value = '';
-    renderJournal();
-};
-
-function renderJournal() {
-    const el = document.getElementById('journal-list');
-    el.innerHTML = window._journal.length === 0 ? '<p style="color:#444;font-size:11px;">Aucune entrée pour l\'instant...</p>' :
-        window._journal.slice(0,20).map(e => `
-            <div class="journal-entry">
-                <div class="journal-date">${e.date}</div>
-                <div class="journal-text">${e.text}</div>
-            </div>
-        `).join('');
-}
+window._journal=JSON.parse(localStorage.getItem('vn_journal')||'[]');
+window.addJournal=()=>{const txt=document.getElementById('journal-input').value.trim();if(!txt)return;window._journal.unshift({date:new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}),text:txt});localStorage.setItem('vn_journal',JSON.stringify(window._journal));window.fbSave?.('journal',window._journal);document.getElementById('journal-input').value='';renderJournal();toast('📓 Journal sauvegardé !');};
+function renderJournal(){document.getElementById('journal-list').innerHTML=window._journal.length===0?'<p style="color:#333;font-size:11px;">Aucune entrée...</p>':window._journal.slice(0,20).map(e=>`<div class="journal-entry"><div class="journal-date">${e.date}</div><div class="journal-text">${e.text}</div></div>`).join('');}
 renderJournal();
-
-// ── COFFRE ──
-const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels');
-vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || '';
-vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value));
-vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
-window.savePhoto = e => {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = ev => {
-        try { localStorage.setItem('vn_vimg', ev.target.result); document.getElementById('vault-img').src = ev.target.result; document.getElementById('vault-img').style.display = 'block'; }
-        catch(e) { alert('⚠️ Image trop lourde, fais une capture d\'écran à la place'); }
-    };
-    r.readAsDataURL(f);
-};
-window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); document.getElementById('vault-img').src = ''; document.getElementById('vault-img').style.display = 'none'; };
-const si = localStorage.getItem('vn_vimg'); if (si) { document.getElementById('vault-img').src = si; document.getElementById('vault-img').style.display = 'block'; }
-
-// ── CESIUM ──
-Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
-
-const viewer = new Cesium.Viewer('cesiumContainer', {
-    terrain: Cesium.Terrain.fromWorldTerrain(),
-    animation:false, timeline:false, baseLayerPicker:false,
-    geocoder:false, homeButton:false, navigationHelpButton:false, sceneModePicker:false
-});
-viewer.cesiumWidget.creditContainer.style.display = 'none';
-window._viewer = viewer;
-
-// Contour Vietnam
-Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', {
-    stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth:2,
-    fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.04)
-}).then(ds => viewer.dataSources.add(ds));
-
-// Étapes
-const STOPS = [
-    { n:'Hanoï', lo:105.8342, la:21.0278 },
-    { n:'Ninh Bình', lo:105.9800, la:20.2539 },
-    { n:'Pu Luong', lo:105.2083, la:20.4625 },
-    { n:'Lan Ha Bay', lo:106.9997, la:20.8000 },
-    { n:'Phong Nha', lo:106.1340, la:17.4777 },
-    { n:'Huế', lo:107.4795, la:16.3547 },
-    { n:'Hội An', lo:108.3267, la:15.8799 },
-    { n:'Đà Nẵng', lo:108.2111, la:16.0600 },
-];
-
-// Pins des étapes
-STOPS.forEach(s => {
-    viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(s.lo, s.la),
-        point: { pixelSize:12, color:Cesium.Color.fromCssColorString('#4ade80'), outlineColor:Cesium.Color.WHITE, outlineWidth:2, disableDepthTestDistance:Number.POSITIVE_INFINITY },
-        label: { text:s.n, font:'bold 13pt sans-serif', fillColor:Cesium.Color.WHITE, style:Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, verticalOrigin:Cesium.VerticalOrigin.BOTTOM, pixelOffset:new Cesium.Cartesian2(0,-14), disableDepthTestDistance:Number.POSITIVE_INFINITY }
-    });
-});
-
-// Route entre étapes
-viewer.entities.add({
-    polyline: {
-        positions: STOPS.map(s => Cesium.Cartesian3.fromDegrees(s.lo, s.la)),
-        width: 2,
-        material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.6), dashLength:16 }),
-        arcType: Cesium.ArcType.GEODESIC,
-        clampToGround: false
-    }
-});
-
-// Arc de vol animé Bilbao → Hanoï
-const flightPositions = Cesium.Cartesian3.fromDegreesArrayHeights([
-    -2.9253, 43.3009, 0,
-    20.0, 45.0, 800000,
-    50.0, 40.0, 1200000,
-    80.0, 30.0, 900000,
-    105.8342, 21.0278, 0
-]);
-viewer.entities.add({
-    polyline: {
-        positions: flightPositions,
-        width: 2,
-        material: new Cesium.PolylineGlowMaterialProperty({ glowPower:0.15, color:Cesium.Color.fromCssColorString('#38bdf8').withAlpha(0.7) }),
-        arcType: Cesium.ArcType.NONE
-    }
-});
-
-// Caméra initiale
-const cc = viewer.scene.screenSpaceCameraController;
-cc.minimumZoomDistance = 200; cc.maximumZoomDistance = 20000000;
-viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3200000), duration:0 });
+const vD=document.getElementById('vault-docs'),vH=document.getElementById('vault-hotels');
+vD.value=localStorage.getItem('vn_vd')||'';vH.value=localStorage.getItem('vn_vh')||'';
+vD.addEventListener('input',()=>{localStorage.setItem('vn_vd',vD.value);toast('💾 Sauvegardé offline');});
+vH.addEventListener('input',()=>{localStorage.setItem('vn_vh',vH.value);toast('💾 Sauvegardé offline');});
+window.savePhoto=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{localStorage.setItem('vn_vimg',ev.target.result);document.getElementById('vault-img').src=ev.target.result;document.getElementById('vault-img').style.display='block';toast('📸 Photo enregistrée offline !');}catch(e){alert('⚠️ Image trop lourde');}};r.readAsDataURL(f);};
+window.clearPhoto=()=>{localStorage.removeItem('vn_vimg');document.getElementById('vault-img').src='';document.getElementById('vault-img').style.display='none';};
+const si=localStorage.getItem('vn_vimg');if(si){document.getElementById('vault-img').src=si;document.getElementById('vault-img').style.display='block';}
+Cesium.Ion.defaultAccessToken='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
+const viewer=new Cesium.Viewer('cesiumContainer',{terrain:Cesium.Terrain.fromWorldTerrain(),animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,navigationHelpButton:false,sceneModePicker:false});
+viewer.cesiumWidget.creditContainer.style.display='none';window._viewer=viewer;
+Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json',{stroke:Cesium.Color.fromCssColorString('#4ade80'),strokeWidth:2,fill:Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.04)}).then(ds=>viewer.dataSources.add(ds));
+const STOPS=[{n:'Hanoï',lo:105.8342,la:21.0278},{n:'Ninh Bình',lo:105.98,la:20.2539},{n:'Pu Luong',lo:105.2083,la:20.4625},{n:'Lan Ha Bay',lo:106.9997,la:20.8},{n:'Phong Nha',lo:106.134,la:17.4777},{n:'Huế',lo:107.4795,la:16.3547},{n:'Hội An',lo:108.3267,la:15.8799},{n:'Đà Nẵng',lo:108.2111,la:16.06}];
+const curIdx=getStepIdx();
+STOPS.forEach((s,i)=>{const cur=i===curIdx;viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(s.lo,s.la),point:{pixelSize:cur?16:11,color:Cesium.Color.fromCssColorString(cur?'#facc15':'#4ade80'),outlineColor:Cesium.Color.WHITE,outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{text:s.n,font:`${cur?'bold':'normal'} 13pt sans-serif`,fillColor:Cesium.Color.WHITE,style:Cesium.LabelStyle.FILL_AND_OUTLINE,outlineColor:Cesium.Color.BLACK,outlineWidth:3,verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-14),disableDepthTestDistance:Number.POSITIVE_INFINITY}});});
+viewer.entities.add({polyline:{positions:STOPS.map(s=>Cesium.Cartesian3.fromDegrees(s.lo,s.la)),width:2,material:new Cesium.PolylineDashMaterialProperty({color:Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.6),dashLength:16}),arcType:Cesium.ArcType.GEODESIC}});
+viewer.entities.add({polyline:{positions:Cesium.Cartesian3.fromDegreesArrayHeights([-2.9253,43.3009,0,20,45,800000,50,40,1200000,80,30,900000,105.8342,21.0278,0]),width:2,material:new Cesium.PolylineGlowMaterialProperty({glowPower:.15,color:Cesium.Color.fromCssColorString('#38bdf8').withAlpha(.7)}),arcType:Cesium.ArcType.NONE}});
+const cc=viewer.scene.screenSpaceCameraController;cc.minimumZoomDistance=200;cc.maximumZoomDistance=20000000;
+viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(106.5,18.5,3200000),duration:0});
 </script>
 </body>
 </html>
