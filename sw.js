@@ -1,59 +1,42 @@
-const CACHE = 'vn-2026-v6';
-const APP_SHELL = [
-  '/vietnam2026/',
-  '/vietnam2026/index.html',
-  '/vietnam2026/manifest.json',
-  '/vietnam2026/icon.png'
+const CACHE_NAME = 'vn-cache-v17'; // Le "v17" force la mise à jour !
+const ASSETS_TO_CACHE = [
+    './',
+    './index.html',
+    './manifest.json',
+    './icon.png'
 ];
 
+// Installation : on sauvegarde les fichiers vitaux
 self.addEventListener('install', event => {
-  self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(APP_SHELL))
-  );
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys
-        .filter(key => key !== CACHE)
-        .map(key => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', event => {
-  const req = event.request;
-  const url = new URL(req.url);
-
-  // On ne gère que GET
-  if (req.method !== 'GET') return;
-
-  // Ressources locales de l'app : network first, fallback cache
-  if (url.origin === self.location.origin) {
-    event.respondWith(
-      fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put(req, copy));
-          return res;
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(ASSETS_TO_CACHE);
         })
-        .catch(() => caches.match(req).then(res => res || caches.match('/vietnam2026/index.html')))
     );
-    return;
-  }
+    self.skipWaiting(); // Force le nouveau SW à s'installer de suite
+});
 
-  // Ressources externes : cache first si déjà vues, sinon réseau
-  event.respondWith(
-    caches.match(req).then(cached => {
-      if (cached) return cached;
-      return fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(cache => cache.put(req, copy));
-        return res;
-      });
-    }).catch(() => caches.match('/vietnam2026/index.html'))
-  );
+// Activation : on nettoie les vieilles versions corrompues (comme la carte noire)
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cache => {
+                    if (cache !== CACHE_NAME) {
+                        return caches.delete(cache);
+                    }
+                })
+            );
+        })
+    );
+    self.clients.claim(); // Force la prise de contrôle immédiate
+});
+
+// Stratégie "Network First" : Essaie internet d'abord, sinon prends le cache
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        fetch(event.request).catch(() => {
+            return caches.match(event.request);
+        })
+    );
 });
