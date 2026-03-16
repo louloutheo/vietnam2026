@@ -44,6 +44,7 @@
         .card h3 { margin: 0 0 5px 0; font-size: 15px; display: flex; justify-content: space-between; }
         .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; }
         .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .badge-sync { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
 
         /* FIX CLAVIER iOS */
         .view-focused { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; height: max-content !important; max-height: 50vh !important; border-radius: 0 0 24px 24px !important; padding: 15px !important; padding-top: calc(15px + env(safe-area-inset-top)) !important; margin: 0 !important; align-self: flex-start !important; z-index: 100 !important; transform: none !important; }
@@ -68,11 +69,12 @@
         .expense-item:last-child { border-bottom: none; }
         .expense-delete { color: var(--danger); background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 0 5px; }
 
-        /* MODULE COFFRE-FORT (VAULT) */
+        /* MODULE COFFRE-FORT & SYNC */
         .vault-textarea { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 12px; color: white; padding: 12px; box-sizing: border-box; font-size: 14px; font-family: inherit; resize: none; min-height: 80px; margin-bottom: 15px; }
         .vault-textarea::placeholder { color: rgba(255,255,255,0.3); }
         .emergency-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8a8a; padding: 10px; border-radius: 12px; text-align: center; text-decoration: none; font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px; transition: 0.2s; }
         .emergency-btn:active { background: var(--danger); color: white; }
+        .sync-btn { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; width: 100%; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
 
         /* NAVIGATION BAS */
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; transition: transform 0.3s ease; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
@@ -98,16 +100,14 @@
 
         <div class="middle-container">
             
-            <div id="view-etapes" class="glass-panel app-view">
-                <h2>🗺️ Itinéraire</h2>
-                <div class="card">
-                    <h3>Hanoï <span class="badge badge-ok">Confirmé</span></h3>
-                    <p style="margin:0; font-size:13px; color:#ccc;">✈️ Vol & 🏨 Aimee House</p>
-                </div>
-                <div class="card">
-                    <h3>Ninh Binh <span class="badge badge-ok">Confirmé</span></h3>
-                    <p style="margin:0; font-size:13px; color:#ccc;">🏨 Hang Mua Ecolodge</p>
-                </div>
+            <div id="view-etapes" class="glass-panel app-view focusable-view">
+                <h2>🗺️ Itinéraire <span id="sync-status" class="badge badge-sync">Hors-ligne</span></h2>
+                
+                <input type="text" id="ical-url" class="expense-input smart-input" placeholder="Coller le lien .ics ici..." style="width:100% !important; margin-bottom:10px; font-size:12px; font-weight:normal; text-align:left;">
+                <button class="sync-btn" onclick="syncItinerary()">🔄 Synchroniser le Calendrier</button>
+
+                <div id="itinerary-list">
+                    </div>
             </div>
 
             <div id="view-converter" class="glass-panel app-view focusable-view">
@@ -138,7 +138,6 @@
 
             <div id="view-budget" class="glass-panel app-view focusable-view">
                 <h2>💰 Budget Tracker</h2>
-                
                 <div class="card" style="padding: 15px;">
                     <div style="display:flex; justify-content:space-between; align-items:end;">
                         <div>
@@ -149,15 +148,8 @@
                             Sur <span id="budget-total" onclick="askTotalBudget()" style="text-decoration:underline; cursor:pointer;">1500 €</span>
                         </div>
                     </div>
-                    
-                    <div class="budget-gauge-bg">
-                        <div class="budget-gauge-fill" id="budget-gauge"></div>
-                    </div>
-                    
-                    <div class="budget-stats">
-                        <span>Dépensé: <span id="budget-spent" style="color:white;">0 €</span></span>
-                        <span id="budget-percent">0%</span>
-                    </div>
+                    <div class="budget-gauge-bg"><div class="budget-gauge-fill" id="budget-gauge"></div></div>
+                    <div class="budget-stats"><span>Dépensé: <span id="budget-spent" style="color:white;">0 €</span></span><span id="budget-percent">0%</span></div>
                 </div>
 
                 <h3 style="margin: 15px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Ajouter une dépense</h3>
@@ -224,147 +216,3 @@
 
         // --- CHRONO ---
         const countDownDate = new Date("Apr 13, 2026 12:10:00").getTime();
-        setInterval(() => {
-            const now = new Date().getTime();
-            const distance = countDownDate - now;
-            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((distance % (1000 * 60)) / 1000);
-            document.getElementById("countdown-container").innerHTML = `✈️ - ${d}j ${h}h ${m}m ${s}s`;
-        }, 1000);
-
-        // --- GESTION NAVIGATION & FIX CLAVIER ---
-        const navItems = document.querySelectorAll('.nav-item');
-        const views = document.querySelectorAll('.app-view');
-        const middleContainer = document.querySelector('.middle-container');
-        const uiLayer = document.getElementById('ui-layer');
-
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navItems.forEach(nav => nav.classList.remove('active'));
-                views.forEach(view => { view.style.display = 'none'; view.classList.remove('view-focused'); });
-                middleContainer.style.alignItems = 'flex-end';
-                item.classList.add('active');
-                const target = item.getAttribute('data-target');
-                if(target !== 'none') { document.getElementById(target).style.display = 'block'; }
-            });
-        });
-
-        document.querySelectorAll('.smart-input').forEach(input => {
-            input.addEventListener('focus', (e) => {
-                uiLayer.classList.add('keyboard-up');
-                e.target.closest('.focusable-view').classList.add('view-focused');
-                middleContainer.style.alignItems = 'flex-start';
-            });
-            input.addEventListener('blur', (e) => {
-                uiLayer.classList.remove('keyboard-up');
-                e.target.closest('.focusable-view').classList.remove('view-focused');
-                middleContainer.style.alignItems = 'flex-end';
-            });
-        });
-
-        // --- MONNAIE ---
-        let exchangeRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
-        fetch('https://api.exchangerate-api.com/v4/latest/EUR')
-            .then(res => res.json())
-            .then(data => {
-                exchangeRate = data.rates.VND;
-                localStorage.setItem('vn_rate', exchangeRate);
-                document.getElementById('rate-info').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct 🟢)`;
-                updateBudgetUI();
-            })
-            .catch(() => { document.getElementById('rate-info').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne 🟠)`; });
-
-        const parseValue = (val) => parseFloat(val.toString().replace(/\s/g, '').replace(',', '.')) || 0;
-        const formatValue = (num, decimals = 0) => num.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-
-        const inputVnd = document.getElementById('input-vnd');
-        const inputEur = document.getElementById('input-eur');
-        function convertVND() {
-            const valVnd = parseValue(inputVnd.value);
-            if(valVnd > 0) { inputEur.value = formatValue(valVnd / exchangeRate, 2); inputVnd.value = formatValue(valVnd, 0); } else { inputEur.value = ''; }
-        }
-        function convertEUR() {
-            const valEur = parseValue(inputEur.value);
-            if(valEur > 0) { inputVnd.value = formatValue(Math.round(valEur * exchangeRate), 0); inputEur.value = formatValue(valEur, 2); } else { inputVnd.value = ''; }
-        }
-        window.quickAdd = function(amount) { inputVnd.value = formatValue(parseValue(inputVnd.value) + amount, 0); convertVND(); };
-        window.resetConverter = function() { inputVnd.value = ''; inputEur.value = ''; }
-        inputVnd.addEventListener('input', convertVND);
-        inputEur.addEventListener('input', convertEUR);
-
-        // --- BUDGET ---
-        let totalBudgetEur = parseFloat(localStorage.getItem('vn_total_budget')) || 1500;
-        let expenses = JSON.parse(localStorage.getItem('vn_expenses')) || [];
-
-        window.askTotalBudget = function() {
-            let newB = prompt("Quel est ton budget total (en Euros) ?", totalBudgetEur);
-            if(newB && !isNaN(parseValue(newB))) { totalBudgetEur = parseValue(newB); localStorage.setItem('vn_total_budget', totalBudgetEur); updateBudgetUI(); }
-        };
-
-        window.addExpense = function() {
-            const amountInput = document.getElementById('exp-amount').value;
-            const cat = document.getElementById('exp-cat').value;
-            const currency = document.getElementById('exp-currency').value;
-            let amount = parseValue(amountInput);
-            if(amount <= 0) return;
-            let amountEur = currency === 'VND' ? amount / exchangeRate : amount;
-            expenses.unshift({ id: Date.now(), cat: cat, originalAmount: amount, currency: currency, amountEur: amountEur, date: new Date().toLocaleDateString('fr-FR') });
-            localStorage.setItem('vn_expenses', JSON.stringify(expenses));
-            document.getElementById('exp-amount').value = '';
-            document.getElementById('exp-amount').blur();
-            updateBudgetUI();
-        };
-
-        window.deleteExpense = function(id) { expenses = expenses.filter(e => e.id !== id); localStorage.setItem('vn_expenses', JSON.stringify(expenses)); updateBudgetUI(); };
-
-        function updateBudgetUI() {
-            document.getElementById('budget-total').innerText = formatValue(totalBudgetEur, 0) + ' €';
-            let spentEur = expenses.reduce((sum, exp) => sum + exp.amountEur, 0);
-            document.getElementById('budget-spent').innerText = formatValue(spentEur, 2) + ' €';
-            document.getElementById('budget-left').innerText = formatValue(totalBudgetEur - spentEur, 2) + ' €';
-            let percent = (spentEur / totalBudgetEur) * 100;
-            if(percent > 100) percent = 100;
-            const gauge = document.getElementById('budget-gauge');
-            gauge.style.width = percent + '%';
-            if(percent > 85) gauge.style.background = 'var(--danger)'; else if(percent > 65) gauge.style.background = '#facc15'; else gauge.style.background = 'var(--primary)';
-            document.getElementById('budget-percent').innerText = Math.round(percent) + '%';
-
-            const listEl = document.getElementById('expense-list');
-            listEl.innerHTML = '';
-            if(expenses.length === 0) { listEl.innerHTML = '<div style="color:#666; font-size:12px; text-align:center; padding:10px;">Aucune dépense pour l\'instant.</div>'; return; }
-            expenses.slice(0, 10).forEach(exp => {
-                let symbol = exp.currency === 'EUR' ? '€' : '₫';
-                listEl.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${exp.cat}</span><span style="color:#aaa;">${exp.date}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${formatValue(exp.originalAmount, exp.currency==='EUR'?2:0)} ${symbol}</strong><button class="expense-delete" onclick="deleteExpense(${exp.id})">×</button></div></div>`;
-            });
-        }
-        updateBudgetUI();
-
-        // --- COFFRE-FORT AUTO-SAVE ---
-        const vaultDocs = document.getElementById('vault-docs');
-        const vaultHotels = document.getElementById('vault-hotels');
-        
-        vaultDocs.value = localStorage.getItem('vn_vault_docs') || '';
-        vaultHotels.value = localStorage.getItem('vn_vault_hotels') || '';
-
-        vaultDocs.addEventListener('input', () => localStorage.setItem('vn_vault_docs', vaultDocs.value));
-        vaultHotels.addEventListener('input', () => localStorage.setItem('vn_vault_hotels', vaultHotels.value));
-
-        // --- CESIUM ---
-        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
-        const viewer = new Cesium.Viewer('cesiumContainer', { terrain: Cesium.Terrain.fromWorldTerrain(), animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false });
-        viewer.cesiumWidget.creditContainer.style.display = "none";
-
-        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
-
-        const route = [ { name: "Hanoï", lon: 105.8342, lat: 21.0278 }, { name: "Ninh Binh", lon: 105.9800, lat: 20.2539 } ];
-        route.forEach(etape => { viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(etape.lon, etape.lat), point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: etape.name, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } }); });
-
-        const cc = viewer.scene.screenSpaceCameraController;
-        cc.enableTilt = false; cc.enableLook = false; cc.enableTranslate = false;  
-        cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
-        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), duration: 0 });
-    </script>
-</body>
-</html>
