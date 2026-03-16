@@ -3,255 +3,753 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Masterclass</title>
+    <title>Vietnam 2026</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon.png">
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
-        :root { --primary: #4ade80; --danger: #ef4444; --glass-bg: rgba(20, 20, 20, 0.75); --glass-border: rgba(255, 255, 255, 0.15); }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #000; color: white; overflow: hidden; }
-        button, input, select, textarea, .nav-item { touch-action: manipulation; outline: none; }
-        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; transition: all 0.3s ease; }
-        .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
-        .top-widget { padding: 15px 20px; align-self: flex-start; max-width: 250px; width: 100%; margin-top: 15px; transition: transform 0.3s ease; }
-        .top-widget h1 { margin: 0 0 5px 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-        #countdown-container { font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; margin-top: 8px; }
-        .refresh-btn { position: absolute; top: max(25px, env(safe-area-inset-top)); right: 20px; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 50; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); transition: 0.2s; }
-        .refresh-btn:active { transform: scale(0.85); background: var(--primary); color: black; }
-        .middle-container { flex-grow: 1; position: relative; width: 100%; display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 20px; transition: all 0.3s ease; }
-        .app-view { display: none; width: 100%; max-width: 400px; max-height: 65vh; overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .card { background: rgba(255, 255, 255, 0.08); padding: 15px; border-radius: 16px; margin-bottom: 12px; }
-        .card h3 { margin: 0 0 5px 0; font-size: 15px; display: flex; justify-content: space-between; align-items: flex-start; line-height: 1.3; }
-        .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; white-space: nowrap; margin-left: 10px; }
-        .badge-sync { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
-        .badge-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
-        .view-focused { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; height: max-content !important; max-height: 50vh !important; border-radius: 0 0 24px 24px !important; padding: 15px !important; padding-top: calc(15px + env(safe-area-inset-top)) !important; margin: 0 !important; align-self: flex-start !important; z-index: 100 !important; transform: none !important; }
-        #ui-layer.keyboard-up .top-widget, #ui-layer.keyboard-up .refresh-btn { transform: translateY(-200%); opacity: 0; }
-        input[type="text"], input[type="number"] { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; text-align: right; width: 60%; font-family: inherit; }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        .quick-btn { background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.5); color: var(--primary); padding: 10px; border-radius: 12px; flex: 1; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 13px; text-transform: uppercase; }
-        .quick-btn:active { background: var(--primary); color: black; transform: scale(0.95); }
-        .reset-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: var(--danger); }
-        .sync-btn { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; width: 100%; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .budget-gauge-bg { background: rgba(255,255,255,0.1); width: 100%; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
-        .budget-gauge-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease, background 0.3s; }
-        .expense-form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .expense-input, .expense-select { background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: white; padding: 12px; border-radius: 12px; font-size: 16px; flex-grow: 1; }
-        .expense-input { text-align: left !important; width: auto !important; }
-        .expense-btn { background: var(--primary); color: black; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; width: 100%; margin-top: 10px; }
-        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .expense-item:last-child { border-bottom: none; }
-        .expense-delete { color: var(--danger); background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 0 5px; }
-        .vault-textarea { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 12px; color: white; padding: 12px; box-sizing: border-box; font-size: 14px; font-family: inherit; resize: none; min-height: 80px; margin-bottom: 15px; }
-        .emergency-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8a8a; padding: 10px; border-radius: 12px; text-align: center; text-decoration: none; font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px; }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 15px; width: 100%; max-width: 400px; align-self: center; pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 9px; font-weight: 600; cursor: pointer; transition: 0.3s; padding: 8px 2px; border-radius: 16px; width: 19%; text-transform: uppercase; }
-        .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        :root {
+            --primary: #4ade80;
+            --danger: #ef4444;
+            --warn: #facc15;
+            --blue: #38bdf8;
+            --glass: rgba(15,15,15,0.82);
+            --border: rgba(255,255,255,0.12);
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body, html { margin:0; padding:0; height:100%; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#000; color:#fff; overflow:hidden; }
+        button, input, select, textarea, .nav-item { touch-action:manipulation; outline:none; }
+        #cesiumContainer { width:100vw; height:100vh; position:absolute; top:0; left:0; z-index:1; }
+        #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; padding:env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing:border-box; }
+        .glass { pointer-events:auto; background:var(--glass); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid var(--border); border-radius:20px; }
+
+        /* TOP WIDGET */
+        .top-bar { display:flex; gap:10px; align-items:flex-start; margin-top:15px; }
+        .top-widget { padding:12px 16px; flex:1; max-width:220px; }
+        .top-widget h1 { margin:0 0 4px; font-size:18px; color:var(--primary); text-transform:uppercase; letter-spacing:1px; }
+        #countdown { font-family:monospace; font-size:12px; font-weight:bold; }
+        .weather-chip { padding:10px 14px; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:bold; }
+        .top-actions { display:flex; flex-direction:column; gap:8px; }
+        .icon-btn { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; pointer-events:auto; background:var(--glass); border:1px solid var(--border); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transition:.2s; }
+        .icon-btn:active { transform:scale(0.85); background:var(--primary); color:#000; }
+
+        /* MIDDLE */
+        .middle { flex:1; display:flex; justify-content:flex-end; align-items:flex-end; margin-bottom:16px; position:relative; }
+        .app-view { display:none; width:100%; max-width:400px; max-height:62vh; overflow-y:auto; padding:18px; }
+        .app-view::-webkit-scrollbar { width:0; }
+        .view-focused { position:fixed !important; top:0 !important; left:0 !important; right:0 !important; width:100% !important; max-width:100% !important; max-height:52vh !important; border-radius:0 0 20px 20px !important; padding:15px !important; padding-top:calc(15px + env(safe-area-inset-top)) !important; z-index:100 !important; }
+        #ui-layer.kb-up .top-bar, #ui-layer.kb-up .nav-bar { transform:translateY(-300%); opacity:0; }
+
+        /* NAV */
+        .nav-bar { display:flex; justify-content:space-around; align-items:center; padding:8px 6px; margin-bottom:12px; width:100%; align-self:center; max-width:420px; pointer-events:auto; }
+        .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; color:#666; font-size:8px; font-weight:700; cursor:pointer; padding:7px 6px; border-radius:14px; text-transform:uppercase; letter-spacing:.5px; flex:1; transition:.2s; }
+        .nav-item.active { color:var(--primary); background:rgba(74,222,128,.12); }
+        .nav-icon { font-size:19px; }
+
+        /* CARDS */
+        .card { background:rgba(255,255,255,.07); padding:13px; border-radius:14px; margin-bottom:10px; }
+        .card-title { margin:0 0 6px; font-size:14px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; line-height:1.3; }
+        .badge { font-size:9px; padding:2px 7px; border-radius:10px; white-space:nowrap; flex-shrink:0; }
+        .b-ok { background:rgba(74,222,128,.2); color:var(--primary); }
+        .b-sync { background:rgba(56,189,248,.2); color:var(--blue); }
+        .b-warn { background:rgba(250,204,21,.2); color:var(--warn); }
+        .b-danger { background:rgba(239,68,68,.2); color:var(--danger); }
+        .sub { font-size:12px; color:#aaa; margin:3px 0; }
+        .resa-btn { display:block; width:100%; margin-top:10px; padding:9px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; color:#fff; text-decoration:none; font-size:11px; font-weight:bold; text-align:center; }
+
+        /* SECTION TITLE */
+        .sec { font-size:11px; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:.8px; margin:14px 0 8px; }
+
+        /* FORMS */
+        .row { display:flex; gap:8px; flex-wrap:wrap; }
+        .btn { padding:10px 14px; border-radius:12px; font-weight:800; cursor:pointer; font-size:12px; text-transform:uppercase; border:none; transition:.15s; }
+        .btn:active { transform:scale(.94); }
+        .btn-primary { background:var(--primary); color:#000; }
+        .btn-outline { background:rgba(74,222,128,.12); border:1px solid rgba(74,222,128,.4); color:var(--primary); flex:1; }
+        .btn-danger { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); color:var(--danger); }
+        .btn-blue { background:rgba(56,189,248,.12); border:1px solid rgba(56,189,248,.4); color:var(--blue); width:100%; margin-bottom:12px; }
+        .input, .select { background:rgba(0,0,0,.5); border:1px solid var(--border); color:#fff; padding:11px; border-radius:12px; font-size:15px; }
+        .input { flex:1; }
+        input[type=text].big, input[type=number].big { background:transparent; border:none; color:#fff; font-size:22px; font-weight:bold; text-align:right; width:55%; font-family:inherit; }
+        input::placeholder { color:rgba(255,255,255,.2); }
+        textarea.input { width:100%; resize:none; min-height:75px; margin-bottom:12px; font-family:inherit; font-size:13px; }
+
+        /* BUDGET GAUGE */
+        .gauge-bg { background:rgba(255,255,255,.1); width:100%; height:10px; border-radius:8px; overflow:hidden; margin-top:8px; }
+        .gauge-fill { height:100%; width:0%; border-radius:8px; transition:width .5s, background .3s; }
+
+        /* EXPENSE LIST */
+        .exp-item { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; }
+        .exp-item:last-child { border-bottom:none; }
+        .del-btn { color:var(--danger); background:transparent; border:none; font-size:17px; cursor:pointer; padding:0 4px; }
+
+        /* CHECKLIST */
+        .check-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.04); cursor:pointer; }
+        .check-box { width:18px; height:18px; border:1.5px solid rgba(255,255,255,.3); border-radius:5px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; transition:.2s; }
+        .check-box.done { background:var(--primary); border-color:var(--primary); color:#000; }
+        .check-label { font-size:12px; line-height:1.4; flex:1; }
+        .check-label.done { text-decoration:line-through; color:#555; }
+
+        /* DICO */
+        .phrase-card { background:rgba(255,255,255,.06); border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+        .phrase-fr { font-size:12px; color:#aaa; }
+        .phrase-vn { font-size:14px; font-weight:bold; color:#fff; margin-top:3px; }
+        .speak-btn { background:rgba(74,222,128,.15); border:1px solid rgba(74,222,128,.3); color:var(--primary); padding:8px 12px; border-radius:10px; font-size:16px; cursor:pointer; flex-shrink:0; }
+
+        /* COUNTERS */
+        .counter-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+        .counter-item:last-child { border-bottom:none; }
+        .counter-label { font-size:13px; flex:1; }
+        .counter-controls { display:flex; align-items:center; gap:10px; }
+        .counter-val { font-size:20px; font-weight:bold; color:var(--primary); min-width:30px; text-align:center; }
+        .counter-btn { width:32px; height:32px; border-radius:50%; border:none; font-size:18px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .c-plus { background:rgba(74,222,128,.2); color:var(--primary); }
+        .c-minus { background:rgba(255,255,255,.08); color:#888; }
+
+        /* JOURNAL */
+        .journal-entry { background:rgba(255,255,255,.06); border-radius:12px; padding:12px; margin-bottom:8px; }
+        .journal-date { font-size:10px; color:#666; margin-bottom:4px; }
+        .journal-text { font-size:13px; line-height:1.5; }
+
+        /* GRAB */
+        .grab-result { background:rgba(74,222,128,.1); border:1px solid rgba(74,222,128,.3); border-radius:12px; padding:14px; margin-top:12px; text-align:center; }
+        .grab-price { font-size:28px; font-weight:bold; color:var(--primary); }
+        .grab-sub { font-size:11px; color:#aaa; margin-top:4px; }
     </style>
 </head>
 <body>
-    <div id="cesiumContainer"></div>
-    <div id="ui-layer">
-        <div class="refresh-btn" onclick="forceAppRefresh()">↻</div>
-        <div class="glass-panel top-widget">
+<div id="cesiumContainer"></div>
+<div id="ui-layer">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="glass top-widget">
             <h1>Vietnam 2026</h1>
-            <div id="countdown-container">Calcul...</div>
+            <div id="countdown">...</div>
         </div>
-
-        <div class="middle-container">
-            
-            <div id="view-etapes" class="glass-panel app-view focusable-view">
-                <h2>🗺️ Itinéraire <span id="sync-status" class="badge badge-sync">Hors-ligne</span></h2>
-                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 15px; margin-bottom:15px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);">
-                    <div style="font-weight:bold; font-size:14px; color:#38bdf8;">📍 Hanoï</div><div id="weather-info" style="font-size:16px; font-weight:bold;">Calcul...</div>
-                </div>
-                <button class="sync-btn" onclick="syncItinerary(true)">🔄 Rafraîchir l'itinéraire</button>
-                <div id="itinerary-list"></div>
-            </div>
-
-            <div id="view-converter" class="glass-panel app-view focusable-view">
-                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">
-                    <h2>💱 Convertisseur</h2><div id="rate-info" style="font-size: 10px; color: #aaa; text-transform: uppercase;">1 € = Calcul...</div>
-                </div>
-                <div class="card" style="display: flex; justify-content: space-between; padding: 15px;"><span style="font-size: 28px;">🇻🇳</span><input type="text" id="input-vnd" placeholder="0" inputmode="decimal" class="smart-input"><span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold; align-self:center;">VND</span></div>
-                <div class="card" style="display: flex; justify-content: space-between; padding: 15px;"><span style="font-size: 28px;">🇪🇺</span><input type="text" id="input-eur" placeholder="0" inputmode="decimal" class="smart-input"><span style="font-size: 14px; color: #888; margin-left: 10px; font-weight:bold; align-self:center;">EUR</span></div>
-                <div style="display: flex; gap: 8px; margin-top: 15px;">
-                    <button class="quick-btn reset-btn" onclick="resetConverter()">C</button>
-                    <button class="quick-btn" onclick="quickAdd(100000)">100k</button><button class="quick-btn" onclick="quickAdd(500000)">500k</button><button class="quick-btn" onclick="quickAdd(1000000)">1M</button>
-                </div>
-            </div>
-
-            <div id="view-budget" class="glass-panel app-view focusable-view">
-                <h2>💰 Budget Tracker</h2>
-                <div class="card" style="padding: 15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:end;"><div><span style="font-size:24px; font-weight:bold; color:var(--primary);" id="budget-left">0 €</span><span style="font-size:12px; color:#aaa;"> restants</span></div><div style="font-size:12px; color:#888;">Sur <span id="budget-total" onclick="askTotalBudget()" style="text-decoration:underline; cursor:pointer;">1500 €</span></div></div>
-                    <div class="budget-gauge-bg"><div class="budget-gauge-fill" id="budget-gauge"></div></div>
-                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:5px; color:#aaa;"><span>Dépensé: <span id="budget-spent" style="color:white;">0 €</span></span><span id="budget-percent">0%</span></div>
-                </div>
-                <h3 style="margin: 15px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Ajouter une dépense</h3>
-                <div class="expense-form">
-                    <select id="exp-cat" class="expense-select"><option value="🍔">🍔 Repas</option><option value="🚕">🚕 Transp.</option><option value="🏨">🏨 Hôtel</option><option value="🍺">🍺 Bière</option><option value="🎟️">🎟️ Activité</option></select>
-                    <input type="number" id="exp-amount" class="expense-input smart-input" placeholder="Montant" inputmode="decimal" style="width: 80px !important;">
-                    <select id="exp-currency" class="expense-select"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
-                </div>
-                <button class="expense-btn" onclick="addExpense()">Ajouter</button>
-                <h3 style="margin: 20px 0 5px 0; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Dernières dépenses</h3><div id="expense-list" style="margin-top: 10px;"></div>
-            </div>
-
-            <div id="view-vault" class="glass-panel app-view focusable-view">
-                <h2>🗄️ Coffre Hors-Ligne</h2>
-                <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">📸 Documents (QR, Visas)</h3>
-                <input type="file" id="vault-photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <button class="expense-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('vault-photo-input').click()">Importer Image</button>
-                    <button class="expense-delete" onclick="clearPhoto()" style="font-size:12px; color:#aaa;">🗑️ Effacer</button>
-                </div>
-                <img id="vault-photo-display" style="width:100%; border-radius:12px; margin-top:10px; display:none; border:1px solid var(--glass-border);">
-                <h3 style="margin: 20px 0 8px 0; font-size: 14px; color: var(--primary);">✈️ Vols & Visas (Texte)</h3>
-                <textarea id="vault-docs" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
-                <h3 style="margin: 0 0 8px 0; font-size: 14px; color: var(--primary);">🏨 Adresses</h3>
-                <textarea id="vault-hotels" class="vault-textarea smart-input" placeholder="Colle ici..."></textarea>
-            </div>
-        </div>
-
-        <div class="nav-container">
-            <div class="nav-item active" data-target="none"><span class="nav-icon">🌍</span>Globe</div>
-            <div class="nav-item" data-target="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
-            <div class="nav-item" data-target="view-converter"><span class="nav-icon">💱</span>Monnaie</div>
-            <div class="nav-item" data-target="view-budget"><span class="nav-icon">💰</span>Budget</div>
-            <div class="nav-item" data-target="view-vault"><span class="nav-icon">🗄️</span>Coffre</div>
+        <div class="glass weather-chip" id="weather-chip">🌤️ ...</div>
+        <div class="top-actions">
+            <div class="icon-btn" onclick="gpsMe()" title="GPS">📍</div>
+            <div class="icon-btn" onclick="forceRefresh()" title="Refresh">↻</div>
         </div>
     </div>
 
-    <script>
-        // PWA AUTO-UPDATE
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(r => r.addEventListener('updatefound', () => { const n = r.installing; n.addEventListener('statechange', () => { if (n.state === 'installed' && navigator.serviceWorker.controller) window.location.reload(true); }); })); }
-        window.forceAppRefresh = () => window.location.reload(true);
+    <!-- MIDDLE PANELS -->
+    <div class="middle">
 
-        // CHRONO
-        const targetDate = new Date("Apr 13, 2026 12:10:00").getTime();
-        setInterval(() => { const d = targetDate - new Date().getTime(); document.getElementById("countdown-container").innerHTML = `✈️ - ${Math.floor(d / 86400000)}j ${Math.floor((d % 86400000)/3600000)}h ${Math.floor((d % 3600000)/60000)}m ${Math.floor((d % 60000)/1000)}s`; }, 1000);
+        <!-- ÉTAPES -->
+        <div id="view-etapes" class="glass app-view focusable-view">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <span style="font-size:16px;font-weight:bold;">🗺️ Itinéraire</span>
+                <span id="sync-badge" class="badge b-sync">Hors-ligne</span>
+            </div>
+            <button class="btn btn-blue" onclick="syncTripit(true)">🔄 Sync TripIt</button>
+            <div id="itinerary-list"><p style="color:#555;font-size:12px;text-align:center;">Appuie sur Sync TripIt</p></div>
+        </div>
 
-        // NAVIGATION
-        const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view'), midC = document.querySelector('.middle-container'), uiL = document.getElementById('ui-layer');
-        navItems.forEach(i => i.addEventListener('click', () => { navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; v.classList.remove('view-focused'); }); midC.style.alignItems = 'flex-end'; i.classList.add('active'); const t = i.getAttribute('data-target'); if(t !== 'none') document.getElementById(t).style.display = 'block'; }));
-        document.querySelectorAll('.smart-input').forEach(i => { i.addEventListener('focus', e => { uiL.classList.add('keyboard-up'); e.target.closest('.focusable-view').classList.add('view-focused'); midC.style.alignItems = 'flex-start'; }); i.addEventListener('blur', e => { uiL.classList.remove('keyboard-up'); e.target.closest('.focusable-view').classList.remove('view-focused'); midC.style.alignItems = 'flex-end'; }); });
+        <!-- CHECKLIST -->
+        <div id="view-check" class="glass app-view">
+            <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">✅ Checklist</div>
+            <div class="sec">Avant le départ</div>
+            <div id="checklist-depart"></div>
+            <div class="sec">À chaque hôtel</div>
+            <div id="checklist-hotel"></div>
+        </div>
 
-        // METEO
-        fetch('https://api.open-meteo.com/v1/forecast?latitude=21.0278&longitude=105.8342&current=temperature_2m,weather_code').then(r => r.json()).then(d => { const t = d.current.temperature_2m, c = d.current.weather_code; let emo = '🌤️'; if(c>50) emo='🌧️'; if(c>90) emo='⛈️'; if(c===0) emo='☀️'; const s = `${emo} ${t}°C`; document.getElementById('weather-info').innerText = s; localStorage.setItem('vn_weather', s); }).catch(() => document.getElementById('weather-info').innerText = localStorage.getItem('vn_weather') || 'Indispo.');
+        <!-- CONVERTISSEUR -->
+        <div id="view-converter" class="glass app-view focusable-view">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                <span style="font-size:16px;font-weight:bold;">💱 Convertisseur</span>
+                <span id="rate-info" style="font-size:10px;color:#666;">1 € = ...</span>
+            </div>
+            <div class="card" style="display:flex;justify-content:space-between;padding:12px;">
+                <span style="font-size:26px;">🇻🇳</span>
+                <input type="text" id="input-vnd" class="big smart-input" placeholder="0" inputmode="decimal">
+                <span style="font-size:13px;color:#666;align-self:center;margin-left:8px;font-weight:bold;">VND</span>
+            </div>
+            <div class="card" style="display:flex;justify-content:space-between;padding:12px;">
+                <span style="font-size:26px;">🇪🇺</span>
+                <input type="text" id="input-eur" class="big smart-input" placeholder="0" inputmode="decimal">
+                <span style="font-size:13px;color:#666;align-self:center;margin-left:8px;font-weight:bold;">EUR</span>
+            </div>
+            <div class="row" style="margin-top:12px;">
+                <button class="btn btn-danger" onclick="resetConv()">C</button>
+                <button class="btn btn-outline" onclick="qadd(50000)">50k</button>
+                <button class="btn btn-outline" onclick="qadd(100000)">100k</button>
+                <button class="btn btn-outline" onclick="qadd(500000)">500k</button>
+                <button class="btn btn-outline" onclick="qadd(1000000)">1M</button>
+            </div>
+            <div class="sec">Estimateur Grab 🛺</div>
+            <div class="card">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <input type="number" id="grab-km" class="input" placeholder="Distance km" inputmode="decimal" style="font-size:15px;">
+                    <button class="btn btn-outline" onclick="calcGrab()">Calculer</button>
+                </div>
+                <div id="grab-result" style="display:none;" class="grab-result">
+                    <div class="grab-price" id="grab-vnd"></div>
+                    <div class="grab-sub" id="grab-eur"></div>
+                    <div style="font-size:10px;color:#666;margin-top:6px;">Tarif Grab ~6 500 ₫/km · Anti-arnaque ✅</div>
+                </div>
+            </div>
+        </div>
 
-        // 🔥 TON MOTEUR D'ASPIRATION TRIPIT 🔥
-        function renderItinerary(data) {
-            const list = document.getElementById('itinerary-list'); list.innerHTML = '';
-            if(!data || data.length === 0) { list.innerHTML = '<p style="color:#aaa; font-size:12px; text-align:center;">Aucune étape trouvée.</p>'; return; }
-            data.forEach(item => {
-                const loc = item.location ? `<p style="margin:0 0 5px 0; font-size:13px; color:#ccc;">📍 ${item.location}</p>` : '';
-                list.innerHTML += `<div class="card"><h3>${item.title} <span class="badge badge-sync">Sync</span></h3><p style="margin:0 0 8px 0; font-size:13px; color:#4ade80;">📅 ${item.date}</p>${loc}</div>`;
+        <!-- BUDGET -->
+        <div id="view-budget" class="glass app-view focusable-view">
+            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">💰 Budget</div>
+            <div class="card" style="padding:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+                    <div><span style="font-size:22px;font-weight:bold;color:var(--primary);" id="b-left">0 €</span><span style="font-size:11px;color:#aaa;"> restants</span></div>
+                    <div style="font-size:11px;color:#666;">Sur <span id="b-total" onclick="setBudget()" style="text-decoration:underline;cursor:pointer;">1500 €</span></div>
+                </div>
+                <div class="gauge-bg"><div class="gauge-fill" id="b-gauge"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:5px;color:#666;"><span>Dépensé: <span id="b-spent" style="color:#fff;">0 €</span></span><span id="b-pct">0%</span></div>
+            </div>
+            <div class="row" style="margin-top:4px;">
+                <select id="exp-cat" class="select" style="flex:1;">
+                    <option value="🍜">🍜 Repas</option>
+                    <option value="🚕">🚕 Transport</option>
+                    <option value="🏨">🏨 Hôtel</option>
+                    <option value="🍺">🍺 Boisson</option>
+                    <option value="🎟️">🎟️ Activité</option>
+                    <option value="🛍️">🛍️ Shopping</option>
+                </select>
+                <input type="number" id="exp-amount" class="input smart-input" placeholder="Montant" inputmode="decimal" style="width:90px;flex:none;">
+                <select id="exp-cur" class="select"><option value="VND">₫</option><option value="EUR">€</option></select>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="addExp()">+ Ajouter</button>
+            <div class="sec">Dernières dépenses</div>
+            <div id="exp-list"></div>
+        </div>
+
+        <!-- DICO -->
+        <div id="view-dico" class="glass app-view">
+            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">🗣️ Dico de Survie</div>
+            <div id="dico-list"></div>
+        </div>
+
+        <!-- FUN -->
+        <div id="view-fun" class="glass app-view">
+            <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">🎮 Stats du Voyage</div>
+            <div class="sec">Compteurs</div>
+            <div id="counters-list"></div>
+            <div class="sec">Journal de bord</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <textarea id="journal-input" class="input smart-input focusable-view" placeholder="Ce soir... (3 lignes max)" rows="2" style="flex:1;min-height:60px;margin:0;"></textarea>
+                <button class="btn btn-outline" style="align-self:flex-end;" onclick="addJournal()">+</button>
+            </div>
+            <div id="journal-list"></div>
+        </div>
+
+        <!-- COFFRE -->
+        <div id="view-coffre" class="glass app-view focusable-view">
+            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">🗄️ Coffre Offline</div>
+            <div class="sec">📸 QR Code / Visa</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('photo-input').click()">Importer</button>
+                <button class="del-btn" onclick="clearPhoto()">🗑️</button>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="savePhoto(event)">
+            <img id="vault-img" style="width:100%;border-radius:12px;display:none;border:1px solid var(--border);margin-bottom:12px;">
+            <div class="sec">✈️ Vols & Codes</div>
+            <textarea id="vault-docs" class="input smart-input" placeholder="Références vols, numéros de confirmation..."></textarea>
+            <div class="sec">🏨 Adresses & Contacts</div>
+            <textarea id="vault-hotels" class="input smart-input" placeholder="Adresses hôtels, numéros locaux..."></textarea>
+            <div class="sec">🚨 Urgences</div>
+            <a href="tel:+84113" class="resa-btn" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#ff8a8a;">🚑 Ambulance Vietnam · 113</a>
+            <a href="tel:+84114" class="resa-btn" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#ff8a8a;">🚒 Pompiers Vietnam · 114</a>
+        </div>
+    </div>
+
+    <!-- NAV BAR -->
+    <div class="glass nav-bar">
+        <div class="nav-item active" data-v="none"><span class="nav-icon">🌍</span>Globe</div>
+        <div class="nav-item" data-v="view-etapes"><span class="nav-icon">🧭</span>Étapes</div>
+        <div class="nav-item" data-v="view-check"><span class="nav-icon">✅</span>Check</div>
+        <div class="nav-item" data-v="view-converter"><span class="nav-icon">💱</span>Cash</div>
+        <div class="nav-item" data-v="view-budget"><span class="nav-icon">💰</span>Budget</div>
+        <div class="nav-item" data-v="view-dico"><span class="nav-icon">🗣️</span>Dico</div>
+        <div class="nav-item" data-v="view-fun"><span class="nav-icon">🎮</span>Fun</div>
+        <div class="nav-item" data-v="view-coffre"><span class="nav-icon">🗄️</span>Coffre</div>
+    </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA3FpIWbIjJNK-TaiqFsZJG5XewiLBpJ_Q",
+    authDomain: "vietnam-2026.firebaseapp.com",
+    projectId: "vietnam-2026",
+    storageBucket: "vietnam-2026.firebasestorage.app",
+    messagingSenderId: "472100185718",
+    appId: "1:472100185718:web:a89bde58f2606d64f56157"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// SYNC CHECKS avec Firebase
+window.fbSaveChecks = async (data) => {
+    try { await setDoc(doc(db, 'trip', 'checks'), { data: JSON.stringify(data) }); } catch(e) {}
+};
+window.fbSaveCounters = async (data) => {
+    try { await setDoc(doc(db, 'trip', 'counters'), { data: JSON.stringify(data) }); } catch(e) {}
+};
+window.fbSaveJournal = async (data) => {
+    try { await setDoc(doc(db, 'trip', 'journal'), { data: JSON.stringify(data) }); } catch(e) {}
+};
+window.fbSaveBudget = async (exps, total) => {
+    try { await setDoc(doc(db, 'trip', 'budget'), { exps: JSON.stringify(exps), total }); } catch(e) {}
+};
+
+// LOAD depuis Firebase au démarrage
+window.fbLoad = async () => {
+    try {
+        const checks = await getDoc(doc(db, 'trip', 'checks'));
+        if (checks.exists()) { window._checks = JSON.parse(checks.data().data); renderChecklists(); }
+        const counters = await getDoc(doc(db, 'trip', 'counters'));
+        if (counters.exists()) { window._counters = JSON.parse(counters.data().data); renderCounters(); }
+        const journal = await getDoc(doc(db, 'trip', 'journal'));
+        if (journal.exists()) { window._journal = JSON.parse(journal.data().data); renderJournal(); }
+        const budget = await getDoc(doc(db, 'trip', 'budget'));
+        if (budget.exists()) { window._exps = JSON.parse(budget.data().exps); window._tb = budget.data().total; updateBudgetUI(); }
+        console.log('✅ Firebase chargé');
+    } catch(e) { console.log('Firebase offline, mode local'); }
+};
+
+// REALTIME SYNC — si ta copine coche quelque chose, tu le vois !
+onSnapshot(doc(db, 'trip', 'checks'), (snap) => {
+    if (snap.exists()) { window._checks = JSON.parse(snap.data().data); renderChecklists(); }
+});
+onSnapshot(doc(db, 'trip', 'counters'), (snap) => {
+    if (snap.exists()) { window._counters = JSON.parse(snap.data().data); renderCounters(); }
+});
+onSnapshot(doc(db, 'trip', 'journal'), (snap) => {
+    if (snap.exists()) { window._journal = JSON.parse(snap.data().data); renderJournal(); }
+});
+
+setTimeout(() => window.fbLoad && window.fbLoad(), 500);
+</script>
+
+<script>
+// ── PWA ──
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(r => r.addEventListener('updatefound', () => {
+        const n = r.installing;
+        n.addEventListener('statechange', () => { if (n.state === 'installed' && navigator.serviceWorker.controller) location.reload(true); });
+    }));
+}
+window.forceRefresh = () => location.reload(true);
+
+// ── COUNTDOWN ──
+const target = new Date("Apr 13, 2026 12:10:00").getTime();
+setInterval(() => {
+    const d = target - Date.now();
+    if (d < 0) { document.getElementById('countdown').innerHTML = '🛬 Au Vietnam !'; return; }
+    document.getElementById('countdown').innerHTML = `✈️ J-${Math.floor(d/86400000)} · ${Math.floor((d%86400000)/3600000)}h${Math.floor((d%3600000)/60000)}m`;
+}, 1000);
+
+// ── NAVIGATION ──
+const navItems = document.querySelectorAll('.nav-item');
+const allViews = document.querySelectorAll('.app-view');
+const uiL = document.getElementById('ui-layer');
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        navItems.forEach(n => n.classList.remove('active'));
+        allViews.forEach(v => { v.style.display = 'none'; v.classList.remove('view-focused'); });
+        item.classList.add('active');
+        const t = item.getAttribute('data-v');
+        if (t !== 'none') document.getElementById(t).style.display = 'block';
+    });
+});
+document.querySelectorAll('.smart-input').forEach(el => {
+    el.addEventListener('focus', e => { uiL.classList.add('kb-up'); e.target.closest('.focusable-view')?.classList.add('view-focused'); });
+    el.addEventListener('blur', e => { uiL.classList.remove('kb-up'); e.target.closest('.focusable-view')?.classList.remove('view-focused'); });
+});
+
+// ── MÉTÉO ──
+fetch('https://api.open-meteo.com/v1/forecast?latitude=21.0278&longitude=105.8342&current=temperature_2m,weather_code')
+    .then(r => r.json()).then(d => {
+        const t = d.current.temperature_2m, c = d.current.weather_code;
+        let e = '🌤️'; if (c===0) e='☀️'; else if (c>80) e='🌧️'; else if (c>70) e='⛈️'; else if (c>50) e='🌦️';
+        const s = `${e} ${t}°C · Hanoï`;
+        document.getElementById('weather-chip').textContent = s;
+        localStorage.setItem('vn_w', s);
+    }).catch(() => { document.getElementById('weather-chip').textContent = localStorage.getItem('vn_w') || '🌤️ --°C'; });
+
+// ── GPS ──
+window.gpsMe = () => {
+    navigator.geolocation?.getCurrentPosition(pos => {
+        const { latitude: la, longitude: lo } = pos.coords;
+        if (window._viewer) {
+            window._viewer.camera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(lo, la, 80000),
+                orientation: { pitch: Cesium.Math.toRadians(-45) },
+                duration: 2.5
             });
         }
-        
-        const savedItinerary = JSON.parse(localStorage.getItem('vn_itinerary')) || [];
-        renderItinerary(savedItinerary);
+    }, () => alert('GPS non disponible'));
+};
 
-        window.syncItinerary = async function(isManual) {
-            const btn = document.querySelector('.sync-btn');
-            const status = document.getElementById('sync-status');
-            if(isManual) btn.innerText = "⏳ Aspiration en cours...";
-            
-            try {
-                // Ton lien secret gravé dans le marbre :
-                const secretUrl = 'https://www.tripit.com/feed/ical/private/14F2E275-832749E335923B3F48CCAD13B98B210F/tripit.ics';
-                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(secretUrl);
-                
-                const response = await fetch(proxyUrl);
-                const data = await response.text();
-                if(!data.includes('BEGIN:VCALENDAR')) throw new Error("Format invalide");
+// ── TRIPIT SYNC ──
+window.syncTripit = async function(manual) {
+    const btn = document.querySelector('.btn-blue');
+    const badge = document.getElementById('sync-badge');
+    if (manual) btn.textContent = '⏳ Synchronisation...';
+    try {
+        const url = 'https://www.tripit.com/feed/ical/private/14F2E275-832749E335923B3F48CCAD13B98B210F/tripit.ics';
+        const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        const res = await fetch(proxy);
+        const txt = await res.text();
+        if (!txt.includes('BEGIN:VCALENDAR')) throw new Error('Format invalide');
 
-                const events = [];
-                const lines = data.split(/\r?\n/);
-                let currentEvent = null;
-
-                lines.forEach(line => {
-                    if (line.startsWith('BEGIN:VEVENT')) currentEvent = {};
-                    else if (line.startsWith('END:VEVENT')) {
-                        if(currentEvent && currentEvent.title) events.push(currentEvent);
-                        currentEvent = null;
-                    }
-                    else if (currentEvent) {
-                        if (line.startsWith('SUMMARY:')) currentEvent.title = line.substring(8).replace(/\\,/g, ',');
-                        if (line.startsWith('LOCATION:')) currentEvent.location = line.substring(9).replace(/\\,/g, ',');
-                        if (line.startsWith('DTSTART')) {
-                            const dStrRaw = line.split(':')[1];
-                            if(dStrRaw) {
-                                const dStr = dStrRaw.replace(/[^0-9]/g, '');
-                                currentEvent.dateRaw = dStr;
-                                if(dStr.length >= 8) currentEvent.date = `${dStr.substring(6,8)}/${dStr.substring(4,6)}/${dStr.substring(0,4)}`;
-                                else currentEvent.date = "Date inconnue";
-                            }
-                        }
-                    }
-                });
-
-                events.sort((a, b) => (a.dateRaw || "").localeCompare(b.dateRaw || ""));
-                localStorage.setItem('vn_itinerary', JSON.stringify(events));
-                renderItinerary(events);
-                
-                if(isManual) {
-                    btn.innerText = "✅ Synchronisé !"; status.className = "badge badge-ok"; status.innerText = "À jour";
-                    setTimeout(() => btn.innerText = "🔄 Rafraîchir l'itinéraire", 3000);
+        const events = [];
+        const lines = txt.split(/\r?\n/);
+        let ev = null;
+        lines.forEach(l => {
+            if (l.startsWith('BEGIN:VEVENT')) ev = {};
+            else if (l.startsWith('END:VEVENT')) { if (ev?.title) events.push(ev); ev = null; }
+            else if (ev) {
+                if (l.startsWith('SUMMARY:')) ev.title = l.slice(8).replace(/\\,/g, ',');
+                if (l.startsWith('LOCATION:')) ev.loc = l.slice(9).replace(/\\,/g, ',');
+                if (l.startsWith('DTSTART')) {
+                    const raw = l.split(':')[1]?.replace(/[^0-9]/g, '') || '';
+                    ev.dateRaw = raw;
+                    if (raw.length >= 8) ev.date = `${raw.slice(6,8)}/${raw.slice(4,6)}/${raw.slice(0,4)}`;
                 }
-            } catch(err) {
-                console.error(err);
-                if(isManual) {
-                    btn.innerText = "❌ Erreur de réseau";
-                    setTimeout(() => btn.innerText = "🔄 Rafraîchir l'itinéraire", 3000);
-                }
+                if (l.startsWith('URL:')) ev.url = l.slice(4);
             }
-        };
+        });
+        events.sort((a,b) => (a.dateRaw||'').localeCompare(b.dateRaw||''));
+        localStorage.setItem('vn_trip', JSON.stringify(events));
+        renderItinerary(events);
+        badge.className = 'badge b-ok'; badge.textContent = '✅ À jour';
+        if (manual) { btn.textContent = '✅ Synchronisé !'; setTimeout(() => btn.textContent = '🔄 Sync TripIt', 2500); }
+    } catch(e) {
+        const cached = JSON.parse(localStorage.getItem('vn_trip') || '[]');
+        if (cached.length) { renderItinerary(cached); badge.className = 'badge b-warn'; badge.textContent = '🟠 Cache'; }
+        if (manual) { btn.textContent = '❌ Erreur réseau'; setTimeout(() => btn.textContent = '🔄 Sync TripIt', 2500); }
+    }
+};
 
-        // Auto-sync au démarrage si internet est dispo !
-        setTimeout(() => syncItinerary(false), 1500);
+function renderItinerary(events) {
+    const list = document.getElementById('itinerary-list');
+    if (!events.length) { list.innerHTML = '<p style="color:#555;font-size:12px;text-align:center;">Transfère tes emails à plans@tripit.com puis sync !</p>'; return; }
+    list.innerHTML = events.map(e => `
+        <div class="card">
+            <div class="card-title">${e.title} <span class="badge b-sync">TripIt</span></div>
+            <div class="sub">📅 ${e.date || '?'}</div>
+            ${e.loc ? `<div class="sub">📍 ${e.loc}</div>` : ''}
+            ${e.url ? `<a href="${e.url}" target="_blank" class="resa-btn">Ouvrir la réservation ↗</a>` : ''}
+        </div>
+    `).join('');
+}
 
-        // MONNAIE
-        let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
-        fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
-        const pVal = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0, fVal = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
-        const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur');
-        function cVND() { const v = pVal(iV.value); if(v>0){ iE.value = fVal(v/exRate,2); iV.value = fVal(v,0); } else iE.value = ''; }
-        function cEUR() { const v = pVal(iE.value); if(v>0){ iV.value = fVal(Math.round(v*exRate),0); iE.value = fVal(v,2); } else iV.value = ''; }
-        window.quickAdd = a => { iV.value = fVal(pVal(iV.value)+a,0); cVND(); }; window.resetConverter = () => { iV.value=''; iE.value=''; };
-        iV.addEventListener('input', cVND); iE.addEventListener('input', cEUR);
+const cachedTrip = JSON.parse(localStorage.getItem('vn_trip') || '[]');
+renderItinerary(cachedTrip);
+setTimeout(() => syncTripit(false), 2000);
 
-        // BUDGET
-        let tB = parseFloat(localStorage.getItem('vn_tb')) || 1500, exps = JSON.parse(localStorage.getItem('vn_exps')) || [];
-        window.askTotalBudget = () => { let n = prompt("Budget total (€) ?", tB); if(n && !isNaN(pVal(n))){ tB = pVal(n); localStorage.setItem('vn_tb', tB); updateBudgetUI(); }};
-        window.addExpense = () => { const a = pVal(document.getElementById('exp-amount').value), c = document.getElementById('exp-cat').value, cur = document.getElementById('exp-currency').value; if(a<=0) return; exps.unshift({ id: Date.now(), cat: c, oA: a, cur: cur, aE: cur==='VND'?a/exRate:a, d: new Date().toLocaleDateString('fr-FR') }); localStorage.setItem('vn_exps', JSON.stringify(exps)); document.getElementById('exp-amount').value=''; document.getElementById('exp-amount').blur(); updateBudgetUI(); };
-        window.deleteExpense = id => { exps = exps.filter(e => e.id !== id); localStorage.setItem('vn_exps', JSON.stringify(exps)); updateBudgetUI(); };
-        function updateBudgetUI() { document.getElementById('budget-total').innerText = fVal(tB,0)+' €'; let sE = exps.reduce((s,e)=>s+e.aE,0), p = Math.min((sE/tB)*100,100); document.getElementById('budget-spent').innerText = fVal(sE,2)+' €'; document.getElementById('budget-left').innerText = fVal(tB-sE,2)+' €'; const g = document.getElementById('budget-gauge'); g.style.width = p+'%'; g.style.background = p>85?'var(--danger)':p>65?'#facc15':'var(--primary)'; document.getElementById('budget-percent').innerText = Math.round(p)+'%'; const l = document.getElementById('expense-list'); l.innerHTML = exps.length===0?'<div style="color:#666; font-size:12px; text-align:center;">Aucune dépense.</div>':''; exps.slice(0,10).forEach(e => l.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${e.cat}</span><span style="color:#aaa;">${e.d}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${fVal(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="expense-delete" onclick="deleteExpense(${e.id})">×</button></div></div>`); } updateBudgetUI();
+// ── CHECKLISTS ──
+const CHECKS_DEPART = [
+    'Passeport (valide > 6 mois)', 'Visa Vietnam (e-visa)', 'Assurance voyage',
+    'Adaptateur prise universel', 'Anti-moustiques DEET 50%', 'Crème solaire SPF 50',
+    'Médicaments (Smecta, Imodium, Doliprane)', 'Carte bancaire internationale',
+    'Cash euros à convertir', 'Téléphone + chargeur', 'Batterie externe',
+    'Écouteurs', 'Vêtements légers', 'Imperméable léger', 'Chaussures de marche'
+];
+const CHECKS_HOTEL = [
+    'Chargeur téléphone', 'Chargeur batterie externe', 'Brosse à dents',
+    'Lunettes / lentilles', 'Médicaments', 'Passeport', 'Portefeuille / cash',
+    'Clé chambre rendue', 'Rien oublié dans le coffre', 'Rien oublié dans la salle de bain'
+];
 
-        // COFFRE (TEXTE + PHOTO)
-        const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels'), vImg = document.getElementById('vault-photo-display');
-        vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || '';
-        vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value)); vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
-        window.savePhoto = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; } catch(e) { alert("⚠️ Image trop lourde ! Fais une capture d'écran du QR Code pour réduire la taille."); } }; r.readAsDataURL(f); };
-        window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); vImg.src = ''; vImg.style.display = 'none'; };
-        const sImg = localStorage.getItem('vn_vimg'); if(sImg) { vImg.src = sImg; vImg.style.display = 'block'; }
+window._checks = JSON.parse(localStorage.getItem('vn_checks') || '{}');
 
-        // CESIUM
-        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
-        const viewer = new Cesium.Viewer('cesiumContainer', { terrain: Cesium.Terrain.fromWorldTerrain(), animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false }); viewer.cesiumWidget.creditContainer.style.display = "none";
-        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
-        [{ n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: e.n, font: 'bold 14pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } }));
-        const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = false; cc.enableLook = false; cc.enableTranslate = false; cc.minimumZoomDistance = 250; cc.maximumZoomDistance = 15000000; 
-        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3000000), duration: 0 });
-    </script>
+function renderChecklists() {
+    renderCheckGroup('checklist-depart', CHECKS_DEPART, 'dep');
+    renderCheckGroup('checklist-hotel', CHECKS_HOTEL, 'hot');
+}
+
+function renderCheckGroup(containerId, items, prefix) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = items.map((label, i) => {
+        const key = `${prefix}-${i}`;
+        const done = window._checks[key] || false;
+        return `<div class="check-item" onclick="toggleCheck('${key}')">
+            <div class="check-box ${done ? 'done' : ''}">${done ? '✓' : ''}</div>
+            <div class="check-label ${done ? 'done' : ''}">${label}</div>
+        </div>`;
+    }).join('');
+}
+
+window.toggleCheck = key => {
+    window._checks[key] = !window._checks[key];
+    localStorage.setItem('vn_checks', JSON.stringify(window._checks));
+    window.fbSaveChecks?.(window._checks);
+    renderChecklists();
+};
+
+renderChecklists();
+
+// ── CONVERTISSEUR ──
+let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500;
+fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => {
+    exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate);
+    document.getElementById('rate-info').textContent = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ 🟢`;
+}).catch(() => { document.getElementById('rate-info').textContent = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ 🟠`; });
+
+const pv = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0;
+const fv = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur');
+iV.addEventListener('input', () => { const v=pv(iV.value); if(v>0){iE.value=fv(v/exRate,2);iV.value=fv(v,0);}else iE.value=''; });
+iE.addEventListener('input', () => { const v=pv(iE.value); if(v>0){iV.value=fv(Math.round(v*exRate),0);iE.value=fv(v,2);}else iV.value=''; });
+window.qadd = a => { iV.value=fv(pv(iV.value)+a,0); iV.dispatchEvent(new Event('input')); };
+window.resetConv = () => { iV.value=''; iE.value=''; };
+
+// ── GRAB ESTIMATEUR ──
+window.calcGrab = () => {
+    const km = parseFloat(document.getElementById('grab-km').value) || 0;
+    if (!km) return;
+    const vnd = Math.round(km * 6500);
+    const eur = (vnd / exRate).toFixed(2);
+    const el = document.getElementById('grab-result');
+    document.getElementById('grab-vnd').textContent = fv(vnd) + ' ₫';
+    document.getElementById('grab-eur').textContent = `≈ ${eur} € · ${km} km`;
+    el.style.display = 'block';
+};
+
+// ── BUDGET ──
+window._tb = parseFloat(localStorage.getItem('vn_tb')) || 1500;
+window._exps = JSON.parse(localStorage.getItem('vn_exps') || '[]');
+
+window.setBudget = () => {
+    const n = prompt('Budget total (€) ?', window._tb);
+    if (n && !isNaN(pv(n))) { window._tb = pv(n); localStorage.setItem('vn_tb', window._tb); updateBudgetUI(); window.fbSaveBudget?.(window._exps, window._tb); }
+};
+window.addExp = () => {
+    const a = pv(document.getElementById('exp-amount').value);
+    const cat = document.getElementById('exp-cat').value;
+    const cur = document.getElementById('exp-currency')?.value || document.getElementById('exp-cur').value;
+    if (!a) return;
+    const inEur = cur === 'VND' ? a / exRate : a;
+    window._exps.unshift({ id: Date.now(), cat, oA: a, cur, aE: inEur, d: new Date().toLocaleDateString('fr-FR') });
+    localStorage.setItem('vn_exps', JSON.stringify(window._exps));
+    window.fbSaveBudget?.(window._exps, window._tb);
+    document.getElementById('exp-amount').value = '';
+    updateBudgetUI();
+};
+window.deleteExp = id => {
+    window._exps = window._exps.filter(e => e.id !== id);
+    localStorage.setItem('vn_exps', JSON.stringify(window._exps));
+    window.fbSaveBudget?.(window._exps, window._tb);
+    updateBudgetUI();
+};
+function updateBudgetUI() {
+    const spent = window._exps.reduce((s,e) => s + e.aE, 0);
+    const pct = Math.min((spent / window._tb) * 100, 100);
+    document.getElementById('b-total').textContent = fv(window._tb) + ' €';
+    document.getElementById('b-spent').textContent = fv(spent,2) + ' €';
+    document.getElementById('b-left').textContent = fv(window._tb - spent, 2) + ' €';
+    const g = document.getElementById('b-gauge');
+    g.style.width = pct + '%';
+    g.style.background = pct > 85 ? 'var(--danger)' : pct > 65 ? 'var(--warn)' : 'var(--primary)';
+    document.getElementById('b-pct').textContent = Math.round(pct) + '%';
+    const l = document.getElementById('exp-list');
+    l.innerHTML = window._exps.length === 0 ? '<p style="color:#444;font-size:11px;text-align:center;">Aucune dépense</p>' :
+        window._exps.slice(0,15).map(e => `<div class="exp-item">
+            <div><span style="font-size:15px;margin-right:8px;">${e.cat}</span><span style="color:#555;">${e.d}</span></div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <strong>${fv(e.oA, e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong>
+                <button class="del-btn" onclick="deleteExp(${e.id})">×</button>
+            </div>
+        </div>`).join('');
+}
+updateBudgetUI();
+
+// ── DICO VIETNAMIEN ──
+const PHRASES = [
+    { fr: 'Bonjour', vn: 'Xin chào', ph: 'Sin chao' },
+    { fr: 'Merci', vn: 'Cảm ơn', ph: 'Gam ern' },
+    { fr: 'Combien ça coûte ?', vn: 'Bao nhiêu tiền ?', ph: 'Bao nhiêu tien ?' },
+    { fr: 'Trop cher !', vn: 'Đắt quá !', ph: 'Dat koua !' },
+    { fr: 'Sans piment SVP', vn: 'Không cay ạ', ph: 'Khong cay a' },
+    { fr: 'L\'addition SVP', vn: 'Tính tiền đi', ph: 'Tinh tien di' },
+    { fr: 'Où sont les toilettes ?', vn: 'Nhà vệ sinh ở đâu ?', ph: 'Nha ve sinh o dau ?' },
+    { fr: 'Je ne comprends pas', vn: 'Tôi không hiểu', ph: 'Toi khong hieu' },
+    { fr: 'Appelez la police !', vn: 'Gọi cảnh sát !', ph: 'Goi canh sat !' },
+    { fr: 'Délicieux !', vn: 'Ngon quá !', ph: 'Ngon koua !' },
+    { fr: 'Bière SVP', vn: 'Một bia nhé', ph: 'Mot bia nhe' },
+    { fr: 'Je suis perdu', vn: 'Tôi bị lạc đường', ph: 'Toi bi lac duong' },
+];
+
+document.getElementById('dico-list').innerHTML = PHRASES.map(p => `
+    <div class="phrase-card">
+        <div>
+            <div class="phrase-fr">${p.fr}</div>
+            <div class="phrase-vn">${p.vn}</div>
+            <div style="font-size:10px;color:#555;margin-top:2px;">${p.ph}</div>
+        </div>
+        <button class="speak-btn" onclick="speak('${p.vn}')">🔊</button>
+    </div>
+`).join('');
+
+window.speak = text => {
+    if (!window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'vi-VN'; u.rate = 0.85;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+};
+
+// ── COMPTEURS FUN ──
+const COUNTER_DEFS = [
+    { key: 'banhmi', label: '🥖 Bánh mì mangés', icon: '🥖' },
+    { key: 'pho', label: '🍜 Phở avalés', icon: '🍜' },
+    { key: 'biere', label: '🍺 Bières Bia Hoi', icon: '🍺' },
+    { key: 'arnaque', label: '🥷 Arnaques évitées', icon: '🥷' },
+    { key: 'moto', label: '🛵 Traversées moto', icon: '🛵' },
+    { key: 'photo', label: '📸 Photos prises', icon: '📸' },
+];
+window._counters = JSON.parse(localStorage.getItem('vn_counters') || '{}');
+
+function renderCounters() {
+    document.getElementById('counters-list').innerHTML = COUNTER_DEFS.map(c => `
+        <div class="counter-item">
+            <div class="counter-label">${c.label}</div>
+            <div class="counter-controls">
+                <button class="counter-btn c-minus" onclick="adjCounter('${c.key}', -1)">−</button>
+                <div class="counter-val">${window._counters[c.key] || 0}</div>
+                <button class="counter-btn c-plus" onclick="adjCounter('${c.key}', 1)">+</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.adjCounter = (key, delta) => {
+    window._counters[key] = Math.max(0, (window._counters[key] || 0) + delta);
+    localStorage.setItem('vn_counters', JSON.stringify(window._counters));
+    window.fbSaveCounters?.(window._counters);
+    renderCounters();
+};
+renderCounters();
+
+// ── JOURNAL ──
+window._journal = JSON.parse(localStorage.getItem('vn_journal') || '[]');
+
+window.addJournal = () => {
+    const txt = document.getElementById('journal-input').value.trim();
+    if (!txt) return;
+    window._journal.unshift({ date: new Date().toLocaleDateString('fr-FR'), text: txt });
+    localStorage.setItem('vn_journal', JSON.stringify(window._journal));
+    window.fbSaveJournal?.(window._journal);
+    document.getElementById('journal-input').value = '';
+    renderJournal();
+};
+
+function renderJournal() {
+    const el = document.getElementById('journal-list');
+    el.innerHTML = window._journal.length === 0 ? '<p style="color:#444;font-size:11px;">Aucune entrée pour l\'instant...</p>' :
+        window._journal.slice(0,20).map(e => `
+            <div class="journal-entry">
+                <div class="journal-date">${e.date}</div>
+                <div class="journal-text">${e.text}</div>
+            </div>
+        `).join('');
+}
+renderJournal();
+
+// ── COFFRE ──
+const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels');
+vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || '';
+vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value));
+vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
+window.savePhoto = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        try { localStorage.setItem('vn_vimg', ev.target.result); document.getElementById('vault-img').src = ev.target.result; document.getElementById('vault-img').style.display = 'block'; }
+        catch(e) { alert('⚠️ Image trop lourde, fais une capture d\'écran à la place'); }
+    };
+    r.readAsDataURL(f);
+};
+window.clearPhoto = () => { localStorage.removeItem('vn_vimg'); document.getElementById('vault-img').src = ''; document.getElementById('vault-img').style.display = 'none'; };
+const si = localStorage.getItem('vn_vimg'); if (si) { document.getElementById('vault-img').src = si; document.getElementById('vault-img').style.display = 'block'; }
+
+// ── CESIUM ──
+Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4';
+
+const viewer = new Cesium.Viewer('cesiumContainer', {
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+    animation:false, timeline:false, baseLayerPicker:false,
+    geocoder:false, homeButton:false, navigationHelpButton:false, sceneModePicker:false
+});
+viewer.cesiumWidget.creditContainer.style.display = 'none';
+window._viewer = viewer;
+
+// Contour Vietnam
+Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', {
+    stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth:2,
+    fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.04)
+}).then(ds => viewer.dataSources.add(ds));
+
+// Étapes
+const STOPS = [
+    { n:'Hanoï', lo:105.8342, la:21.0278 },
+    { n:'Ninh Bình', lo:105.9800, la:20.2539 },
+    { n:'Pu Luong', lo:105.2083, la:20.4625 },
+    { n:'Lan Ha Bay', lo:106.9997, la:20.8000 },
+    { n:'Phong Nha', lo:106.1340, la:17.4777 },
+    { n:'Huế', lo:107.4795, la:16.3547 },
+    { n:'Hội An', lo:108.3267, la:15.8799 },
+    { n:'Đà Nẵng', lo:108.2111, la:16.0600 },
+];
+
+// Pins des étapes
+STOPS.forEach(s => {
+    viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(s.lo, s.la),
+        point: { pixelSize:12, color:Cesium.Color.fromCssColorString('#4ade80'), outlineColor:Cesium.Color.WHITE, outlineWidth:2, disableDepthTestDistance:Number.POSITIVE_INFINITY },
+        label: { text:s.n, font:'bold 13pt sans-serif', fillColor:Cesium.Color.WHITE, style:Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, verticalOrigin:Cesium.VerticalOrigin.BOTTOM, pixelOffset:new Cesium.Cartesian2(0,-14), disableDepthTestDistance:Number.POSITIVE_INFINITY }
+    });
+});
+
+// Route entre étapes
+viewer.entities.add({
+    polyline: {
+        positions: STOPS.map(s => Cesium.Cartesian3.fromDegrees(s.lo, s.la)),
+        width: 2,
+        material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.6), dashLength:16 }),
+        arcType: Cesium.ArcType.GEODESIC,
+        clampToGround: false
+    }
+});
+
+// Arc de vol animé Bilbao → Hanoï
+const flightPositions = Cesium.Cartesian3.fromDegreesArrayHeights([
+    -2.9253, 43.3009, 0,
+    20.0, 45.0, 800000,
+    50.0, 40.0, 1200000,
+    80.0, 30.0, 900000,
+    105.8342, 21.0278, 0
+]);
+viewer.entities.add({
+    polyline: {
+        positions: flightPositions,
+        width: 2,
+        material: new Cesium.PolylineGlowMaterialProperty({ glowPower:0.15, color:Cesium.Color.fromCssColorString('#38bdf8').withAlpha(0.7) }),
+        arcType: Cesium.ArcType.NONE
+    }
+});
+
+// Caméra initiale
+const cc = viewer.scene.screenSpaceCameraController;
+cc.minimumZoomDistance = 200; cc.maximumZoomDistance = 20000000;
+viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(106.5, 18.5, 3200000), duration:0 });
+</script>
 </body>
 </html>
