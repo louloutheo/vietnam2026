@@ -17,11 +17,18 @@
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; }
         
         #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; }
+        
+        /* SUPER STRUCTURE LIQUIDE (FLEXBOX) */
+        #ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; 
+            pointer-events: none; 
+            display: flex; flex-direction: column; 
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; box-sizing: border-box; 
+        }
         
         .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; transition: all 0.3s; color: var(--text); }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 10px; box-sizing: border-box;}
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; flex-shrink: 0; }
         .top-widget { padding: 15px 20px; flex-grow: 1; max-width: 250px; pointer-events: auto; }
         .top-widget h1 { margin: 0 0 5px 0; font-size: 18px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; }
         .sos-btn { background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
@@ -30,8 +37,19 @@
         .round-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); }
         .round-btn:active { transform: scale(0.9); background: var(--primary); color: #fff; }
 
-        .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 15px; width: 100%; }
-        .app-view { display: none; width: 100%; max-width: 400px; max-height: 55vh; overflow-y: auto; padding: 20px; box-sizing: border-box; pointer-events: auto; }
+        /* LE CŒUR DU RESPONSIVE : Le bloc du milieu calcule sa taille tout seul */
+        .middle-container { 
+            flex-grow: 1; /* Prend tout l'espace libre verticalement */
+            min-height: 0; /* Indispensable pour que le scroll interne fonctionne */
+            display: flex; justify-content: center; align-items: flex-end; /* Par défaut (Mobile) : centré en bas */
+            width: 100%; margin: 15px 0; box-sizing: border-box; 
+        }
+        
+        .app-view { 
+            display: none; width: 100%; max-width: 400px; 
+            max-height: 100%; /* Utilise l'espace max défini par le middle-container */
+            overflow-y: auto; padding: 20px; box-sizing: border-box; pointer-events: auto; 
+        }
         .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
         
         .card { background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 12px; }
@@ -48,7 +66,7 @@
         .custom-add { display: flex; gap: 5px; margin-top: 10px; }
         .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; width: 100%; box-sizing: border-box; margin-bottom: 5px;}
         
-        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; flex-shrink: 0; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; padding: 8px; border-radius: 16px; transition: 0.2s; }
         .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
@@ -57,28 +75,20 @@
         .sos-content { background: #1e1e1e; border: 2px solid #ef4444; border-radius: 20px; padding: 20px; width: 100%; max-width: 350px; color: white; }
         .sos-number { font-size: 24px; font-weight: bold; color: #ef4444; margin: 10px 0; text-align: center; background: rgba(239,68,68,0.1); padding: 10px; border-radius: 12px; }
 
-        /* SCROLLBAR INVISIBLE MAIS FONCTIONNELLE */
         ::-webkit-scrollbar { width: 4px; background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
         /* ========================================= */
-        /* 💻 RESPONSIVE DESIGN (PC ET TABLETTES) 💻 */
+        /* 💻 COMPORTEMENT DYNAMIQUE PC / LARGE 💻 */
         /* ========================================= */
         @media (min-width: 768px) {
-            .top-bar { padding: 0 30px; }
+            #ui-layer { padding: 20px 30px; }
             .middle-container {
-                justify-content: flex-start; /* Aligne le panneau à gauche sur PC ! */
-                align-items: flex-start; /* Le remonte sous le widget horaire */
-                padding-left: 30px;
-                margin-top: 15px;
-            }
-            .app-view {
-                max-height: 70vh; /* Permet au panneau d'être beaucoup plus grand sur PC */
-                width: 380px;
+                justify-content: flex-start; /* Pousse à gauche */
+                align-items: flex-start; /* Pousse en haut, juste sous le header */
             }
             .nav-container {
-                max-width: 500px;
-                margin-bottom: 20px; /* Décolle le menu du bas */
+                margin: 0; /* Ne plus centrer automatiquement au milieu */
             }
         }
     </style>
@@ -187,7 +197,7 @@
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([28.9784, 41.0082, 105.8342, 21.0278]), width: 3, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
 
         // ==========================================
-        // 📝 TON VRAI ITINÉRAIRE (À REMPLIR ICI PLUS TARD)
+        // 📝 TON VRAI ITINÉRAIRE
         // ==========================================
         const DEFAULT_VOYAGE = [
             {
@@ -230,7 +240,6 @@
             document.getElementById('day-title').innerText = `Jour ${d.jour}`;
             document.getElementById('day-date').innerText = `${d.date} - ${d.ville}`;
 
-            // VOL DE CAMÉRA (Avec inclinaison pour effet 3D !)
             const isClose = d.zoomMap < 1000000;
             viewer.camera.flyTo({ 
                 destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat - (isClose ? 0.05 : 0), d.zoomMap), 
