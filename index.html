@@ -167,12 +167,12 @@
 
     <script>
         // ==========================================
-        // 🌍 MOTEUR 3D - LE CODE QUI A MARCHÉ 🌍
+        // 🌍 MOTEUR 3D EXACTEMENT COMME LE TEST GAGNANT 🌍
         // ==========================================
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrainProvider: Cesium.createWorldTerrain(),
+            terrain: Cesium.Terrain.fromWorldTerrain(), // LIGNE CORRIGÉE !
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
@@ -191,7 +191,6 @@
         // 🚀 LOGIQUE DE L'APPLICATION 🚀
         // ==========================================
         
-        // Ton Itinéraire
         const MES_ETAPES = [
             { id: "step_1", titre: "Hanoï", date: "14 Avril - 16 Avril", date_debut_iso: "2026-04-14", logement: "Aimee House", transport: "Vol aller", lien_resa: "https://booking.com", programme: [{ id: "td1", texte: "🍜 Bun Cha Huong Lien", lien: "" }] },
             { id: "step_2", titre: "Ninh Binh", date: "16 Avril - 18 Avril", date_debut_iso: "2026-04-16", logement: "Hang Mua Ecolodge", transport: "Bus 12GO", lien_resa: "https://12go.asia", programme: [{ id: "td3", texte: "🛶 Barque à Trang An", lien: "" }] }
@@ -199,7 +198,6 @@
 
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
 
-        // Chronos
         const targetDate = new Date("Apr 13, 2026 12:10:00").getTime();
         setInterval(() => { 
             const now = new Date(); const d = targetDate - now.getTime(); 
@@ -208,7 +206,6 @@
             document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'});
         }, 1000);
 
-        // UI Navigation
         const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view'), midC = document.querySelector('.middle-container'), uiL = document.getElementById('ui-layer');
         const gpsBtn = document.getElementById('gps-button');
         
@@ -219,7 +216,6 @@
         }));
         document.querySelectorAll('.smart-input').forEach(i => { i.addEventListener('focus', e => { uiL.classList.add('keyboard-up'); e.target.closest('.focusable-view').classList.add('view-focused'); midC.style.alignItems = 'flex-start'; }); i.addEventListener('blur', e => { uiL.classList.remove('keyboard-up'); e.target.closest('.focusable-view').classList.remove('view-focused'); midC.style.alignItems = 'flex-end'; }); });
 
-        // Dashboard
         let currentDashIndex = 0; let savedTodos = JSON.parse(localStorage.getItem('vn_todos')) || {};
         function saveTodo(id, checked) { savedTodos[id] = checked; localStorage.setItem('vn_todos', JSON.stringify(savedTodos)); showToast(checked ? "✅ Fait" : "⏳ À faire"); }
 
@@ -233,24 +229,20 @@
         }
         window.changeDash = (dir) => { currentDashIndex += dir; if(currentDashIndex < 0) currentDashIndex = 0; if(currentDashIndex >= MES_ETAPES.length) currentDashIndex = MES_ETAPES.length - 1; renderDashboard(); }; renderDashboard();
         
-        // Grab & Audio
         window.estimateGrab = () => { const km = parseFloat(document.getElementById('grab-km').value); if(!km || km <= 0) return; const prixVnd = Math.round((km * 15000) + 20000); const res = document.getElementById('grab-result'); res.style.display = 'block'; res.innerHTML = `Prix juste : ~${prixVnd.toLocaleString('fr-FR')} ₫`; };
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); showToast("🗣️ Audio en cours..."); };
         window.geolocateMe = () => { showToast("📍 Recherche GPS..."); if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude), point: { pixelSize: 15, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 3 } }); showToast("✅ Position trouvée !"); }, () => showToast("❌ Active la localisation")); } else { showToast("❌ GPS non supporté"); } };
 
-        // Convertisseur
         let exRate = parseFloat(localStorage.getItem('vn_rate')) || 27500; fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exRate = d.rates.VND; localStorage.setItem('vn_rate', exRate); document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟢)`; }).catch(() => document.getElementById('rate-info').innerText = `1 € = ${exRate.toLocaleString('fr-FR')} ₫ (🟠)`);
         const pVal = v => parseFloat(v.toString().replace(/\s/g,'').replace(',','.')) || 0, fVal = (n,d=0) => n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
         const iV = document.getElementById('input-vnd'), iE = document.getElementById('input-eur'); function cVND() { const v = pVal(iV.value); if(v>0){ iE.value = fVal(v/exRate,2); iV.value = fVal(v,0); } else iE.value = ''; } function cEUR() { const v = pVal(iE.value); if(v>0){ iV.value = fVal(Math.round(v*exRate),0); iE.value = fVal(v,2); } else iV.value = ''; } window.quickAdd = a => { iV.value = fVal(pVal(iV.value)+a,0); cVND(); }; window.resetConverter = () => { iV.value=''; iE.value=''; }; iV.addEventListener('input', cVND); iE.addEventListener('input', cEUR);
         
-        // Budget
         let tB = parseFloat(localStorage.getItem('vn_tb')) || 1500, exps = JSON.parse(localStorage.getItem('vn_exps')) || [];
         window.askTotalBudget = () => { let n = prompt("Budget total (€) ?", tB); if(n && !isNaN(pVal(n))){ tB = pVal(n); localStorage.setItem('vn_tb', tB); updateBudgetUI(); showToast("💾 Budget mis à jour"); }};
         window.addExpense = () => { const a = pVal(document.getElementById('exp-amount').value), c = document.getElementById('exp-cat').value, cur = document.getElementById('exp-currency').value; if(a<=0) return; exps.unshift({ id: Date.now(), cat: c, oA: a, cur: cur, aE: cur==='VND'?a/exRate:a, d: new Date().toLocaleDateString('fr-FR') }); localStorage.setItem('vn_exps', JSON.stringify(exps)); document.getElementById('exp-amount').value=''; document.getElementById('exp-amount').blur(); updateBudgetUI(); showToast("💰 Dépense ajoutée"); };
         window.deleteExpense = id => { exps = exps.filter(e => e.id !== id); localStorage.setItem('vn_exps', JSON.stringify(exps)); updateBudgetUI(); showToast("🗑️ Dépense supprimée"); };
         function updateBudgetUI() { document.getElementById('budget-total').innerText = fVal(tB,0)+' €'; let sE = exps.reduce((s,e)=>s+e.aE,0), p = Math.min((sE/tB)*100,100); let rest = tB-sE; let daysLeft = 15; let perDay = rest / daysLeft; document.getElementById('budget-spent').innerText = fVal(sE,2)+' €'; document.getElementById('budget-left').innerText = fVal(rest,2)+' €'; document.getElementById('budget-per-day').innerText = fVal(perDay,2)+' € / jour'; const g = document.getElementById('budget-gauge'); g.style.width = p+'%'; g.style.background = p>85?'var(--danger)':p>65?'#facc15':'var(--primary)'; document.getElementById('budget-percent').innerText = Math.round(p)+'%'; const l = document.getElementById('expense-list'); l.innerHTML = exps.length===0?'<div style="color:#666; font-size:12px; text-align:center;">Aucune dépense.</div>':''; exps.slice(0,10).forEach(e => l.innerHTML += `<div class="expense-item"><div><span style="font-size:16px; margin-right:8px;">${e.cat}</span><span style="color:#aaa;">${e.d}</span></div><div style="display:flex; align-items:center;"><strong style="color:white; margin-right:10px;">${fVal(e.oA,e.cur==='EUR'?2:0)} ${e.cur==='EUR'?'€':'₫'}</strong><button class="expense-delete" onclick="deleteExpense(${e.id})">×</button></div></div>`); } updateBudgetUI();
 
-        // Coffre
         const vD = document.getElementById('vault-docs'), vH = document.getElementById('vault-hotels'), vImg = document.getElementById('vault-photo-display');
         vD.value = localStorage.getItem('vn_vd') || ''; vH.value = localStorage.getItem('vn_vh') || ''; vD.addEventListener('input', () => localStorage.setItem('vn_vd', vD.value)); vH.addEventListener('input', () => localStorage.setItem('vn_vh', vH.value));
         window.savePhoto = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { localStorage.setItem('vn_vimg', ev.target.result); vImg.src = ev.target.result; vImg.style.display = 'block'; showToast("📸 Photo enregistrée"); } catch(e) { alert("⚠️ Image trop lourde !"); } }; r.readAsDataURL(f); };
