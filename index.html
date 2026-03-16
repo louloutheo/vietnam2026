@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - V3.2</title>
+    <title>Vietnam 2026 - V3.4</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -58,7 +58,6 @@
         ::-webkit-scrollbar { width: 3px; background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* RESPONSIVE PC: On met la barre de rupture à 768px (Tablettes et PC) */
         @media (min-width: 768px) {
             .middle-container {
                 position: absolute !important; left: 15px !important; top: 85px !important; bottom: 85px !important; 
@@ -175,53 +174,71 @@
             {
                 jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000,
                 transport: "✈️ Vol Paris -> Istanbul -> Hanoï", logements: [],
-                activites: [{ nom: "Escale à Istanbul", lien: "" }]
+                activites: [{ nom: "Escale à Istanbul", lien: "https://www.google.com/maps/place/Aéroport+d'Istanbul" }]
             },
             {
                 jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000,
                 transport: "✈️ Arrivée Hanoï 14h00",
-                logements: [{ nom: "Aimee House", lien: "https://maps.app.goo.gl/example1" }],
-                activites: [{ nom: "Balade Lac Hoan Kiem", lien: "https://maps.app.goo.gl/example2" }, { nom: "Dîner Bun Cha", lien: "" }]
+                logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/place/Aimee+House+Hanoi" }],
+                activites: [
+                    { nom: "Balade Lac Hoan Kiem", lien: "https://www.google.com/maps/place/Hoan+Kiem+Lake" }, 
+                    { nom: "Dîner Bun Cha Hương Liên", lien: "https://www.google.com/maps/place/Bún+chả+Hương+Liên" }
+                ]
             },
             {
                 jour: 3, date: "15 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000,
-                transport: "", logements: [{ nom: "Aimee House", lien: "" }],
-                activites: [{ nom: "Quartier Vieux Hanoï", lien: "" }, { nom: "Train Street", lien: "" }]
+                transport: "", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/place/Aimee+House+Hanoi" }],
+                activites: [
+                    { nom: "Quartier Vieux Hanoï", lien: "https://www.google.com/maps/place/Old+Quarter+Hanoi" }, 
+                    { nom: "Train Street", lien: "https://www.google.com/maps/place/Hanoi+Train+Street" }
+                ]
             },
             {
                 jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000,
-                transport: "🚌 Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "" }],
-                activites: [{ nom: "Barque à Trang An", lien: "" }, { nom: "Coucher de soleil Hang Mua", lien: "" }]
+                transport: "🚌 Bus 12GO (Matin)", 
+                logements: [{ nom: "Hang Mua Ecolodge", lien: "https://www.google.com/maps/place/Hang+Mua+Ecolodge" }],
+                activites: [
+                    { nom: "Barque à Trang An", lien: "https://www.google.com/maps/place/Trang+An+Landscape+Complex" }, 
+                    { nom: "Coucher de soleil Hang Mua", lien: "https://www.google.com/maps/place/Hang+Mua+Viewpoint" }
+                ]
             }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v3_4')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v3_4', JSON.stringify(monVoyage)); renderDay(); }
+
+        // ==========================================
+        // 🧠 NOUVEAU : LA FONCTION QUI TRANSFORME LE TEXTE EN LIEN GOOGLE MAPS
+        // ==========================================
+        function formatMapLink(input) {
+            if (!input) return "";
+            let trimmed = input.trim();
+            // Si c'est déjà un lien web valide, on le renvoie tel quel
+            if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                return trimmed;
+            }
+            // Sinon, on fabrique un lien de recherche Google Maps
+            return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(trimmed);
+        }
 
         let currentDayIdx = 0;
         let isCollapsed = false;
 
         function changeDay(dir) { currentDayIdx += dir; if(currentDayIdx < 0) currentDayIdx = 0; if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; renderDay(); }
 
-        // ==========================================
-        // 🎯 LE MOTEUR CAMÉRA INTELLIGENT (CALCUL MATHÉMATIQUE)
-        // ==========================================
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
             const isClose = d.zoomMap < 1000000;
-            const isMobile = window.innerWidth < 768; // Détection du mode (Mobile vs PC)
+            const isMobile = window.innerWidth < 768; 
 
-            // Décalage de base pour compenser l'inclinaison 3D (-60 deg)
             let latOffset = isClose ? (d.zoomMap * 0.000005) : 0; 
             let lonOffset = 0;
 
             const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
 
             if (isMobile && !isCollapsed && planningIsActive) {
-                // SUR MOBILE : On pousse la ville vers le HAUT (On descend la caméra au Sud)
                 latOffset += (d.zoomMap * 0.000003); 
             } else if (!isMobile) {
-                // SUR PC : On pousse la ville vers la DROITE (On décale la caméra à l'Ouest)
                 lonOffset += (d.zoomMap * 0.0000025); 
             }
 
@@ -232,7 +249,6 @@
             });
         }
 
-        // Met à jour la caméra quand on redimensionne la fenêtre du PC
         window.addEventListener('resize', () => { setTimeout(updateCamera, 300); });
 
         function renderDay() {
@@ -252,20 +268,30 @@
             html += `<div class="section-title">🏨 Logement(s)</div>`;
             if(d.logements.length === 0) html += `<div class="info-line" style="font-size:12px; color:#666;">Aucun</div>`;
             d.logements.forEach((l, idx) => { html += `<div class="info-line"><span>📍 ${l.nom} ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;cursor:pointer;">✕</button></div>`; });
-            html += `<div class="custom-add"><input type="text" id="add-log-name" class="custom-input" placeholder="Ajouter hôtel..."><input type="text" id="add-log-link" class="custom-input" placeholder="Lien Maps"><button onclick="addLogement(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
+            html += `<div class="custom-add"><input type="text" id="add-log-name" class="custom-input" placeholder="Ajouter hôtel..."><input type="text" id="add-log-link" class="custom-input" placeholder="Adresse ou Lien Maps"><button onclick="addLogement(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
 
             html += `<div class="section-title">🎟️ Programme & Notes</div>`;
             if(d.activites.length === 0) html += `<div class="info-line" style="font-size:12px; color:#666;">Quartier libre !</div>`;
             d.activites.forEach((a, idx) => { html += `<div class="info-line"><span>👉 ${a.nom} ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">[Carte]</a>` : ''}</span><button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--danger);font-weight:bold;cursor:pointer;">✕</button></div>`; });
-            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Ajouter visite, note..."><input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
+            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Ajouter visite, resto..."><input type="text" id="add-act-link" class="custom-input" placeholder="Adresse ou Lien Maps"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+</button></div>`;
 
             document.getElementById('day-content').innerHTML = html;
         }
 
         window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
         window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
-        window.addLogement = (dayIdx) => { const nom = document.getElementById('add-log-name').value; const lien = document.getElementById('add-log-link').value; if(nom) { monVoyage[dayIdx].logements.push({nom: nom, lien: lien}); saveVoyage(); } };
-        window.addActivite = (dayIdx) => { const nom = document.getElementById('add-act-name').value; const lien = document.getElementById('add-act-link').value; if(nom) { monVoyage[dayIdx].activites.push({nom: nom, lien: lien}); saveVoyage(); } };
+        
+        // C'EST ICI QU'ON APPLIQUE LA FONCTION INTELLIGENTE "formatMapLink"
+        window.addLogement = (dayIdx) => { 
+            const nom = document.getElementById('add-log-name').value; 
+            const lien = formatMapLink(document.getElementById('add-log-link').value); 
+            if(nom) { monVoyage[dayIdx].logements.push({nom: nom, lien: lien}); saveVoyage(); } 
+        };
+        window.addActivite = (dayIdx) => { 
+            const nom = document.getElementById('add-act-name').value; 
+            const lien = formatMapLink(document.getElementById('add-act-link').value); 
+            if(nom) { monVoyage[dayIdx].activites.push({nom: nom, lien: lien}); saveVoyage(); } 
+        };
 
         window.togglePanel = () => {
             const panel = document.getElementById('view-etapes');
