@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Ultra Premium</title>
+    <title>Vietnam 2026 - Masterclass V9</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -48,7 +48,8 @@
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.4s ease; -webkit-font-smoothing: antialiased;}
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; border: none; }
         
-        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; background-color: var(--bg); }
+        /* FOND DE SECOURS NOIR POUR LE SATELLITE */
+        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; background-color: #000; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 0; box-sizing: border-box; }
         
         .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-float); transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); color: var(--text); }
@@ -156,8 +157,7 @@
         .mic-btn.recording { animation: pulse 1s infinite; background: #dc2626; }
     </style>
 </head>
-<body class="light-theme">
-    <div id="cesiumContainer"></div>
+<body class="dark-theme"> <div id="cesiumContainer"></div>
 
     <div id="map-day-slider" class="map-slider-container"></div>
 
@@ -175,7 +175,7 @@
         <div class="top-bar">
             <div class="glass-panel top-widget">
                 <h1 style="display:flex; align-items:center; justify-content:flex-start; gap:12px;">
-                    <div style="width:32px; height:32px; border-radius:10px; overflow:hidden; display:flex; justify-content:center; align-items:center; background:var(--text);">
+                    <div style="width:32px; height:32px; border-radius:10px; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000;">
                         <img src="icon.png" style="width:100%; height:100%; object-fit:cover; transform:scale(1.2);" onerror="this.style.display='none'">
                     </div>
                     <div style="flex-grow:1; display:flex; justify-content:space-between; align-items:center;">
@@ -185,7 +185,7 @@
                 <div id="trip-progress-container"></div>
             </div>
             <div class="map-tools">
-                <div class="round-btn" onclick="toggleTheme()" title="Mode">🌓</div>
+                <div class="round-btn" onclick="toggleTheme()" title="Mode UI">🌓</div>
                 <div class="round-btn" onclick="geolocateMe()" title="Position">🎯</div>
             </div>
         </div>
@@ -282,6 +282,13 @@
                         <button class="speak-btn" onclick="speakVN('Đắt quá')">💸 Trop cher</button>
                         <button class="speak-btn" onclick="speakVN('Không cay nhé')">🌶️ Sans piment</button>
                     </div>
+                    
+                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Traducteur (Réseau requis la 1ère fois)</div>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="trans-input" class="custom-input" placeholder="Taper phrase...">
+                        <button class="btn-pill" style="background:#0ea5e9; padding:0 15px; font-size:16px;" onclick="translateAndSpeak()">🔊</button>
+                    </div>
+                    <div id="trans-result" style="margin-top:10px; font-size:14px; font-style:italic; color:var(--primary); text-align:center; min-height:20px; font-weight:bold;"></div>
                 </div>
             </div>
         </div>
@@ -299,32 +306,24 @@
     <script>
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
-        // 🚨 LA CORRECTION EST ICI : Retour à Terrain.fromWorldTerrain() !
-        const lightMap = new Cesium.UrlTemplateImageryProvider({ 
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', 
-            subdomains: ['a', 'b', 'c', 'd'],
-            credit: 'CartoDB' 
-        });
-        const darkMap = new Cesium.UrlTemplateImageryProvider({ 
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png', 
-            subdomains: ['a', 'b', 'c', 'd'],
-            credit: 'CartoDB' 
-        });
-
+        // 🚨 LE CORRECTIF DE LA V9.0 : RETOUR AU SATELLITE CESIUM NATIF
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(), // LE CORRECTIF DU CRASH
-            baseLayer: new Cesium.ImageryLayer(lightMap),
+            terrain: Cesium.Terrain.fromWorldTerrain(), // Le vrai 3D terrain qui marche
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false,
             requestRenderMode: true, maximumRenderTimeChange: Infinity
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
-        viewer.scene.fog.enabled = false; viewer.scene.skyAtmosphere.enabled = false; viewer.scene.globe.maximumScreenSpaceError = 2.5;
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f8fafc');
+        
+        // Optimisations mobiles (on garde les nuages éteints pour la batterie)
+        viewer.scene.fog.enabled = false; 
+        viewer.scene.skyAtmosphere.enabled = false; 
+        viewer.scene.globe.maximumScreenSpaceError = 2.5;
 
         const cc = viewer.scene.screenSpaceCameraController; 
         cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; 
         cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000; 
 
+        // TRACÉ ET VILLES
         const routeCoords = [
             2.3522, 48.8566, 28.9784, 41.0082, 105.8342, 21.0278, 105.9800, 20.2539, 105.2280, 20.4533, 
             107.0500, 20.7280, 105.8342, 21.0278, 107.5909, 16.4637, 108.3380, 15.8801, 108.5230, 15.9590, 108.2022, 16.0544
@@ -343,7 +342,7 @@
             id: { dayIdx: e.d },
             position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), 
             point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#10b981'), outlineColor: Cesium.Color.WHITE, outlineWidth: 3 }, 
-            label: { text: "📍 " + e.n, font: 'bold 12pt -apple-system, sans-serif', fillColor: Cesium.Color.fromCssColorString('#0f172a'), style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.WHITE, outlineWidth: 5, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -12) } 
+            label: { text: e.n, font: 'bold 12pt sans-serif', fillColor: Cesium.Color.fromCssColorString('#0f172a'), style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.WHITE, outlineWidth: 5, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -12) } 
         }));
 
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -358,9 +357,9 @@
 
         const DEFAULT_VOYAGE = [
             { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "Vol Paris -> Istanbul", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "Vol Istanbul -> Hanoï", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Lac Hoan Kiem", lien: "https://www.google.com/maps/search/?api=1&query=Hoan+Kiem+Lake+Hanoi", periode: "aprem" }, { nom: "Dîner Bun Cha", lien: "https://www.google.com/maps/search/?api=1&query=Bun+Cha+Huong+Lien+Hanoi", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
+            { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "Vol Istanbul -> Hanoï", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Lac Hoan Kiem", lien: "https://www.google.com/maps/search/?api=1&query=Lac+Hoan+Kiem", periode: "aprem" }, { nom: "Dîner Bun Cha", lien: "https://www.google.com/maps/search/?api=1&query=Bun+Cha+Hanoi", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 3, date: "15 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "", logements: [{ nom: "Aimee House", lien: "" }], activites: [{ nom: "Vieux Hanoï", lien: "", periode: "matin" }, { nom: "Train Street", lien: "https://www.google.com/maps/search/?api=1&query=Train+Street+Hanoi", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000, transport: "Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "https://www.google.com/maps/search/?api=1&query=Hang+Mua+Ecolodge+Ninh+Binh" }], activites: [{ nom: "Barque Trang An", lien: "https://www.google.com/maps/search/?api=1&query=Trang+An+Ninh+Binh", periode: "matin" }, { nom: "Coucher soleil Hang Mua", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
+            { jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000, transport: "Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "https://www.google.com/maps/search/?api=1&query=Hang+Mua+Ecolodge" }], activites: [{ nom: "Barque Trang An", lien: "https://www.google.com/maps/search/?api=1&query=Trang+An", periode: "matin" }, { nom: "Coucher soleil Hang Mua", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 5, date: "17 Avril", ville: "Pu Luong", lat: 20.4533, lon: 105.2280, zoomMap: 90000, transport: "Transfert Van", logements: [{ nom: "Réserve Pu Luong", lien: "" }], activites: [{ nom: "Arrivée jungle", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 6, date: "18 Avril", ville: "Pu Luong", lat: 20.4533, lon: 105.2280, zoomMap: 70000, transport: "", logements: [{ nom: "Réserve Pu Luong", lien: "" }], activites: [{ nom: "Trek Rizières", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 7, date: "19 Avril", ville: "Lan Ha", lat: 20.7280, lon: 107.0500, zoomMap: 120000, transport: "Transfert Baie", logements: [{ nom: "Bateau Croisière", lien: "" }], activites: [{ nom: "Kayak", lien: "", periode: "aprem" }], alerts: ["Payer solde croisière"], journal: {stars:0, text:""} },
@@ -375,9 +374,10 @@
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v8_4')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v8_4', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v9_0')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v9_0', JSON.stringify(monVoyage)); renderDay(); }
 
+        // 🚨 CORRECTIF : LE VRAI LIEN GOOGLE MAPS QUI MARCHE PARTOUT
         function formatMapLink(input) {
             if (!input) return ""; let trimmed = input.trim();
             if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
@@ -446,10 +446,12 @@
         }
 
         function updateGlobalProgress() {
+            const container = document.getElementById('trip-progress-container');
+            if(!container) return; // Sécurité si l'élément n'est pas chargé
+            
             const tripStart = new Date("2026-04-13T00:00:00").getTime();
             const tripEnd = new Date("2026-04-28T23:59:59").getTime();
             const now = Date.now();
-            const container = document.getElementById('trip-progress-container');
 
             if (now < tripStart) {
                 const diffDays = Math.ceil((tripStart - now) / (1000 * 3600 * 24));
@@ -508,102 +510,4 @@
             let matin = []; let aprem = [];
             d.activites.forEach((a, i) => { let p = a.periode; if(!p) p = (i < d.activites.length / 2) ? 'matin' : 'aprem'; if(p === 'aprem' || p === 'soir') aprem.push({a, i}); else matin.push({a, i}); });
 
-            if(matin.length > 0) html += `<div class="time-header">🌅 Matin</div>`;
-            matin.forEach(item => {
-                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Ouvrir ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                isFirstNode = false;
-            });
-
-            if(aprem.length > 0) html += `<div class="time-header">☀️ Après-midi & Soir</div>`;
-            aprem.forEach(item => {
-                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Ouvrir ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                isFirstNode = false;
-            });
-
-            if(d.logements.length > 0) {
-                html += `<div class="time-header">🌙 Nuit & Logement</div>`;
-                d.logements.forEach((l, idx) => {
-                    html += `<div class="timeline-item"><div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>🏨 ${l.nom}</span></div><div class="timeline-action">${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link" style="background:rgba(168, 85, 247, 0.1); color:#a855f7;">Ouvrir ↗</a>` : ''}<button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                    isFirstNode = false;
-                });
-            }
-
-            html += '</div>'; 
-
-            html += `<div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:800; margin-top:20px; margin-bottom:10px; margin-left:15px;">Ajouter à l'agenda</div>`;
-            html += `<div class="custom-add" style="flex-wrap:wrap;"><input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto, rappel..." style="width:100%;"><div style="display:flex; gap:8px; width:100%;"><input type="text" id="add-act-link" class="custom-input" placeholder="Maps (Optionnel)"><select id="add-act-time" class="custom-input" style="width:auto;"><option value="matin">Matin</option><option value="aprem">Aprem</option></select><button class="btn-pill" style="padding:0 15px; font-size:18px;" onclick="addActivite(${currentDayIdx})">+</button></div></div>`;
-
-            let starsHtml = '';
-            for(let i=1; i<=5; i++) { starsHtml += `<span class="${i <= d.journal.stars ? 'active' : ''}" onclick="setStars(${currentDayIdx}, ${i})">★</span>`; }
-
-            html += `<div class="journal-box"><div style="font-size:12px; color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:8px; text-align:center;">📖 Bilan du jour</div><div class="star-rating">${starsHtml}</div><div class="keyword-chips"><span class="chip" onclick="addKeyword(${currentDayIdx}, '🥵 Chaleur extrême')">🥵 Chaud</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🤤 Régal absolu')">🤤 Régal</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🛵 Scooter trip')">🛵 Scooter</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🤕 Fatigué(e)')">🤕 KO</span></div><div style="display:flex; gap:10px; align-items:center;"><textarea id="journal-txt-${currentDayIdx}" class="journal-textarea" placeholder="Note du soir (Tape ou dicte...)" onblur="saveJournalText(${currentDayIdx})">${d.journal.text}</textarea><button class="mic-btn" id="mic-${currentDayIdx}" onclick="startDictation(${currentDayIdx})">🎙️</button></div></div>`;
-
-            document.getElementById('day-content').innerHTML = html;
-        }
-
-        window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
-        window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
-        window.delAlert = (dayIdx, itemIdx) => { monVoyage[dayIdx].alerts.splice(itemIdx, 1); saveVoyage(); };
-        
-        window.addActivite = (dayIdx) => { 
-            const nom = document.getElementById('add-act-name').value; const lien = formatMapLink(document.getElementById('add-act-link').value); const periode = document.getElementById('add-act-time').value;
-            if(nom) { 
-                if(nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) { monVoyage[dayIdx].alerts.push(nom); } 
-                else { monVoyage[dayIdx].activites.push({nom: nom, lien: lien, periode: periode}); }
-                saveVoyage(); 
-            } 
-        };
-
-        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); };
-        window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); };
-        window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
-
-        window.startDictation = (dayIdx) => {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Désolé, dictée non supportée."); return; }
-            const btn = document.getElementById(`mic-${dayIdx}`); const txtArea = document.getElementById(`journal-txt-${dayIdx}`);
-            const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false;
-            recognition.onstart = function() { btn.classList.add('recording'); };
-            recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); };
-            recognition.onend = function() { btn.classList.remove('recording'); }; recognition.start();
-        };
-
-        window.togglePanel = () => {
-            const panel = document.getElementById('view-etapes'); const btn = document.getElementById('toggle-panel-btn');
-            isCollapsed = !isCollapsed;
-            if(isCollapsed) { panel.classList.add('collapsed'); btn.innerText = '🔼'; } else { panel.classList.remove('collapsed'); btn.innerText = '🔽'; }
-            updateCamera(); 
-        };
-
-        function toggleTheme() { 
-            document.body.classList.toggle('dark-theme'); 
-            viewer.scene.imageryLayers.removeAll();
-            if(document.body.classList.contains('dark-theme')) { 
-                viewer.scene.imageryLayers.addImageryProvider(darkMap); 
-                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b1120'); 
-            } else { 
-                viewer.scene.imageryLayers.addImageryProvider(lightMap); 
-                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f8fafc'); 
-            }
-            viewer.scene.requestRender();
-        }
-        
-        const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view');
-        navItems.forEach(i => i.addEventListener('click', () => { 
-            navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; }); 
-            i.classList.add('active'); const t = i.getAttribute('data-target'); 
-            if(t !== 'none') { document.getElementById(t).style.display = 'flex'; if(t === 'view-etapes') { document.getElementById('view-etapes').classList.remove('collapsed'); document.getElementById('toggle-panel-btn').innerText='🔽'; isCollapsed=false; } }
-            if(t === 'none') { document.getElementById('map-day-slider').style.display = 'block'; buildMapSlider(); scrollToActivePill(); }
-            else { document.getElementById('map-day-slider').style.display = 'none'; }
-            updateCamera(); viewer.scene.requestRender(); 
-        }));
-
-        setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); updateGlobalProgress(); }, 1000);
-
-        let exchangeRate = parseFloat(localStorage.getItem('vn_exchange_rate')) || 27500;
-        window.calcGrab = () => { let km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { let price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
-
-        updateGlobalProgress(); renderDay(); buildMapSlider();
-    </script>
-</body>
-</html>
+            if(matin.length > 0) html += `<div class="time-header">
