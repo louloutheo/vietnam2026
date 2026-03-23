@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Ultra Premium</title>
+    <title>Vietnam 2026 - Premium UI</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -11,7 +11,7 @@
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
-        /* 💎 PALETTE ULTRA PREMIUM (Inspiré iOS 17 / Airbnb) */
+        /* 💎 PALETTE ULTRA PREMIUM */
         :root { 
             --primary: #000000; 
             --primary-light: #222222;
@@ -20,17 +20,13 @@
             --bg: #f5f7fa; 
             --text: #111827; 
             --text-muted: #64748b; 
-            
             --glass-bg: rgba(255, 255, 255, 0.75); 
             --glass-border: rgba(255, 255, 255, 0.4); 
             --card-bg: rgba(255, 255, 255, 0.95); 
             --input-bg: #f1f5f9;
-            
             --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
             --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.08);
-            --radius-lg: 32px;
-            --radius-md: 20px;
-            --radius-sm: 12px;
+            --radius-lg: 32px; --radius-md: 20px; --radius-sm: 12px;
         }
 
         body.dark-theme { 
@@ -41,20 +37,18 @@
             --bg: #0b1120; 
             --text: #f8fafc; 
             --text-muted: #94a3b8; 
-            
             --glass-bg: rgba(15, 23, 42, 0.75); 
             --glass-border: rgba(255, 255, 255, 0.05); 
             --card-bg: rgba(30, 41, 59, 0.8); 
             --input-bg: rgba(0, 0, 0, 0.3);
-            
             --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.4);
             --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.6);
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.4s ease; -webkit-font-smoothing: antialiased;}
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.4s ease; -webkit-font-smoothing: antialiased;}
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; border: none; }
         
-        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; background-color: #e2e8f0; /* Fond de secours gris doux */ }
+        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; background-color: var(--bg); }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 0; box-sizing: border-box; }
         
         .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-float); transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); color: var(--text); }
@@ -85,17 +79,14 @@
         .map-pill-city { font-size: 14px; font-weight: 800; }
 
         .app-view { display: none; flex-direction: column; width: 100%; max-width: 420px; max-height: 55vh; overflow-y: auto; padding: 22px; box-sizing: border-box; pointer-events: auto; margin: 0 10px;}
-        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; font-weight: 800; letter-spacing:-0.5px;}
         
         .collapsed { max-height: 100px !important; overflow: hidden !important; }
-        .toggle-btn { background: rgba(128,128,128,0.15); border: none; color: var(--text); border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center;}
+        .toggle-btn { background: rgba(128,128,128,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; color: var(--text);}
         
         .card { background: var(--card-bg); padding: 18px; border-radius: var(--radius-md); margin-bottom: 15px; box-shadow: var(--shadow-soft);}
         .day-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;}
         .day-arrow { background: var(--input-bg); color: var(--text); font-size: 14px; padding: 10px 18px; border-radius: 50px; font-weight: bold;}
         .weather-badge { font-size: 12px; padding: 6px 12px; background: rgba(14, 165, 233, 0.1); color: var(--accent-blue); border-radius: 50px; font-weight: 800; margin-top:6px; display:inline-block; letter-spacing: 0.5px;}
-        
-        .info-line { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-muted); justify-content: space-between; font-weight: 500;}
         
         .premium-timeline { position: relative; margin-top: 10px; padding-bottom: 10px; }
         .premium-timeline::before { content: ''; position: absolute; left: 16px; top: 20px; bottom: 20px; width: 2px; background: rgba(128,128,128,0.15); border-radius: 2px; }
@@ -116,14 +107,10 @@
         .alert-style { background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444; }
 
         .timeline-text { font-size: 15px; font-weight: 700; flex-grow: 1; display:flex; align-items:center; gap:10px;}
-        .timeline-action { display:flex; gap: 8px; align-items: center; }
         .item-link { color: var(--accent-blue); text-decoration: none; font-size: 12px; font-weight: 800; padding: 6px 12px; background: rgba(14, 165, 233, 0.1); border-radius: 50px; white-space:nowrap;}
-        .item-link:active { background: var(--accent-blue); color: white; }
         
         .custom-add { display: flex; gap: 8px; margin-top: 15px; margin-left: 12px; }
-        .custom-input { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px 16px; border-radius: 12px; font-size: 14px; width: 100%; box-sizing: border-box; font-weight: 600; transition: 0.2s;}
-        .custom-input:focus { box-shadow: 0 0 0 2px var(--primary); background: var(--card-bg);}
-        
+        .custom-input { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px 16px; border-radius: 12px; font-size: 14px; width: 100%; box-sizing: border-box; font-weight: 600;}
         .btn-pill { background: var(--primary); color: var(--bg); border-radius: 50px; font-weight: 800; padding: 12px 24px; font-size: 14px; letter-spacing: 0.5px;}
         
         .nav-wrapper { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 20; pointer-events: auto; }
@@ -132,7 +119,7 @@
         .nav-item.active { color: var(--text); background: var(--input-bg); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
-        #sos-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        #sos-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .sos-content { background: var(--bg); border-radius: var(--radius-lg); padding: 30px; width: 100%; max-width: 320px; color: var(--text); box-shadow: var(--shadow-float);}
 
         ::-webkit-scrollbar { width: 4px; background: transparent; }
@@ -144,7 +131,7 @@
             .toggle-btn { display: none !important; } 
             .map-slider-container { display: none !important; } 
         }
-        
+
         .budget-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .tool-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 15px; border-radius: 20px; }
         .tool-card h3 { margin: 0 0 10px 0; font-size: 12px; color: var(--primary); text-transform: uppercase; font-weight: 800;}
@@ -153,6 +140,7 @@
         
         .speak-btn { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #0ea5e9; padding: 10px; border-radius: 50px; flex-grow: 1; font-weight: bold; font-size: 12px; text-align: center; }
         .speak-btn-medical { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+        
         .vnd-bill { display:flex; justify-content:space-between; color:black; padding:8px 12px; border-radius:12px; font-weight:bold; margin-bottom:6px; font-size:13px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
         .budget-tag { background: rgba(128,128,128,0.15); padding: 4px 8px; border-radius: 50px; font-size: 11px; margin-right: 8px; color: var(--text); font-weight: 700;}
         
@@ -163,7 +151,6 @@
         .chip { background: var(--input-bg); border-radius: 50px; padding: 8px 16px; font-size: 12px; font-weight: 700; color: var(--text);}
         .journal-textarea { width: 100%; height: 80px; background: var(--input-bg); color: var(--text); border-radius: 16px; padding: 12px; box-sizing: border-box; font-size: 14px; font-weight:500; resize: none; font-family: inherit; }
         .mic-btn { background: #ef4444; color: white; border-radius: 50%; width: 46px; height: 46px; font-size: 20px; display: flex; justify-content: center; align-items: center; margin-left: 10px; box-shadow: 0 8px 20px rgba(239,68,68,0.3);}
-        .mic-btn.recording { animation: pulse 1s infinite; background: #dc2626; }
     </style>
 </head>
 <body class="light-theme">
@@ -175,7 +162,7 @@
         <div class="sos-content">
             <h2 style="color:#ef4444; margin-top:0; text-align:center; font-weight:900; font-size:24px;">🚨 URGENCE</h2>
             <div style="font-size: 26px; font-weight: 900; color: #ef4444; text-align: center; background: rgba(239,68,68,0.1); padding: 20px; border-radius: 20px; margin-bottom: 24px; line-height:1.4;">🚓 Police : 113<br>🚑 Santé : 115<br>🚒 Feu : 114</div>
-            <h3 style="margin:0 0 8px 0; font-size:15px; color:var(--text); font-weight:800;">🇫🇷 Ambassade de France (Hanoï)</h3>
+            <h3 style="margin:0 0 8px 0; font-size:15px; color:var(--text); font-weight:800;">🇫🇷 Ambassade de France</h3>
             <p style="margin:0; font-size:14px; color:var(--text-muted); line-height: 1.6; font-weight:500;">57 Tran Hung Dao, Hoan Kiem<br>📞 +84 24 39 44 57 00</p>
             <button class="btn-pill" onclick="document.getElementById('sos-modal').style.display='none'" style="width:100%; padding:16px; margin-top:30px; font-size:15px;">Fermer</button>
         </div>
@@ -257,7 +244,7 @@
                     <div class="vnd-bill" style="background:#fde047; color:black;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
                 </div>
 
-                <h3 style="font-size:13px; color:var(--text-muted); text-transform:uppercase; margin-top:30px; margin-bottom:10px; font-weight:800;">Historique (Localisé)</h3>
+                <h3 style="font-size:13px; color:var(--text-muted); text-transform:uppercase; margin-top:30px; margin-bottom:10px; font-weight:800;">Historique</h3>
                 <div id="expense-list"></div>
             </div>
 
@@ -268,8 +255,8 @@
                     <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0; font-weight:800;">🤝 Règles d'or Locales</h3>
                     <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
                         <b style="color:var(--text);">🚦 Traverser :</b> Avance doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br>
-                        <b style="color:var(--text);">💰 Négociation :</b> Divise par 2 ou 3 au marché. Garde le sourire.<br>
-                        <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
+                        <b style="color:var(--text);">💰 Négociation :</b> Divise par 2 ou 3 au marché.<br>
+                        <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ appréciés.
                     </div>
                 </div>
 
@@ -309,13 +296,13 @@
     <script>
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
-        // Ligne vitale : LIENS SÉCURISÉS CARTODB SANS @2x POUR EVITER LE BUG BLANC !!!
+        // 🚨 LES VRAIS LIENS CARTODB (Sans le bug du @2x)
         const lightMap = new Cesium.UrlTemplateImageryProvider({ url: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', credit: 'CartoDB' });
         const darkMap = new Cesium.UrlTemplateImageryProvider({ url: 'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png', credit: 'CartoDB' });
 
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
-            imageryProvider: lightMap, 
+            imageryProvider: lightMap, // MAP PAR DEFAUT QUI MARCHE 100%
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false,
             requestRenderMode: true, maximumRenderTimeChange: Infinity
         });
@@ -327,6 +314,7 @@
         cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; 
         cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000; 
 
+        // TRACÉS ET VILLES
         const routeCoords = [
             2.3522, 48.8566, 28.9784, 41.0082, 105.8342, 21.0278, 105.9800, 20.2539, 105.2280, 20.4533, 
             107.0500, 20.7280, 105.8342, 21.0278, 107.5909, 16.4637, 108.3380, 15.8801, 108.5230, 15.9590, 108.2022, 16.0544
@@ -345,7 +333,7 @@
             id: { dayIdx: e.d },
             position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), 
             point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#10b981'), outlineColor: Cesium.Color.WHITE, outlineWidth: 3 }, 
-            label: { text: "📍 " + e.n, font: 'bold 12pt -apple-system, sans-serif', fillColor: Cesium.Color.fromCssColorString('#0f172a'), style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.WHITE, outlineWidth: 5, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -12) } 
+            label: { text: e.n, font: 'bold 12pt sans-serif', fillColor: Cesium.Color.fromCssColorString('#0f172a'), style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.WHITE, outlineWidth: 5, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -12) } 
         }));
 
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -377,13 +365,228 @@
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v8_1')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v8_1', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v8_2')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v8_2', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) {
             if (!input) return ""; let trimmed = input.trim();
             if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-            return `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(trimmed)}`;
+            return `https://www.google.com/maps/search/?api=1&query=$$${encodeURIComponent(trimmed)}`;
         }
         
-        function getTransportIcon
+        function getTransportIcon(text) {
+            const t = text.toLowerCase();
+            if (t.includes('bus') || t.includes('van') || t.includes('transfert')) return '🚌';
+            if (t.includes('train')) return '🚆';
+            if (t.includes('bateau') || t.includes('croisière') || t.includes('ferry')) return '🚤';
+            if (t.includes('voiture') || t.includes('taxi') || t.includes('grab')) return '🚕';
+            if (t.includes('scooter') || t.includes('moto')) return '🛵';
+            if (t.includes('vélo') || t.includes('velo')) return '🚲';
+            return '✈️';
+        }
+
+        let currentDayIdx = 0; let isCollapsed = false;
+
+        function buildMapSlider() {
+            const slider = document.getElementById('map-day-slider');
+            let html = '';
+            monVoyage.forEach((d, idx) => {
+                const isActive = (idx === currentDayIdx) ? 'active' : '';
+                html += `<div class="map-pill ${isActive}" id="pill-${idx}" onclick="handlePillClick(${idx})">
+                            <span class="map-pill-day">Jour ${d.jour}</span>
+                            <span class="map-pill-city">${d.ville.split('->')[0].trim()}</span>
+                         </div>`;
+            });
+            slider.innerHTML = html;
+        }
+
+        let lastClickedPill = -1;
+        function handlePillClick(idx) {
+            if(lastClickedPill === idx) {
+                document.getElementById('tab-planning').click();
+                if(isCollapsed) togglePanel();
+            } else {
+                changeDayTo(idx);
+                lastClickedPill = idx;
+            }
+        }
+
+        function scrollToActivePill() {
+            const pill = document.getElementById(`pill-${currentDayIdx}`);
+            if(pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        function autoFocusToday() {
+            const tripStart = new Date("2026-04-13T00:00:00").getTime();
+            const now = Date.now();
+            const dayDiff = Math.floor((now - tripStart) / (1000 * 3600 * 24));
+            if (dayDiff >= 0 && dayDiff < monVoyage.length) { currentDayIdx = dayDiff; } 
+            else if (dayDiff >= monVoyage.length) { currentDayIdx = monVoyage.length - 1; }
+        }
+        autoFocusToday();
+        
+        function changeDay(dir) { changeDayTo(currentDayIdx + dir); }
+        function changeDayTo(idx) {
+            currentDayIdx = idx;
+            if(currentDayIdx < 0) currentDayIdx = 0; 
+            if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; 
+            renderDay(); 
+            buildMapSlider(); 
+            scrollToActivePill();
+        }
+
+        function updateGlobalProgress() {
+            const tripStart = new Date("2026-04-13T00:00:00").getTime();
+            const tripEnd = new Date("2026-04-28T23:59:59").getTime();
+            const now = Date.now();
+            const container = document.getElementById('trip-progress-container');
+
+            if (now < tripStart) {
+                const diffDays = Math.ceil((tripStart - now) / (1000 * 3600 * 24));
+                container.innerHTML = `<div class="countdown-text">⏳ Départ dans ${diffDays} jours</div>`;
+            } else {
+                let prog = 0;
+                if (now >= tripEnd) prog = 100;
+                else prog = ((now - tripStart) / (tripEnd - tripStart)) * 100;
+                container.innerHTML = `<div class="progress-track"><div class="progress-fill" style="width:${prog}%"></div></div>`;
+            }
+        }
+
+        function updateCamera() {
+            const d = monVoyage[currentDayIdx];
+            const isClose = d.zoomMap < 1000000; const isMobile = window.innerWidth < 768; 
+            let latOffset = isClose ? (d.zoomMap * 0.000004) : 0; let lonOffset = 0;
+            const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
+
+            if (isMobile && !isCollapsed && planningIsActive) { latOffset += (d.zoomMap * 0.000003); } 
+            else if (!isMobile) { lonOffset += (d.zoomMap * 0.0000025); }
+
+            viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(d.lon - lonOffset, d.lat - latOffset, d.zoomMap), orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, duration: 1.2 });
+            viewer.scene.requestRender(); 
+        }
+
+        window.addEventListener('resize', () => { setTimeout(updateCamera, 300); });
+
+        function renderDay() {
+            const d = monVoyage[currentDayIdx];
+            if (!d.journal) d.journal = {stars:0, text:""}; 
+            if (!d.alerts) d.alerts = [];
+
+            document.getElementById('day-title').innerText = `Jour ${d.jour}`; document.getElementById('day-date').innerText = `${d.date} - ${d.ville.split('->')[0].trim()}`;
+            updateCamera();
+
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&daily=temperature_2m_max,weathercode&timezone=Asia%2FHo_Chi_Minh`)
+            .then(res => res.json()).then(data => { const temp = Math.round(data.daily.temperature_2m_max[0]); document.getElementById('weather-box').innerText = `🌡️ ${temp}°C prévu`; })
+            .catch(() => document.getElementById('weather-box').innerText = `⛅ Météo indispo`);
+
+            let html = '<div class="premium-timeline">';
+            let isFirstNode = true; 
+            
+            if(d.transport || d.alerts.length > 0) { html += `<div class="time-header">🛫 Départ & Rappels</div>`; }
+
+            if(d.transport) {
+                let tIcon = getTransportIcon(d.transport);
+                html += `<div class="timeline-item"><div class="timeline-dot dot-transport ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content ticket-style"><div class="timeline-text"><span style="font-size:22px;">${tIcon}</span> <span style="flex-grow:1;">${d.transport}</span></div></div></div>`;
+                isFirstNode = false;
+            }
+
+            d.alerts.forEach((al, idx) => {
+                html += `<div class="timeline-item"><div class="timeline-dot dot-alert ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content alert-style"><div class="timeline-text" style="color:#ef4444;"><span style="font-size:20px;">🔔</span><span style="flex-grow:1;">${al}</span></div><div class="timeline-action"><button onclick="delAlert(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#ef4444;font-size:16px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                isFirstNode = false;
+            });
+            
+            let matin = []; let aprem = [];
+            d.activites.forEach((a, i) => { let p = a.periode; if(!p) p = (i < d.activites.length / 2) ? 'matin' : 'aprem'; if(p === 'aprem' || p === 'soir') aprem.push({a, i}); else matin.push({a, i}); });
+
+            if(matin.length > 0) html += `<div class="time-header">🌅 Matin</div>`;
+            matin.forEach(item => {
+                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Ouvrir ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                isFirstNode = false;
+            });
+
+            if(aprem.length > 0) html += `<div class="time-header">☀️ Après-midi & Soir</div>`;
+            aprem.forEach(item => {
+                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Ouvrir ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                isFirstNode = false;
+            });
+
+            if(d.logements.length > 0) {
+                html += `<div class="time-header">🌙 Nuit & Logement</div>`;
+                d.logements.forEach((l, idx) => {
+                    html += `<div class="timeline-item"><div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>🏨 ${l.nom}</span></div><div class="timeline-action">${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link" style="background:rgba(168, 85, 247, 0.1); color:#a855f7;">Ouvrir ↗</a>` : ''}<button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                    isFirstNode = false;
+                });
+            }
+
+            html += '</div>'; 
+
+            html += `<div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:800; margin-top:20px; margin-bottom:10px; margin-left:15px;">Ajouter à l'agenda</div>`;
+            html += `<div class="custom-add" style="flex-wrap:wrap;"><input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto, rappel..." style="width:100%;"><div style="display:flex; gap:8px; width:100%;"><input type="text" id="add-act-link" class="custom-input" placeholder="Maps (Optionnel)"><select id="add-act-time" class="custom-input" style="width:auto;"><option value="matin">Matin</option><option value="aprem">Aprem</option></select><button class="btn-pill" style="padding:0 15px; font-size:18px;" onclick="addActivite(${currentDayIdx})">+</button></div></div>`;
+
+            let starsHtml = '';
+            for(let i=1; i<=5; i++) { starsHtml += `<span class="${i <= d.journal.stars ? 'active' : ''}" onclick="setStars(${currentDayIdx}, ${i})">★</span>`; }
+
+            html += `<div class="journal-box"><div style="font-size:12px; color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:8px; text-align:center;">📖 Bilan du jour</div><div class="star-rating">${starsHtml}</div><div class="keyword-chips"><span class="chip" onclick="addKeyword(${currentDayIdx}, '🥵 Chaleur extrême')">🥵 Chaud</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🤤 Régal absolu')">🤤 Régal</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🛵 Scooter trip')">🛵 Scooter</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🤕 Fatigué(e)')">🤕 KO</span></div><div style="display:flex; gap:10px; align-items:center;"><textarea id="journal-txt-${currentDayIdx}" class="journal-textarea" placeholder="Note du soir (Tape ou dicte...)" onblur="saveJournalText(${currentDayIdx})">${d.journal.text}</textarea><button class="mic-btn" id="mic-${currentDayIdx}" onclick="startDictation(${currentDayIdx})">🎙️</button></div></div>`;
+
+            document.getElementById('day-content').innerHTML = html;
+        }
+
+        window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
+        window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
+        window.delAlert = (dayIdx, itemIdx) => { monVoyage[dayIdx].alerts.splice(itemIdx, 1); saveVoyage(); };
+        
+        window.addActivite = (dayIdx) => { 
+            const nom = document.getElementById('add-act-name').value; const lien = formatMapLink(document.getElementById('add-act-link').value); const periode = document.getElementById('add-act-time').value;
+            if(nom) { 
+                if(nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) { monVoyage[dayIdx].alerts.push(nom); } 
+                else { monVoyage[dayIdx].activites.push({nom: nom, lien: lien, periode: periode}); }
+                saveVoyage(); 
+            } 
+        };
+
+        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); };
+        window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); };
+        window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
+
+        window.startDictation = (dayIdx) => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert("Désolé, dictée non supportée."); return; }
+            const btn = document.getElementById(`mic-${dayIdx}`); const txtArea = document.getElementById(`journal-txt-${dayIdx}`);
+            const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false;
+            recognition.onstart = function() { btn.classList.add('recording'); };
+            recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); };
+            recognition.onend = function() { btn.classList.remove('recording'); }; recognition.start();
+        };
+
+        window.togglePanel = () => {
+            const panel = document.getElementById('view-etapes'); const btn = document.getElementById('toggle-panel-btn');
+            isCollapsed = !isCollapsed;
+            if(isCollapsed) { panel.classList.add('collapsed'); btn.innerText = '🔼'; } else { panel.classList.remove('collapsed'); btn.innerText = '🔽'; }
+            updateCamera(); 
+        };
+
+        function toggleTheme() { 
+            document.body.classList.toggle('dark-theme'); 
+            if(document.body.classList.contains('dark-theme')) { viewer.scene.imageryLayers.removeAll(); viewer.scene.imageryLayers.addImageryProvider(darkMap); viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b1120'); } 
+            else { viewer.scene.imageryLayers.removeAll(); viewer.scene.imageryLayers.addImageryProvider(lightMap); viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f8fafc'); }
+        }
+        
+        const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view');
+        navItems.forEach(i => i.addEventListener('click', () => { 
+            navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; }); 
+            i.classList.add('active'); const t = i.getAttribute('data-target'); 
+            if(t !== 'none') { document.getElementById(t).style.display = 'flex'; if(t === 'view-etapes') { document.getElementById('view-etapes').classList.remove('collapsed'); document.getElementById('toggle-panel-btn').innerText='🔽'; isCollapsed=false; } }
+            if(t === 'none') { document.getElementById('map-day-slider').style.display = 'block'; buildMapSlider(); scrollToActivePill(); }
+            else { document.getElementById('map-day-slider').style.display = 'none'; }
+            updateCamera(); viewer.scene.requestRender(); 
+        }));
+
+        setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); updateGlobalProgress(); }, 1000);
+
+        let exchangeRate = parseFloat(localStorage.getItem('vn_exchange_rate')) || 27500;
+        window.calcGrab = () => { let km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { let price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
+
+        updateGlobalProgress(); renderDay(); buildMapSlider();
+    </script>
+</body>
+</html>
