@@ -1,12 +1,10 @@
 {
-  "name": "Vietnam 2026 - Premium UI",
+  "name": "Vietnam 2026",
   "short_name": "VNM 26",
-  "description": "Carnet de voyage et outil de survie pour le Vietnam",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#f5f7fa",
   "theme_color": "#10b981",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "icon.png",
