@@ -398,11 +398,6 @@
             white-space: nowrap;
         }
 
-        .item-link:active {
-            background: #0ea5e9;
-            color: white;
-        }
-
         .custom-add {
             display: flex;
             gap: 8px;
@@ -457,9 +452,7 @@
             -ms-overflow-style: none;
         }
 
-        .mini-nav-carousel::-webkit-scrollbar {
-            display: none;
-        }
+        .mini-nav-carousel::-webkit-scrollbar { display: none; }
 
         .carousel-pill {
             background: var(--glass-bg);
@@ -570,9 +563,7 @@
                 margin: 0;
             }
 
-            .toggle-btn {
-                display: none !important;
-            }
+            .toggle-btn { display: none !important; }
         }
 
         .budget-grid {
@@ -670,9 +661,7 @@
             text-align: center;
         }
 
-        .star-rating .active {
-            color: #facc15;
-        }
+        .star-rating .active { color: #facc15; }
 
         .keyword-chips {
             display: flex;
@@ -766,7 +755,8 @@
             </div>
 
             <div class="map-tools">
-                <div class="round-btn" onclick="toggleTheme()" title="Mode Jour/Nuit">🌓</div>
+                <div class="round-btn" onclick="cycleMapStyle()" title="Changer le fond">🗺️</div>
+                <div class="round-btn" onclick="toggleTheme()" title="Mode UI">🌓</div>
                 <div class="round-btn" onclick="geolocateMe()" title="Ma Position">🎯</div>
             </div>
         </div>
@@ -916,16 +906,26 @@
     <script>
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
+        const satelliteMap = new Cesium.UrlTemplateImageryProvider({
+            url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            credit: 'Esri World Imagery'
+        });
+
+        const satelliteLabels = new Cesium.UrlTemplateImageryProvider({
+            url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+            credit: 'Esri Labels'
+        });
+
         const lightMap = new Cesium.UrlTemplateImageryProvider({
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+            url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
             subdomains: ['a', 'b', 'c', 'd'],
-            credit: 'CartoDB'
+            credit: 'Carto Light'
         });
 
         const darkMap = new Cesium.UrlTemplateImageryProvider({
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png',
+            url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
             subdomains: ['a', 'b', 'c', 'd'],
-            credit: 'CartoDB'
+            credit: 'Carto Dark'
         });
 
         const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -946,10 +946,6 @@
         viewer.scene.fog.enabled = false;
         viewer.scene.skyAtmosphere.enabled = false;
         viewer.scene.globe.maximumScreenSpaceError = 2.5;
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f5f7fa');
-
-        viewer.imageryLayers.removeAll();
-        viewer.imageryLayers.addImageryProvider(lightMap);
 
         const cc = viewer.scene.screenSpaceCameraController;
         cc.enableTilt = true;
@@ -958,6 +954,36 @@
         cc.enableZoom = true;
         cc.minimumZoomDistance = 500;
         cc.maximumZoomDistance = 15000000;
+
+        let currentMapStyle = 'satellite';
+
+        function applyMapStyle(style) {
+            viewer.imageryLayers.removeAll();
+
+            if (style === 'satellite') {
+                viewer.imageryLayers.addImageryProvider(satelliteMap);
+                viewer.imageryLayers.addImageryProvider(satelliteLabels);
+                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b1120');
+            } else if (style === 'light') {
+                viewer.imageryLayers.addImageryProvider(lightMap);
+                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f5f7fa');
+            } else if (style === 'dark') {
+                viewer.imageryLayers.addImageryProvider(darkMap);
+                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b1120');
+            }
+
+            viewer.scene.requestRender();
+        }
+
+        window.cycleMapStyle = () => {
+            if (currentMapStyle === 'satellite') currentMapStyle = 'light';
+            else if (currentMapStyle === 'light') currentMapStyle = 'dark';
+            else currentMapStyle = 'satellite';
+
+            applyMapStyle(currentMapStyle);
+        };
+
+        applyMapStyle(currentMapStyle);
 
         const routeCoords = [
             2.3522, 48.8566,
@@ -1092,11 +1118,8 @@
             const tripStart = new Date("2026-04-13T00:00:00").getTime();
             const now = Date.now();
             const dayDiff = Math.floor((now - tripStart) / (1000 * 3600 * 24));
-            if (dayDiff >= 0 && dayDiff < monVoyage.length) {
-                currentDayIdx = dayDiff;
-            } else if (dayDiff >= monVoyage.length) {
-                currentDayIdx = monVoyage.length - 1;
-            }
+            if (dayDiff >= 0 && dayDiff < monVoyage.length) currentDayIdx = dayDiff;
+            else if (dayDiff >= monVoyage.length) currentDayIdx = monVoyage.length - 1;
         }
 
         autoFocusToday();
@@ -1136,11 +1159,8 @@
             let lonOffset = 0;
             const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
 
-            if (isMobile && !isCollapsed && planningIsActive) {
-                latOffset += (d.zoomMap * 0.000003);
-            } else if (!isMobile) {
-                lonOffset += (d.zoomMap * 0.0000025);
-            }
+            if (isMobile && !isCollapsed && planningIsActive) latOffset += (d.zoomMap * 0.000003);
+            else if (!isMobile) lonOffset += (d.zoomMap * 0.0000025);
 
             viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(d.lon - lonOffset, d.lat - latOffset, d.zoomMap),
@@ -1333,18 +1353,10 @@
 
             if (!nom) return;
 
-            if (
-                nom.toLowerCase().includes('payer') ||
-                nom.toLowerCase().includes('rappel') ||
-                nom.toLowerCase().includes('alerte')
-            ) {
+            if (nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) {
                 monVoyage[dayIdx].alerts.push(nom);
             } else {
-                monVoyage[dayIdx].activites.push({
-                    nom: nom,
-                    lien: lien,
-                    periode: periode
-                });
+                monVoyage[dayIdx].activites.push({ nom, lien, periode });
             }
 
             saveVoyage();
@@ -1380,25 +1392,15 @@
             recognition.lang = 'fr-FR';
             recognition.interimResults = false;
 
-            recognition.onstart = function() {
-                btn.classList.add('recording');
-            };
-
+            recognition.onstart = function() { btn.classList.add('recording'); };
             recognition.onresult = function(event) {
                 const speechResult = event.results[0][0].transcript;
                 txtArea.value += speechResult + " ";
                 monVoyage[dayIdx].journal.text = txtArea.value;
                 saveVoyage();
             };
-
-            recognition.onerror = function() {
-                btn.classList.remove('recording');
-            };
-
-            recognition.onend = function() {
-                btn.classList.remove('recording');
-            };
-
+            recognition.onerror = function() { btn.classList.remove('recording'); };
+            recognition.onend = function() { btn.classList.remove('recording'); };
             recognition.start();
         };
 
@@ -1420,18 +1422,6 @@
 
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
-
-            viewer.imageryLayers.removeAll();
-
-            if (document.body.classList.contains('dark-theme')) {
-                viewer.imageryLayers.addImageryProvider(darkMap);
-                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b1120');
-            } else {
-                viewer.imageryLayers.addImageryProvider(lightMap);
-                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f5f7fa');
-            }
-
-            viewer.scene.requestRender();
         }
 
         function initCarousel() {
@@ -1474,11 +1464,8 @@
             i.classList.add('active');
             const t = i.getAttribute('data-target');
 
-            if (t === 'none') {
-                document.getElementById('mini-nav-carousel').style.display = 'flex';
-            } else {
-                document.getElementById('mini-nav-carousel').style.display = 'none';
-            }
+            if (t === 'none') document.getElementById('mini-nav-carousel').style.display = 'flex';
+            else document.getElementById('mini-nav-carousel').style.display = 'none';
 
             if (t !== 'none') {
                 document.getElementById(t).style.display = 'flex';
@@ -1568,20 +1555,12 @@
             const amt = document.getElementById('exp-amount').value;
             const desc = document.getElementById('exp-desc').value || "Dépense";
             const cur = document.getElementById('exp-currency').value;
-
             if (!amt) return;
 
             const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt;
             const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim();
 
-            exps.unshift({
-                d: desc,
-                a: amt,
-                c: cur,
-                aE: eurEq,
-                ville: villeActuelle
-            });
-
+            exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle });
             localStorage.setItem('vn_b_exps_premium', JSON.stringify(exps));
             document.getElementById('exp-amount').value = '';
             document.getElementById('exp-desc').value = '';
@@ -1603,9 +1582,7 @@
         function updateChecklist() {
             let html = '';
             checklist.forEach((item, idx) => {
-                const checkedStyle = item.c
-                    ? "text-decoration: line-through; color: var(--text-muted);"
-                    : "color: var(--text);";
+                const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);";
 
                 html += `
                 <div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;">
