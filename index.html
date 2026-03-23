@@ -510,4 +510,94 @@
             let matin = []; let aprem = [];
             d.activites.forEach((a, i) => { let p = a.periode; if(!p) p = (i < d.activites.length / 2) ? 'matin' : 'aprem'; if(p === 'aprem' || p === 'soir') aprem.push({a, i}); else matin.push({a, i}); });
 
-            if(matin.length > 0) html += `<div class="time-header">
+            if(matin.length > 0) html += `<div class="time-header">🌅 Matin</div>`;
+            matin.forEach(item => {
+                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Ouvrir ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                isFirstNode = false;
+            });
+
+            if(aprem.length > 0) html += `<div class="time-header">☀️ Après-midi & Soir</div>`;
+            aprem.forEach(item => {
+                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Ouvrir ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                isFirstNode = false;
+            });
+
+            if(d.logements.length > 0) {
+                html += `<div class="time-header">🌙 Nuit & Logement</div>`;
+                d.logements.forEach((l, idx) => {
+                    html += `<div class="timeline-item"><div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>🏨 ${l.nom}</span></div><div class="timeline-action">${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link" style="background:rgba(168, 85, 247, 0.1); color:#a855f7;">Ouvrir ↗</a>` : ''}<button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
+                    isFirstNode = false;
+                });
+            }
+
+            html += '</div>'; 
+
+            html += `<div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:800; margin-top:20px; margin-bottom:10px; margin-left:15px;">Ajouter à l'agenda</div>`;
+            html += `<div class="custom-add" style="flex-wrap:wrap;"><input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto, rappel..." style="width:100%;"><div style="display:flex; gap:8px; width:100%;"><input type="text" id="add-act-link" class="custom-input" placeholder="Maps (Optionnel)"><select id="add-act-time" class="custom-input" style="width:auto;"><option value="matin">Matin</option><option value="aprem">Aprem</option></select><button class="btn-pill" style="padding:0 15px; font-size:18px;" onclick="addActivite(${currentDayIdx})">+</button></div></div>`;
+
+            let starsHtml = '';
+            for(let i=1; i<=5; i++) { starsHtml += `<span class="${i <= d.journal.stars ? 'active' : ''}" onclick="setStars(${currentDayIdx}, ${i})">★</span>`; }
+
+            html += `<div class="journal-box"><div style="font-size:12px; color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:8px; text-align:center;">📖 Bilan du jour</div><div class="star-rating">${starsHtml}</div><div class="keyword-chips"><span class="chip" onclick="addKeyword(${currentDayIdx}, '🥵 Chaleur extrême')">🥵 Chaud</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🤤 Régal absolu')">🤤 Régal</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🛵 Scooter trip')">🛵 Scooter</span><span class="chip" onclick="addKeyword(${currentDayIdx}, '🤕 Fatigué(e)')">🤕 KO</span></div><div style="display:flex; gap:10px; align-items:center;"><textarea id="journal-txt-${currentDayIdx}" class="journal-textarea" placeholder="Note du soir (Tape ou dicte...)" onblur="saveJournalText(${currentDayIdx})">${d.journal.text}</textarea><button class="mic-btn" id="mic-${currentDayIdx}" onclick="startDictation(${currentDayIdx})">🎙️</button></div></div>`;
+
+            document.getElementById('day-content').innerHTML = html;
+        }
+
+        window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
+        window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
+        window.delAlert = (dayIdx, itemIdx) => { monVoyage[dayIdx].alerts.splice(itemIdx, 1); saveVoyage(); };
+        
+        window.addActivite = (dayIdx) => { 
+            const nom = document.getElementById('add-act-name').value; const lien = formatMapLink(document.getElementById('add-act-link').value); const periode = document.getElementById('add-act-time').value;
+            if(nom) { 
+                if(nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) { monVoyage[dayIdx].alerts.push(nom); } 
+                else { monVoyage[dayIdx].activites.push({nom: nom, lien: lien, periode: periode}); }
+                saveVoyage(); 
+            } 
+        };
+
+        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); };
+        window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); };
+        window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
+
+        window.startDictation = (dayIdx) => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert("Désolé, dictée non supportée."); return; }
+            const btn = document.getElementById(`mic-${dayIdx}`); const txtArea = document.getElementById(`journal-txt-${dayIdx}`);
+            const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false;
+            recognition.onstart = function() { btn.classList.add('recording'); };
+            recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); };
+            recognition.onend = function() { btn.classList.remove('recording'); }; recognition.start();
+        };
+
+        window.togglePanel = () => {
+            const panel = document.getElementById('view-etapes'); const btn = document.getElementById('toggle-panel-btn');
+            isCollapsed = !isCollapsed;
+            if(isCollapsed) { panel.classList.add('collapsed'); btn.innerText = '🔼'; } else { panel.classList.remove('collapsed'); btn.innerText = '🔽'; }
+            updateCamera(); 
+        };
+
+        // 🌗 THEME TOGGLE (Uniquement pour le UI, le satellite reste immuable !)
+        function toggleTheme() { 
+            document.body.classList.toggle('dark-theme'); 
+        }
+        
+        const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view');
+        navItems.forEach(i => i.addEventListener('click', () => { 
+            navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; }); 
+            i.classList.add('active'); const t = i.getAttribute('data-target'); 
+            if(t !== 'none') { document.getElementById(t).style.display = 'flex'; if(t === 'view-etapes') { document.getElementById('view-etapes').classList.remove('collapsed'); document.getElementById('toggle-panel-btn').innerText='🔽'; isCollapsed=false; } }
+            if(t === 'none') { document.getElementById('map-day-slider').style.display = 'block'; buildMapSlider(); scrollToActivePill(); }
+            else { document.getElementById('map-day-slider').style.display = 'none'; }
+            updateCamera(); viewer.scene.requestRender(); 
+        }));
+
+        setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); updateGlobalProgress(); }, 1000);
+
+        let exchangeRate = parseFloat(localStorage.getItem('vn_exchange_rate')) || 27500;
+        window.calcGrab = () => { let km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { let price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
+
+        updateGlobalProgress(); renderDay(); buildMapSlider();
+    </script>
+</body>
+</html>
