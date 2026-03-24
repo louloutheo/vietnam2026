@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - OS Ultimate V13</title>
+    <title>Vietnam 2026 - OS Ultimate V13.1</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -81,9 +81,6 @@
         .round-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); box-shadow: var(--shadow);}
         
         .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 95px; width: 100%; position: relative; pointer-events: none;}
-        
-        .app-view { display: none; flex-direction: column; width: 100%; max-width: 420px; max-height: 52vh; overflow-y: auto; padding: 20px; box-sizing: border-box; pointer-events: auto; margin: 0 10px;}
-        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; font-weight: 800;}
         
         .day-nav { display: flex; justify-content: space-between; align-items: center; margin-top:10px; margin-bottom: 10px; flex-shrink: 0;}
         .day-arrow { background: rgba(128,128,128,0.1); padding: 8px 16px; border-radius: 12px; font-weight: bold;}
@@ -245,7 +242,7 @@
                         <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
                             <b style="color:var(--text);">🚦 Traverser :</b> Avance doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br>
                             <b style="color:var(--text);">💰 Négociation :</b> Divise par 2 ou 3 au marché.<br>
-                            <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
+                            <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ rất appréciés.
                         </div>
                     </div>
 
@@ -350,7 +347,7 @@
         document.querySelectorAll('.app-view').forEach(makeSmartWindow);
 
         // ==========================================
-        // 2. LE MOTEUR ASTRONOMIQUE CESIUM (LUMIÈRES + FADE OUT)
+        // 2. LE MOTEUR ASTRONOMIQUE CESIUM (CORRIGÉ)
         // ==========================================
         const routeCoords = [
             2.3522, 48.8566, 28.9784, 41.0082, 105.8342, 21.0278, 105.9800, 20.2539, 105.2280, 20.4533, 
@@ -366,9 +363,9 @@
 
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
         
-        // 🚨 1. LE FOND SATELLITE DE JOUR (Pour ne plus jamais avoir de carte noire !)
+        // 🚨 1. LE FOND SATELLITE DE JOUR (Correction du globe noir)
+        // En enlevant l'imageryProvider personnalisé buggé de la V13, Cesium charge son satellite HD natif.
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // Satellite de Jour HD
             terrain: Cesium.Terrain.fromWorldTerrain(),
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false, requestRenderMode: true, maximumRenderTimeChange: Infinity
         });
@@ -381,25 +378,25 @@
         Cesium.IonImageryProvider.fromAssetId(3812).then(function (provider) {
             const nightLayer = viewer.imageryLayers.addImageryProvider(provider);
             nightLayer.dayAlpha = 0.0;
-            nightLayer.nightAlpha = 1.0;
-        });
+            nightLayer.nightAlpha = 1.0; // Allume les villes la nuit
+        }).catch(function(err) { console.error("Erreur de chargement des lumières de la nuit.", err); });
 
         // 🚨 4. LA TRICHE APPLE MAPS (L'ombre s'efface quand on zoome près)
-        // En dessous de 500km, il fait jour. Au-dessus de 3000km, on voit la vraie ombre.
-        viewer.scene.globe.lightingFadeOutDistance = 500000.0; 
+        // En dessous de 1000km, il fait jour. Au-dessus de 3000km, on voit la vraie ombre et les villes allumées.
+        viewer.scene.globe.lightingFadeOutDistance = 1000000.0; 
         viewer.scene.globe.lightingFadeInDistance = 3000000.0;
-        viewer.scene.globe.nightFadeOutDistance = 500000.0; 
+        viewer.scene.globe.nightFadeOutDistance = 1000000.0; 
         viewer.scene.globe.nightFadeInDistance = 3000000.0;
         
         viewer.scene.fog.enabled = false; 
         viewer.scene.skyAtmosphere.enabled = true; 
         viewer.scene.globe.maximumScreenSpaceError = 2.5;
 
-        // 🚨 5. ZOOM HYPER RAPIDE MOBILE
+        // 🚨 5. ZOOM HYPER RAPIDE MOBILE & PC
         const cc = viewer.scene.screenSpaceCameraController; 
         cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; 
         cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000;
-        cc.maximumMovementRatio = 0.8; // Boost Pinch Zoom
+        cc.maximumMovementRatio = 0.8; // Boost Pinch Zoom Mobile
         cc.zoomFactor = 15.0; // Boost Scroll PC
         
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray(routeCoords), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#10b981'), dashLength: 15.0 }) }});
@@ -419,7 +416,10 @@
             const pickedObject = viewer.scene.pick(click.position);
             if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties && pickedObject.id.properties.dayIdx) {
                 changeDayTo(pickedObject.id.properties.dayIdx.getValue()); 
-                document.getElementById('tab-planning').click(); 
+                // Force l'ouverture du planning
+                document.getElementById('view-etapes').style.display = 'flex';
+                document.getElementById('tab-planning').classList.add('active');
+                document.getElementById('tab-carte').classList.remove('active');
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -446,8 +446,8 @@
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée à la maison", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_os')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_os', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v13_1')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v13_1', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) { if (!input) return ""; const trimmed = input.trim(); if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed; return `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(trimmed)}`; }
         function getTransportIcon(text) { const t = text.toLowerCase(); if (t.includes('bus') || t.includes('van') || t.includes('transfert')) return '🚌'; if (t.includes('train')) return '🚆'; if (t.includes('bateau') || t.includes('croisière') || t.includes('ferry')) return '🚤'; if (t.includes('voiture') || t.includes('taxi') || t.includes('grab')) return '🚗'; if (t.includes('scooter') || t.includes('moto')) return '🛵'; if (t.includes('vélo') || t.includes('velo')) return '🚲'; return '✈️'; }
@@ -541,15 +541,15 @@
         window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); }; window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); }; window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
         window.startDictation = (dayIdx) => { const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SpeechRecognition) { alert("Désolé, dictée non supportée par ce navigateur."); return; } const btn = document.getElementById(`mic-${dayIdx}`); const txtArea = document.getElementById(`journal-txt-${dayIdx}`); const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false; recognition.onstart = function() { btn.classList.add('recording'); }; recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); }; recognition.onerror = function() { btn.classList.remove('recording'); }; recognition.onend = function() { btn.classList.remove('recording'); }; recognition.start(); };
 
-        // 🚨 NOUVELLE GESTION DES ONGLETS (Double-clic = Fermer)
+        // 🚨 GESTION ONGLETS : Double-clic ferme la fenêtre !
         const navItems = document.querySelectorAll('.nav-item'); 
         const views = document.querySelectorAll('.app-view');
         navItems.forEach(i => i.addEventListener('click', () => {
             const isAlreadyActive = i.classList.contains('active');
             const targetId = i.getAttribute('data-target');
 
+            // Si on reclique sur l'onglet déjà ouvert : on ferme et on retourne sur la carte vierge
             if (isAlreadyActive && targetId !== 'none') {
-                // Re-clic : on ferme tout et on passe sur la Carte (id = tab-carte)
                 document.getElementById('tab-carte').click();
                 return;
             }
@@ -559,9 +559,12 @@
             i.classList.add('active'); 
 
             if (targetId !== 'none') {
-                document.getElementById(targetId).style.display = 'flex';
+                const view = document.getElementById(targetId);
+                view.style.display = 'flex';
+                // Protection si l'utilisateur a trop rétréci la fenêtre
+                if(parseInt(view.style.width) < 300) view.style.width = '300px';
+                if(parseInt(view.style.height) < 400) view.style.height = '400px';
             }
-            updateCamera(); 
         }));
 
         setInterval(() => {
@@ -575,12 +578,12 @@
         fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exchangeRate = d.rates.VND; localStorage.setItem('vn_exchange_rate', exchangeRate); document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct)`; }).catch(() => { document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne)`; });
         window.convertEurToVnd = () => { const eur = parseFloat(document.getElementById('conv-eur').value) || 0; document.getElementById('conv-vnd').value = Math.round(eur * exchangeRate); }; window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); }; window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
-        let exps = JSON.parse(localStorage.getItem('vn_b_exps_os')) || [];
+        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v13_1')) || [];
         function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><span style="display:flex; align-items:center; flex-grow:1;"><span class="budget-tag">${e.ville}</span> ${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer; font-weight:bold; margin-left:8px;">✕</button></div>`; }); const budgetSpentElem = document.getElementById('budget-spent'); if (budgetSpentElem) budgetSpentElem.innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_os', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); }; window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_os', JSON.stringify(exps)); updateBudget(); };
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v13_1', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); }; window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v13_1', JSON.stringify(exps)); updateBudget(); };
 
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist_os')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
-        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_os', JSON.stringify(checklist)); }
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v13_1')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v13_1', JSON.stringify(checklist)); }
         window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value.trim(); if (v) { checklist.push({ t: v, c: false }); document.getElementById('check-input').value = ''; updateChecklist(); } };
 
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
