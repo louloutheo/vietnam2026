@@ -11,9 +11,11 @@
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css' rel='stylesheet' />
+    
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
     <style>
-        /* ☀️ THÈME CLAIR (UI) */
+        /* ☀️ THÈME CLAIR (Mode Jour - Cartographie Claire) */
         :root { 
             --primary: #10b981; 
             --danger: #ef4444; 
@@ -27,7 +29,7 @@
             --accent-blue: #0ea5e9; 
         }
 
-        /* 🌙 THÈME SOMBRE (UI) */
+        /* 🌙 THÈME SOMBRE (Mode Nuit - SATELLITE PAR DÉFAUT) */
         body.dark-theme { 
             --primary: #10b981; 
             --danger: #ef4444; 
@@ -41,10 +43,11 @@
             --accent-blue: #38bdf8;
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: transparent; color: var(--text); overflow: hidden; transition: color 0.4s ease; -webkit-font-smoothing: antialiased;}
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.4s ease; -webkit-font-smoothing: antialiased;}
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; border: none; }
         
-        #map { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #map { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; background-color: var(--bg); }
+        
         .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { display: none !important; }
 
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 0; box-sizing: border-box; }
@@ -79,7 +82,6 @@
         
         .info-line { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-muted); justify-content: space-between; font-weight: 500;}
         
-        /* TIMELINE */
         .premium-timeline { position: relative; margin-top: 10px; padding-bottom: 10px; }
         .premium-timeline::before { content: ''; position: absolute; left: 16px; top: 10px; bottom: 10px; width: 2px; background: rgba(128,128,128,0.2); border-radius: 2px; }
         .time-header { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin: 20px 0 12px 35px; position: relative; letter-spacing: 1px;}
@@ -103,7 +105,6 @@
         .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 10px 12px; border-radius: 12px; font-size: 13px; width: 100%; box-sizing: border-box; font-weight: 500;}
         .btn-pill { background: var(--text); color: var(--bg); border: none; border-radius: 50px; font-weight: bold; padding: 10px 20px; text-transform: uppercase;}
         
-        /* BOTTOM NAV */
         .bottom-area { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 20; pointer-events: auto; display: flex; flex-direction: column; gap: 10px;}
         .mini-nav-carousel { display: flex; overflow-x: auto; gap: 10px; padding: 5px; scrollbar-width: none; -ms-overflow-style: none; }
         .mini-nav-carousel::-webkit-scrollbar { display: none; }
@@ -147,7 +148,6 @@
         .journal-textarea { width: 100%; height: 70px; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); border-radius: 12px; padding: 10px; box-sizing: border-box; font-size: 14px; resize: none; font-family: inherit; }
         .mic-btn { background: var(--danger); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; display: flex; justify-content: center; align-items: center; margin-left: 8px; box-shadow: 0 4px 10px rgba(239,68,68,0.3); cursor: pointer; }
         
-        /* 📍 PINS MAPBOX */
         .mapbox-marker { background: var(--card-bg); color: var(--text); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; border: 2px solid var(--primary); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; transition: 0.2s;}
         .mapbox-marker:hover { transform: scale(1.1); z-index: 100;}
     </style>
@@ -189,7 +189,7 @@
 
             <div class="map-tools">
                 <div class="round-btn" onclick="toggleMapType()" title="Changer la carte">🗺️</div>
-                <div class="round-btn" onclick="toggleTheme()" title="Thème Clair/Sombre">🌓</div>
+                <div class="round-btn" onclick="toggleTheme()" title="Mode UI">🌓</div>
             </div>
         </div>
 
@@ -269,6 +269,7 @@
 
             <div id="view-vault" class="glass-panel app-view">
                 <h2>🧳 Outils & Survie</h2>
+                
                 <div class="card">
                     <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0; font-weight:800;">🤝 Règles d'or Locales</h3>
                     <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
@@ -288,7 +289,7 @@
                 </div>
 
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">🗣️ Survie Audio</h3>
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 15px 0; font-weight:800;">🗣️ Survie Audio</h3>
                     <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Urgences Médicales</div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;">
                         <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi cần bác sĩ')">👨‍⚕️ Médecin !</button>
@@ -328,23 +329,74 @@
     </div>
 
     <script>
-        // 🚀 INITIALISATION DE MAPBOX
+        // 🚀 1. OPTIMISATION MAPBOX ET CACHE HORS-LIGNE
         mapboxgl.accessToken = 'pk.eyJ1Ijoic2ltYW90aGVvNjQiLCJhIjoiY21uNGh0c25yMDBhdzJyc2NoMmxmaWR6OCJ9.G1w0xhZMfmz4rTISLA7iTA';
-
-        let isSatellite = true; // État de la carte (Satellite ou Vecteur)
-        let isDarkTheme = true; // État de l'UI (Clair ou Sombre)
-
-        // Ouvre en mode Satellite sombre par défaut
+        
+        // Optimisation extrême : On stocke un maximum de tuiles géographiques sur ton téléphone !
+        mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
+        mapboxgl.clearStorage(); // Vide le vieux cache s'il est corrompu
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/satellite-streets-v12', 
             center: [28.9784, 41.0082], 
             zoom: 2,
             pitch: 45, 
-            projection: 'globe' 
+            projection: 'globe',
+            localIdeographFontFamily: "'SF Pro Display', 'Helvetica', sans-serif" // Optimisation perf texte local
         });
 
-        // 🌌 ATMOSPHÈRE ET LIGNE DE TRAJET
+        let isSatellite = true; 
+        let isDarkTheme = true; 
+
+        // 🌒 2. LA TRICHE : L'OMBRE DE LA NUIT (TERMINATOR) EN TEMPS RÉEL
+        // Formule pour trouver la position du Soleil exacte en fonction de l'heure UTC
+        function getSolarPosition() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const day = Math.floor(diff / oneDay);
+            
+            // Latitude du soleil (Déclinaison)
+            const dec = -23.44 * Math.cos((360 / 365) * (day + 10) * (Math.PI / 180));
+            
+            // Longitude du soleil (À midi UTC, le soleil est sur le méridien de Greenwich)
+            const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+            let lon = 180 - (utcHours * 15);
+            if (lon > 180) lon -= 360;
+            if (lon < -180) lon += 360;
+            
+            return { lat: dec, lon: lon };
+        }
+
+        // Dessine la gigantesque ombre noire à l'opposé du soleil
+        function drawNightShadow() {
+            const sun = getSolarPosition();
+            
+            // Point Anti-Solaire (Au milieu de la nuit)
+            const antiLat = -sun.lat;
+            let antiLon = sun.lon + 180;
+            if (antiLon > 180) antiLon -= 360;
+
+            // Dessine un cercle de 10 000 km (soit une demi-planète) depuis le point anti-solaire
+            const nightPolygon = turf.circle([antiLon, antiLat], 10018, { steps: 64, units: 'kilometers' });
+
+            if (map.getSource('night-shadow')) {
+                map.getSource('night-shadow').setData(nightPolygon);
+            } else {
+                map.addSource('night-shadow', { type: 'geojson', data: nightPolygon });
+                map.addLayer({
+                    'id': 'night-shadow-layer',
+                    'type': 'fill',
+                    'source': 'night-shadow',
+                    'paint': {
+                        'fill-color': '#000000',
+                        'fill-opacity': 0.45 // Opacité parfaite de la nuit
+                    }
+                });
+            }
+        }
+
         function applyMapVisuals() {
             map.setFog({
                 'color': 'rgb(186, 210, 235)', 
@@ -354,13 +406,17 @@
                 'star-intensity': 0.6 
             });
             addRouteLayer(); 
+            drawNightShadow(); // On dessine la nuit
         }
 
         map.on('style.load', () => {
             applyMapVisuals();
         });
 
-        // 📍 VILLES ET COORDONNÉES
+        // Met à jour l'ombre de la nuit toutes les 10 minutes
+        setInterval(drawNightShadow, 600000);
+
+        // 📍 3. VILLES ET COORDONNÉES
         const cities = [
             { n: "Paris", lo: 2.3522, la: 48.8566, d: 0 },
             { n: "Istanbul", lo: 28.9784, la: 41.0082, d: 0 },
@@ -374,7 +430,6 @@
             { n: "Da Nang", lo: 108.2022, la: 16.0544, d: 13 }
         ];
 
-        // Créer les Pins Mapbox
         cities.forEach(e => {
             const el = document.createElement('div');
             el.className = 'mapbox-marker';
@@ -398,7 +453,7 @@
             map.addLayer({ 'id': 'route', 'type': 'line', 'source': 'route', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': '#10b981', 'line-width': 4, 'line-dasharray': [2, 2] } });
         }
 
-        // 📅 LOGIQUE ITINÉRAIRE
+        // 📅 4. LOGIQUE ITINÉRAIRE
         const DEFAULT_VOYAGE = [
             { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "Vol Paris -> Istanbul", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "Vol Istanbul -> Hanoï", logements: [{ nom: "Aimee House", lien: "" }], activites: [{ nom: "Lac Hoan Kiem", lien: "", periode: "aprem" }, { nom: "Dîner Bun Cha", lien: "", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
@@ -410,16 +465,16 @@
             { jour: 8, date: "20 Avril", ville: "Train de Nuit", lat: 21.0285, lon: 105.8542, zoomMap: 200000, transport: "Train Hanoï -> Hué", logements: [{ nom: "Cabine", lien: "" }], activites: [{ nom: "Retour croisière", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 9, date: "21 Avril", ville: "Hué", lat: 16.4637, lon: 107.5909, zoomMap: 60000, transport: "Arrivée (Matin)", logements: [{ nom: "Hôtel Hué", lien: "" }], activites: [{ nom: "Cité Impériale", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 10, date: "22 Avril", ville: "Hoi An", lat: 15.8801, lon: 108.3380, zoomMap: 150000, transport: "Voiture Col Nuages", logements: [{ nom: "Hôtel", lien: "" }], activites: [{ nom: "Hoi An nuit", lien: "", periode: "soir" }], alerts: ["Réserver bateau"], journal: {stars:0, text:""} },
-            { jour: 11, date: "23 Avril", ville: "Hoi An", lat: 15.8801, lon: 108.3380, zoomMap: 40000, transport: "Scooter / Vélo", logements: [{ nom: "Hôtel", lien: "" }], activites: [{ nom: "Plage An Bang", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
+            { jour: 11, date: "23 Avril", ville: "Hoi An", lat: 15.8801, lon: 108.3380, zoomMap: 40000, transport: "Scooter / Vélo", logements: [{ nom: "Hôtel Hoi An", lien: "" }], activites: [{ nom: "Plage An Bang", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 12, date: "24 Avril", ville: "Îles Cham", lat: 15.9590, lon: 108.5230, zoomMap: 50000, transport: "Bateau Rapide", logements: [{ nom: "Homestay", lien: "" }], activites: [{ nom: "Snorkeling", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 13, date: "25 Avril", ville: "Da Nang", lat: 16.0544, lon: 108.2022, zoomMap: 90000, transport: "Bateau + Voiture", logements: [{ nom: "Hôtel", lien: "" }], activites: [{ nom: "Pont Dragon", lien: "", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 14, date: "26 Avril", ville: "Da Nang", lat: 16.0544, lon: 108.2022, zoomMap: 80000, transport: "", logements: [{ nom: "Hôtel", lien: "" }], activites: [{ nom: "Lady Buddha", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
+            { jour: 13, date: "25 Avril", ville: "Da Nang", lat: 16.0544, lon: 108.2022, zoomMap: 90000, transport: "Bateau + Voiture", logements: [{ nom: "Hôtel Da Nang", lien: "" }], activites: [{ nom: "Pont Dragon", lien: "", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
+            { jour: 14, date: "26 Avril", ville: "Da Nang", lat: 16.0544, lon: 108.2022, zoomMap: 80000, transport: "", logements: [{ nom: "Hôtel Da Nang", lien: "" }], activites: [{ nom: "Lady Buddha", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 15, date: "27 Avril", ville: "Départ", lat: 16.0544, lon: 108.2022, zoomMap: 8000000, transport: "Vol Da Nang -> Istanbul", logements: [], activites: [{ nom: "Achats", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée à la maison", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v10_2')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v10_2', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v10_final')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v10_final', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) {
             if (!input) return ""; const trimmed = input.trim();
@@ -582,7 +637,7 @@
             const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false;
             recognition.onstart = function() { btn.classList.add('recording'); };
             recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); };
-            recognition.onend = function() { btn.classList.remove('recording'); };
+            recognition.onerror = function() { btn.classList.remove('recording'); }; recognition.onend = function() { btn.classList.remove('recording'); };
             recognition.start();
         };
 
@@ -594,8 +649,6 @@
             updateCamera();
         };
 
-        // 💡 DEUX BOUTONS : L'UN POUR LA CARTE (Vecteur / Satellite), L'AUTRE POUR LE THEME (Clair / Sombre)
-        
         function updateMapStyle() {
             if(isSatellite) {
                 map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
@@ -612,9 +665,7 @@
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
             isDarkTheme = document.body.classList.contains('dark-theme');
-            if(!isSatellite) {
-                updateMapStyle();
-            }
+            if(!isSatellite) { updateMapStyle(); }
         }
 
         function initCarousel() {
@@ -664,7 +715,7 @@
         window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); };
         window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
-        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v10_2')) || [];
+        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v10_final')) || [];
         function updateBudget() {
             let total = 0; let html = '';
             exps.forEach((e, idx) => {
@@ -676,11 +727,11 @@
             document.getElementById('expense-list').innerHTML = html;
         }
 
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v10_2', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
-        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v10_2', JSON.stringify(exps)); updateBudget(); };
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v10_final', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
+        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v10_final', JSON.stringify(exps)); updateBudget(); };
 
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v10_2')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
-        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v10_2', JSON.stringify(checklist)); }
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v10_final')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v10_final', JSON.stringify(checklist)); }
         window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value.trim(); if (v) { checklist.push({ t: v, c: false }); document.getElementById('check-input').value = ''; updateChecklist(); } };
 
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
