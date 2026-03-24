@@ -24,6 +24,8 @@
   width: 380px;
   height: 60vh;
   max-height: 80vh;
+  z-index: 30;
+  pointer-events: auto;
 }
 
 .app-view.is-visible {
@@ -33,7 +35,6 @@
 .window-header {
   width: 100%;
   height: 35px;
-  cursor: grab;
   background: rgba(128, 128, 128, 0.1);
   border-radius: 32px 32px 0 0;
   display: flex;
@@ -41,6 +42,7 @@
   align-items: center;
   flex-shrink: 0;
   user-select: none;
+  touch-action: none;
 }
 
 .window-header::after {
@@ -74,14 +76,11 @@
   right: 0;
   width: 30px;
   height: 30px;
-  cursor: nwse-resize;
   z-index: 10;
   background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.3) 50%);
   border-bottom-right-radius: 32px;
-}
-
-.app-view {
-  z-index: 30;
+  touch-action: none;
+  user-select: none;
 }
 
 @media (min-width: 768px) {
@@ -91,5 +90,27 @@
 
   .window-header:active {
     cursor: grabbing;
+  }
+
+  .window-resizer {
+    cursor: nwse-resize;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-view {
+    top: 8%;
+    left: 5%;
+    width: 90%;
+    height: 62vh;
+    z-index: 30;
+  }
+
+  .window-header {
+    cursor: default;
+  }
+
+  .window-resizer {
+    display: none;
   }
 }

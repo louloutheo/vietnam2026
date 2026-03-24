@@ -43,12 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.getElementById("btn-prev-day")?.addEventListener("click", () => {
+  document.getElementById("btn-prev-day")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     changeDay(-1);
     syncMapToCurrentDay();
   });
 
-  document.getElementById("btn-next-day")?.addEventListener("click", () => {
+  document.getElementById("btn-next-day")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     changeDay(1);
     syncMapToCurrentDay();
   });
