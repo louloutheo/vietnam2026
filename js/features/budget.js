@@ -37,17 +37,12 @@ export function renderBudget() {
     `;
   });
 
-  if (budgetSpentElem) {
-    budgetSpentElem.textContent = `${total.toFixed(2)} €`;
-  }
+  if (budgetSpentElem) budgetSpentElem.textContent = `${total.toFixed(2)} €`;
 
   if (expenseListElem) {
     expenseListElem.innerHTML = html;
     expenseListElem.querySelectorAll(".expense-delete-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const index = Number(btn.dataset.expenseIndex);
-        deleteExpense(index);
-      });
+      btn.addEventListener("click", () => deleteExpense(Number(btn.dataset.expenseIndex)));
     });
   }
 }
@@ -66,20 +61,10 @@ function addExpense() {
   const amountNumber = parseFloat(amount);
   if (Number.isNaN(amountNumber)) return;
 
-  const eurEquivalent =
-    currency === "VND"
-      ? (amountNumber / state.exchangeRate).toFixed(2)
-      : amountNumber.toFixed(2);
-
+  const eurEquivalent = currency === "VND" ? (amountNumber / state.exchangeRate).toFixed(2) : amountNumber.toFixed(2);
   const currentCity = state.trip[state.currentDayIdx]?.ville?.split("->")[0]?.trim() || "Voyage";
 
-  state.expenses.unshift({
-    d: desc,
-    a: amountNumber,
-    c: currency,
-    aE: eurEquivalent,
-    ville: currentCity
-  });
+  state.expenses.unshift({ d: desc, a: amountNumber, c: currency, aE: eurEquivalent, ville: currentCity });
 
   saveExpenses();
   renderBudget();
@@ -109,21 +94,13 @@ function convertVndToEur() {
 function calcGrab() {
   const km = parseFloat(document.getElementById("grab-km")?.value) || 0;
   const resultEl = document.getElementById("grab-result");
-
   if (!resultEl) return;
-
-  if (km > 0) {
-    const price = 20000 + km * 15000;
-    resultEl.textContent = `~ ${Math.round(price).toLocaleString("fr-FR")} ₫`;
-  } else {
-    resultEl.textContent = "0 ₫";
-  }
+  resultEl.textContent = km > 0 ? `~ ${Math.round(20000 + km * 15000).toLocaleString("fr-FR")} ₫` : "0 ₫";
 }
 
 function updateExchangeRateUI(live = false) {
   const rateEl = document.getElementById("rate-display");
   if (!rateEl) return;
-
   rateEl.textContent = `1 € = ${state.exchangeRate.toLocaleString("fr-FR")} ₫ ${live ? "(En direct)" : "(Local / cache)"}`;
 }
 
@@ -131,13 +108,12 @@ async function fetchExchangeRate() {
   try {
     const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
     const data = await response.json();
-
     if (data?.rates?.VND) {
       state.exchangeRate = data.rates.VND;
       saveExchangeRate();
       updateExchangeRateUI(true);
     }
-  } catch (error) {
+  } catch {
     updateExchangeRateUI(false);
   }
 }

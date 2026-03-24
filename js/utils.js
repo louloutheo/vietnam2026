@@ -20,7 +20,3 @@ export function getTransportIcon(text = "") {
   if (t.includes("vélo") || t.includes("velo")) return "🚲";
   return "✈️";
 }
-
-export function isMobileScreen() {
-  return window.innerWidth < 768;
-}

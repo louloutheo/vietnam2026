@@ -1,5 +1,4 @@
 let viewer = null;
-let cityEntities = [];
 
 const ROUTE_COORDS = [
   2.3522, 48.8566,
@@ -37,7 +36,7 @@ export function initCesiumMap({ onCitySelect } = {}) {
   Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkY2IxMDk2MS1kMmQ3LTRkNjktOTdkMC1jYjlkMzZmNWY1NjkiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM0NDQ1MDB9.KR0l-nDsi9iZF82OwlHBktxKmpEdfAXhftNFj4jExb4";
 
   viewer = new Cesium.Viewer("cesiumContainer", {
-    imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
+    baseLayer: Cesium.ImageryLayer.fromProviderAsync(Cesium.IonImageryProvider.fromAssetId(2)),
     baseLayerPicker: false,
     geocoder: false,
     homeButton: false,
@@ -50,16 +49,10 @@ export function initCesiumMap({ onCitySelect } = {}) {
   });
 
   viewer.cesiumWidget.creditContainer.style.display = "none";
-
   viewer.scene.globe.enableLighting = true;
   viewer.scene.fog.enabled = false;
   viewer.scene.skyAtmosphere.enabled = true;
   viewer.scene.globe.maximumScreenSpaceError = 2.5;
-
-  viewer.scene.globe.lightingFadeOutDistance = 500000.0;
-  viewer.scene.globe.lightingFadeInDistance = 3000000.0;
-  viewer.scene.globe.nightFadeOutDistance = 500000.0;
-  viewer.scene.globe.nightFadeInDistance = 3000000.0;
 
   const controller = viewer.scene.screenSpaceCameraController;
   controller.maximumMovementRatio = 0.8;
@@ -76,22 +69,20 @@ export function initCesiumMap({ onCitySelect } = {}) {
   return viewer;
 }
 
-function tryAddNightLayer() {
-  Cesium.IonImageryProvider.fromAssetId(3812)
-    .then((provider) => {
-      if (!viewer) return;
-      const nightLayer = viewer.imageryLayers.addImageryProvider(provider);
-      nightLayer.dayAlpha = 0.0;
-      nightLayer.nightAlpha = 1.0;
-    })
-    .catch(() => {
-      console.log("Couche nuit indisponible");
-    });
+async function tryAddNightLayer() {
+  try {
+    if (!viewer) return;
+    const provider = await Cesium.IonImageryProvider.fromAssetId(3812);
+    const nightLayer = viewer.imageryLayers.addImageryProvider(provider);
+    nightLayer.dayAlpha = 0.0;
+    nightLayer.nightAlpha = 1.0;
+  } catch {
+    console.log("Couche nuit indisponible");
+  }
 }
 
 function addRoute() {
   if (!viewer) return;
-
   viewer.entities.add({
     polyline: {
       positions: Cesium.Cartesian3.fromDegreesArray(ROUTE_COORDS),
@@ -106,8 +97,7 @@ function addRoute() {
 
 function addCities() {
   if (!viewer) return;
-
-  cityEntities = CITIES.map((city) =>
+  CITIES.forEach((city) => {
     viewer.entities.add({
       position: Cesium.Cartesian3.fromDegrees(city.lo, city.la),
       point: {
@@ -126,65 +116,40 @@ function addCities() {
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         pixelOffset: new Cesium.Cartesian2(0, -15)
       },
-      properties: {
-        dayIdx: city.d
-      }
-    })
-  );
+      properties: { dayIdx: city.d }
+    });
+  });
 }
 
 function bindCityClick(onCitySelect) {
   if (!viewer) return;
-
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-
   handler.setInputAction((click) => {
     const pickedObject = viewer.scene.pick(click.position);
-    const hasDay =
-      Cesium.defined(pickedObject) &&
-      pickedObject.id &&
-      pickedObject.id.properties &&
-      typeof pickedObject.id.properties.dayIdx !== "undefined";
-
+    const hasDay = Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties && typeof pickedObject.id.properties.dayIdx !== "undefined";
     if (!hasDay) return;
-
     const dayIdx = pickedObject.id.properties.dayIdx.getValue();
-
-    if (typeof onCitySelect === "function") {
-      onCitySelect(dayIdx);
-    }
+    if (typeof onCitySelect === "function") onCitySelect(dayIdx);
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 export function flyToLocation({ lat, lon, zoomMap }) {
   if (!viewer) return;
-
   const isClose = zoomMap < 1000000;
-
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(lon, lat, zoomMap),
-    orientation: {
-      heading: 0,
-      pitch: Cesium.Math.toRadians(isClose ? -60 : -90),
-      roll: 0
-    },
+    orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 },
     duration: 1.2,
     easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT
   });
-
   viewer.scene.requestRender();
 }
 
 export function flyToUserLocation() {
   if (!viewer || !navigator.geolocation) return;
-
   navigator.geolocation.getCurrentPosition((pos) => {
     viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(
-        pos.coords.longitude,
-        pos.coords.latitude,
-        5000
-      ),
+      destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000),
       duration: 2
     });
     viewer.scene.requestRender();
@@ -195,8 +160,4 @@ export function resizeCesiumMap() {
   if (!viewer) return;
   viewer.resize();
   viewer.scene.requestRender();
-}
-
-export function getCesiumViewer() {
-  return viewer;
 }
