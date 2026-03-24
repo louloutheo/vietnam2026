@@ -1,7 +1,8 @@
-console.log("APP V3.2 CHARGEE");
 import { state } from "./state.js";
 import { loadStateFromStorage } from "./storage.js";
 import { renderPlanning, changeDay } from "./features/planning.js";
+import { initBudget } from "./features/budget.js";
+import { initSurvival } from "./features/survival.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   loadStateFromStorage();
@@ -33,13 +34,34 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeTab) activeTab.classList.add("active");
   }
 
-  document.getElementById("tab-planning")?.addEventListener("click", () => openView("view-etapes"));
-  document.getElementById("tab-budget")?.addEventListener("click", () => openView("view-budget"));
-  document.getElementById("tab-vault")?.addEventListener("click", () => openView("view-vault"));
-  document.getElementById("tab-carte")?.addEventListener("click", () => openView("none"));
+  document.getElementById("tab-planning")?.addEventListener("click", () => {
+    openView("view-etapes");
+  });
 
-  document.getElementById("btn-prev-day")?.addEventListener("click", () => changeDay(-1));
-  document.getElementById("btn-next-day")?.addEventListener("click", () => changeDay(1));
+  document.getElementById("tab-budget")?.addEventListener("click", () => {
+    openView("view-budget");
+  });
+
+  document.getElementById("tab-vault")?.addEventListener("click", () => {
+    openView("view-vault");
+  });
+
+  document.getElementById("tab-carte")?.addEventListener("click", () => {
+    openView("none");
+  });
+
+  document.getElementById("btn-prev-day")?.addEventListener("click", () => {
+    changeDay(-1);
+  });
+
+  document.getElementById("btn-next-day")?.addEventListener("click", () => {
+    changeDay(1);
+  });
+
+  document.getElementById("btn-theme")?.addEventListener("click", () => {
+    document.body.classList.toggle("dark-theme");
+    state.theme = document.body.classList.contains("dark-theme") ? "dark" : "light";
+  });
 
   const fr = document.getElementById("time-fr");
   const vn = document.getElementById("time-vn");
@@ -64,13 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.getElementById("btn-theme")?.addEventListener("click", () => {
-    document.body.classList.toggle("dark-theme");
-    state.theme = document.body.classList.contains("dark-theme") ? "dark" : "light";
-  });
-
   openView("view-etapes");
   renderPlanning();
+  initBudget();
+  initSurvival();
   updateClocks();
   setInterval(updateClocks, 1000);
 });
