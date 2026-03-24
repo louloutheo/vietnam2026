@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Apple Maps Ultimate</title>
+    <title>Vietnam 2026 - OS Ultimate V13</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -43,10 +43,9 @@
             -webkit-backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); 
             border-radius: 32px; box-shadow: var(--shadow); color: var(--text); 
             display: none; flex-direction: column; position: absolute; 
-            overflow: visible; /* Pour les poignées */
+            overflow: visible; 
         }
         
-        /* Header déplaçable */
         .window-header {
             width: 100%; height: 30px; cursor: grab; background: rgba(128,128,128,0.1);
             border-radius: 32px 32px 0 0; display:flex; justify-content:center; align-items:center;
@@ -55,12 +54,10 @@
         .window-header:active { cursor: grabbing; }
         .window-header::after { content: ''; width: 40px; height: 4px; background: var(--text-muted); border-radius: 10px; opacity: 0.5;}
         
-        /* Contenu scrollable de la fenêtre */
         .window-content { flex-grow: 1; overflow-y: auto; padding: 0 20px 20px 20px; }
         .window-content::-webkit-scrollbar { width: 4px; background: transparent; }
         .window-content::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 10px; }
 
-        /* Poignée de redimensionnement */
         .window-resizer {
             position: absolute; bottom: 10px; right: 10px; width: 30px; height: 30px; 
             cursor: nwse-resize; display:flex; justify-content:center; align-items:center; 
@@ -68,7 +65,6 @@
         }
 
         .app-view h2 { margin: 10px 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; font-weight: 800;}
-        
         .card { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--glass-border); }
         
         .round-btn, .btn-pill, .speak-btn, .day-arrow, .chip, .custom-add button, .nav-item, .carousel-pill { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s; cursor: pointer; }
@@ -77,13 +73,17 @@
         .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 15px; box-sizing: border-box; flex-shrink:0;}
         .top-widget { padding: 12px 18px; flex-grow: 1; max-width: 240px; pointer-events: auto; }
         .top-widget h1 { margin: 0 0 6px 0; font-size: 16px; color: var(--text); display: flex; justify-content: space-between; align-items: center; font-weight: 800;}
-        .sos-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: 800;}
         
         .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), #818cf8); width: 0%; border-radius: 10px;}
 
         .map-tools { display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
         .round-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); box-shadow: var(--shadow);}
+        
+        .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 95px; width: 100%; position: relative; pointer-events: none;}
+        
+        .app-view { display: none; flex-direction: column; width: 100%; max-width: 420px; max-height: 52vh; overflow-y: auto; padding: 20px; box-sizing: border-box; pointer-events: auto; margin: 0 10px;}
+        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; font-weight: 800;}
         
         .day-nav { display: flex; justify-content: space-between; align-items: center; margin-top:10px; margin-bottom: 10px; flex-shrink: 0;}
         .day-arrow { background: rgba(128,128,128,0.1); padding: 8px 16px; border-radius: 12px; font-weight: bold;}
@@ -106,7 +106,6 @@
         .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 10px 12px; border-radius: 12px; font-size: 13px;}
         .btn-pill { background: var(--text); color: var(--bg); border-radius: 50px; font-weight: bold; padding: 10px 20px; text-transform: uppercase;}
         
-        /* BOTTOM NAV */
         .bottom-area { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 20; pointer-events: auto; display: flex; flex-direction: column; gap: 10px;}
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: 50px; box-shadow: var(--shadow); }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; font-weight: 700; padding: 8px 12px; border-radius: 30px; flex: 1;}
@@ -132,6 +131,17 @@
         .chip { background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.2); border-radius: 50px; padding: 6px 12px; font-size: 11px; font-weight: 600; color: var(--text);}
         .journal-textarea { width: 100%; height: 70px; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); border-radius: 12px; padding: 10px; box-sizing: border-box; font-size: 14px; resize: none; font-family: inherit; }
         .mic-btn { background: var(--danger); color: white; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; display: flex; justify-content: center; align-items: center; margin-left: 8px; cursor: pointer; }
+
+        @media (min-width: 768px) {
+            .middle-container { position: static !important; display: block !important; }
+            .app-view { 
+                position: absolute !important; left: 20px; top: 90px; width: 380px; max-width: none;
+                max-height: 80vh !important; min-width: 300px; min-height: 250px; margin: 0 !important;
+                resize: both; overflow: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            }
+            .drag-handle { cursor: grab; user-select: none; }
+            .drag-handle:active { cursor: grabbing; }
+        }
     </style>
 </head>
 <body class="dark-theme">
@@ -159,128 +169,130 @@
             </div>
         </div>
 
-        <div id="view-etapes" class="glass-panel app-view">
-            <div class="window-header"></div>
-            <div class="window-content">
-                <div class="day-nav">
-                    <button class="day-arrow" onclick="changeDay(-1)">◀</button>
-                    <div style="text-align:center; flex-grow:1;">
-                        <h2 id="day-title" style="margin:0; border:none; padding:0; color:var(--text); font-size:18px;">Jour 1</h2>
-                        <div id="day-date" style="font-size:13px; color:var(--text-muted); font-weight:600;">...</div>
-                        <span id="weather-box" class="weather-badge">⛅ Météo...</span>
+        <div class="middle-container">
+            <div id="view-etapes" class="glass-panel app-view">
+                <div class="window-header"></div>
+                <div class="window-content">
+                    <div class="day-nav">
+                        <button class="day-arrow" onclick="changeDay(-1)">◀</button>
+                        <div class="drag-handle" style="text-align:center; flex-grow:1; padding: 5px;">
+                            <h2 id="day-title" style="margin:0; border:none; padding:0; color:var(--text); font-size:18px;">Jour 1</h2>
+                            <div id="day-date" style="font-size:13px; color:var(--text-muted); font-weight:600;">...</div>
+                            <span id="weather-box" class="weather-badge">⛅ Météo...</span>
+                        </div>
+                        <button class="day-arrow" onclick="changeDay(1)">▶</button>
                     </div>
-                    <button class="day-arrow" onclick="changeDay(1)">▶</button>
+                    <div id="day-content" style="margin-top:10px;"></div>
                 </div>
-                <div id="day-content" style="margin-top:10px;"></div>
+                <div class="window-resizer">⤡</div>
             </div>
-            <div class="window-resizer">⤡</div>
-        </div>
 
-        <div id="view-budget" class="glass-panel app-view">
-            <div class="window-header"></div>
-            <div class="window-content">
-                <h2>💸 Portefeuille</h2>
-                <div class="card">
-                    <div style="text-align:center; padding:10px;">
-                        <div style="font-size:13px; color:var(--text-muted); font-weight:800; text-transform:uppercase; letter-spacing:1px;">Total dépensé sur place</div>
-                        <div style="font-size:38px; font-weight:900; color:var(--text); margin:5px 0;" id="budget-spent">0 €</div>
+            <div id="view-budget" class="glass-panel app-view">
+                <div class="window-header"></div>
+                <div class="window-content">
+                    <h2 class="drag-handle" style="padding-bottom:12px; margin-bottom:15px; border-bottom:1px solid var(--glass-border);">💸 Portefeuille</h2>
+                    <div class="card">
+                        <div style="text-align:center; padding:10px;">
+                            <div style="font-size:13px; color:var(--text-muted); font-weight:800; text-transform:uppercase; letter-spacing:1px;">Total dépensé sur place</div>
+                            <div style="font-size:38px; font-weight:900; color:var(--text); margin:5px 0;" id="budget-spent">0 €</div>
+                        </div>
+                        <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:10px 0 10px 0; font-weight:800;">📝 Ajouter une dépense</h3>
+                        <div class="custom-add" style="margin-left:0; margin-top:0;">
+                            <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" style="width:50%;">
+                            <select id="exp-currency" class="custom-input" style="width:auto;"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
+                        </div>
+                        <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo...)" style="margin-top:8px;">
+                        <button class="btn-pill" onclick="addExpense()" style="width:100%; padding:12px; margin-top:12px; font-size:13px;">Valider</button>
                     </div>
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:10px 0 10px 0; font-weight:800;">📝 Ajouter une dépense</h3>
-                    <div class="custom-add" style="margin-left:0; margin-top:0;">
-                        <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" style="width:50%;">
-                        <select id="exp-currency" class="custom-input" style="width:auto;"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
+                    
+                    <div class="budget-grid">
+                        <div class="tool-card">
+                            <h3>💱 Taux Live</h3>
+                            <div style="font-size: 10px; color:var(--text-muted); margin-bottom:10px; font-weight:bold;" id="rate-display">Calcul...</div>
+                            <div class="flex-row"><span>€</span><input type="number" id="conv-eur" class="custom-input" placeholder="Euro" oninput="convertEurToVnd()"></div>
+                            <div class="flex-row"><span>₫</span><input type="number" id="conv-vnd" class="custom-input" placeholder="VND" oninput="convertVndToEur()"></div>
+                        </div>
+                        <div class="tool-card">
+                            <h3>🚕 Grab (Taxi)</h3>
+                            <div style="font-size: 10px; margin-bottom:10px;"><a href="grab://open" style="color:var(--primary); text-decoration:none; font-weight:900; background:rgba(16, 185, 129, 0.1); padding:4px 8px; border-radius:6px;">Ouvrir l'app ↗</a></div>
+                            <div class="flex-row"><span>Km</span><input type="number" id="grab-km" class="custom-input" placeholder="Distance" oninput="calcGrab()"></div>
+                            <div style="margin-top: 12px; font-weight:900; color:var(--primary); font-size:16px; text-align:center;" id="grab-result">0 ₫</div>
+                        </div>
                     </div>
-                    <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo...)" style="margin-top:8px;">
-                    <button class="btn-pill" onclick="addExpense()" style="width:100%; padding:12px; margin-top:12px; font-size:13px;">Valider</button>
-                </div>
-                
-                <div class="budget-grid">
-                    <div class="tool-card">
-                        <h3>💱 Taux Live</h3>
-                        <div style="font-size: 10px; color:var(--text-muted); margin-bottom:10px; font-weight:bold;" id="rate-display">Calcul...</div>
-                        <div class="flex-row"><span>€</span><input type="number" id="conv-eur" class="custom-input" placeholder="Euro" oninput="convertEurToVnd()"></div>
-                        <div class="flex-row"><span>₫</span><input type="number" id="conv-vnd" class="custom-input" placeholder="VND" oninput="convertVndToEur()"></div>
-                    </div>
-                    <div class="tool-card">
-                        <h3>🚕 Grab (Taxi)</h3>
-                        <div style="font-size: 10px; margin-bottom:10px;"><a href="grab://open" style="color:var(--primary); text-decoration:none; font-weight:900; background:rgba(16, 185, 129, 0.1); padding:4px 8px; border-radius:6px;">Ouvrir l'app ↗</a></div>
-                        <div class="flex-row"><span>Km</span><input type="number" id="grab-km" class="custom-input" placeholder="Distance" oninput="calcGrab()"></div>
-                        <div style="margin-top: 12px; font-weight:900; color:var(--primary); font-size:16px; text-align:center;" id="grab-result">0 ₫</div>
-                    </div>
-                </div>
 
-                <div class="card" style="padding:15px;">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0; font-weight:800;">🚨 Mémo Billets (VND)</h3>
-                    <div class="vnd-bill" style="background:#38bdf8; color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
-                    <div class="vnd-bill" style="background:#fca5a5; color:white;"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
-                    <div class="vnd-bill" style="background:#4ade80; color:black;"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
-                    <div class="vnd-bill" style="background:#d97706; color:white;"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
-                    <div class="vnd-bill" style="background:#38bdf8; color:white; border:2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
-                    <div class="vnd-bill" style="background:#fde047; color:black;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
+                    <div class="card" style="padding:15px;">
+                        <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0; font-weight:800;">🚨 Mémo Billets (VND)</h3>
+                        <div class="vnd-bill" style="background:#38bdf8; color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
+                        <div class="vnd-bill" style="background:#fca5a5; color:white;"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
+                        <div class="vnd-bill" style="background:#4ade80; color:black;"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
+                        <div class="vnd-bill" style="background:#d97706; color:white;"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
+                        <div class="vnd-bill" style="background:#38bdf8; color:white; border:2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
+                        <div class="vnd-bill" style="background:#fde047; color:black;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
+                    </div>
+                    
+                    <h3 style="font-size:13px; color:var(--primary); text-transform:uppercase; margin-top:25px; margin-bottom:10px; font-weight:800;">Aperçu des frais récents</h3>
+                    <div id="expense-list"></div>
                 </div>
-                
-                <h3 style="font-size:13px; color:var(--primary); text-transform:uppercase; margin-top:25px; margin-bottom:10px; font-weight:800;">Aperçu des frais récents</h3>
-                <div id="expense-list"></div>
+                <div class="window-resizer">⤡</div>
             </div>
-            <div class="window-resizer">⤡</div>
-        </div>
 
-        <div id="view-vault" class="glass-panel app-view">
-            <div class="window-header"></div>
-            <div class="window-content">
-                <h2>🧳 Outils & Survie</h2>
-                <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0; font-weight:800;">🤝 Règles d'or Locales</h3>
-                    <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
-                        <b style="color:var(--text);">🚦 Traverser :</b> Avance doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br>
-                        <b style="color:var(--text);">💰 Négociation :</b> Divise par 2 ou 3 au marché.<br>
-                        <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
+            <div id="view-vault" class="glass-panel app-view">
+                <div class="window-header"></div>
+                <div class="window-content">
+                    <h2 class="drag-handle" style="padding-bottom:12px; margin-bottom:15px; border-bottom:1px solid var(--glass-border);">🧳 Outils & Survie</h2>
+                    <div class="card">
+                        <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0; font-weight:800;">🤝 Règles d'or Locales</h3>
+                        <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
+                            <b style="color:var(--text);">🚦 Traverser :</b> Avance doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br>
+                            <b style="color:var(--text);">💰 Négociation :</b> Divise par 2 ou 3 au marché.<br>
+                            <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">✅ Check-list Départ</h3>
+                        <div class="custom-add" style="margin-left:0; margin-bottom:15px; margin-top:0;">
+                            <input type="text" id="check-input" class="custom-input" placeholder="Ajouter à la liste...">
+                            <button class="btn-pill" style="padding:0 18px; font-size:18px;" onclick="addCheck()">+</button>
+                        </div>
+                        <div id="checklist-container"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">🗣️ Survie Audio</h3>
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Urgences Médicales</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;">
+                            <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi cần bác sĩ')">👨‍⚕️ Médecin !</button>
+                            <button class="speak-btn speak-btn-medical" onclick="speakVN('Bệnh viện ở đâu?')">🏥 Hôpital ?</button>
+                            <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi bị dị ứng')">🤧 Allergie !</button>
+                            <button class="speak-btn speak-btn-medical" onclick="speakVN('Hiệu thuốc')">💊 Pharmacie</button>
+                        </div>
+
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Quotidien</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+                            <button class="speak-btn" onclick="speakVN('Xin chào')">👋 Bonjour</button>
+                            <button class="speak-btn" onclick="speakVN('Cảm ơn')">🙏 Merci</button>
+                            <button class="speak-btn" onclick="speakVN('Đắt quá')">💸 Trop cher</button>
+                            <button class="speak-btn" onclick="speakVN('Không cay nhé')">🌶️ Sans piment</button>
+                            <button class="speak-btn" onclick="speakVN('Nhà vệ sinh ở đâu?')">🚽 Toilettes ?</button>
+                        </div>
+
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Traducteur (Réseau requis)</div>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="trans-input" class="custom-input" placeholder="Taper phrase...">
+                            <button class="btn-pill" style="background:#0ea5e9; padding:0 15px; font-size:16px;" onclick="translateAndSpeak()">🔊</button>
+                        </div>
+                        <div id="trans-result" style="margin-top:10px; font-size:14px; font-style:italic; color:var(--primary); text-align:center; min-height:20px; font-weight:bold;"></div>
                     </div>
                 </div>
-
-                <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">✅ Check-list Départ</h3>
-                    <div class="custom-add" style="margin-left:0; margin-bottom:15px; margin-top:0;">
-                        <input type="text" id="check-input" class="custom-input" placeholder="Ajouter à la liste...">
-                        <button class="btn-pill" style="padding:0 18px; font-size:18px;" onclick="addCheck()">+</button>
-                    </div>
-                    <div id="checklist-container"></div>
-                </div>
-
-                <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">🗣️ Survie Audio</h3>
-                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Urgences Médicales</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;">
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi cần bác sĩ')">👨‍⚕️ Médecin !</button>
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Bệnh viện ở đâu?')">🏥 Hôpital ?</button>
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi bị dị ứng')">🤧 Allergie !</button>
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Hiệu thuốc')">💊 Pharmacie</button>
-                    </div>
-
-                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Quotidien</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
-                        <button class="speak-btn" onclick="speakVN('Xin chào')">👋 Bonjour</button>
-                        <button class="speak-btn" onclick="speakVN('Cảm ơn')">🙏 Merci</button>
-                        <button class="speak-btn" onclick="speakVN('Đắt quá')">💸 Trop cher</button>
-                        <button class="speak-btn" onclick="speakVN('Không cay nhé')">🌶️ Sans piment</button>
-                        <button class="speak-btn" onclick="speakVN('Nhà vệ sinh ở đâu?')">🚽 Toilettes ?</button>
-                    </div>
-
-                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Traducteur (Réseau requis)</div>
-                    <div style="display:flex; gap:8px;">
-                        <input type="text" id="trans-input" class="custom-input" placeholder="Taper phrase...">
-                        <button class="btn-pill" style="background:#0ea5e9; padding:0 15px; font-size:16px;" onclick="translateAndSpeak()">🔊</button>
-                    </div>
-                    <div id="trans-result" style="margin-top:10px; font-size:14px; font-style:italic; color:var(--primary); text-align:center; min-height:20px; font-weight:bold;"></div>
-                </div>
+                <div class="window-resizer">⤡</div>
             </div>
-            <div class="window-resizer">⤡</div>
         </div>
 
         <div class="bottom-area">
             <div class="nav-container">
-                <div class="nav-item active" data-target="view-etapes" id="tab-planning"><span class="nav-icon">📅</span>Planning</div>
-                <div class="nav-item" data-target="none" id="tab-carte"><span class="nav-icon">🌍</span>Carte</div>
+                <div class="nav-item" data-target="view-etapes" id="tab-planning"><span class="nav-icon">📅</span>Planning</div>
+                <div class="nav-item active" data-target="none" id="tab-carte"><span class="nav-icon">🌍</span>Carte</div>
                 <div class="nav-item" data-target="view-budget"><span class="nav-icon">💸</span>Budget</div>
                 <div class="nav-item" data-target="view-vault"><span class="nav-icon">🧳</span>Survie</div>
             </div>
@@ -296,97 +308,54 @@
             const resizer = el.querySelector('.window-resizer');
             if(!header || !resizer) return;
             
-            // Fenêtres au centre par défaut
-            el.style.top = "15%";
-            el.style.left = "5%";
-            el.style.width = "90%";
-            el.style.height = "65vh";
-            
-            if(window.innerWidth >= 768) {
-                el.style.top = "90px";
-                el.style.left = "20px";
-                el.style.width = "380px";
-                el.style.height = "550px";
-            }
+            el.style.top = "15%"; el.style.left = "5%"; el.style.width = "90%"; el.style.height = "65vh";
+            if(window.innerWidth >= 768) { el.style.top = "90px"; el.style.left = "20px"; el.style.width = "380px"; el.style.height = "550px"; }
 
             let isDragging = false, isResizing = false;
             let startX, startY, startW, startH, startLeft, startTop, aspect;
 
-            // DRAG (Déplacement)
             const startDrag = (e) => {
                 isDragging = true;
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                startX = clientX; startY = clientY;
-                startLeft = el.offsetLeft; startTop = el.offsetTop;
-                document.addEventListener('mousemove', onDrag);
-                document.addEventListener('touchmove', onDrag, {passive: false});
-                document.addEventListener('mouseup', stopDrag);
-                document.addEventListener('touchend', stopDrag);
+                startX = clientX; startY = clientY; startLeft = el.offsetLeft; startTop = el.offsetTop;
+                document.addEventListener('mousemove', onDrag); document.addEventListener('touchmove', onDrag, {passive: false});
+                document.addEventListener('mouseup', stopDrag); document.addEventListener('touchend', stopDrag);
             };
             const onDrag = (e) => {
-                if(!isDragging) return;
-                e.preventDefault(); // Empêche le scroll en arrière-plan
+                if(!isDragging) return; e.preventDefault(); 
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                el.style.left = (startLeft + clientX - startX) + 'px';
-                el.style.top = (startTop + clientY - startY) + 'px';
+                el.style.left = (startLeft + clientX - startX) + 'px'; el.style.top = (startTop + clientY - startY) + 'px';
             };
-            const stopDrag = () => { 
-                isDragging = false; 
-                document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag);
-            };
-            header.addEventListener('mousedown', startDrag);
-            header.addEventListener('touchstart', startDrag, {passive: false});
+            const stopDrag = () => { isDragging = false; document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag); };
+            header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, {passive: false});
 
-            // RESIZE (Redimensionnement Proportionnel)
             const startResize = (e) => {
-                isResizing = true;
-                e.stopPropagation();
+                isResizing = true; e.stopPropagation();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                startW = el.offsetWidth; startH = el.offsetHeight;
-                aspect = startW / startH; // Garde la proportion !
-                startX = clientX;
-                document.addEventListener('mousemove', onResize);
-                document.addEventListener('touchmove', onResize, {passive: false});
-                document.addEventListener('mouseup', stopResize);
-                document.addEventListener('touchend', stopResize);
+                startW = el.offsetWidth; startH = el.offsetHeight; aspect = startW / startH; startX = clientX;
+                document.addEventListener('mousemove', onResize); document.addEventListener('touchmove', onResize, {passive: false});
+                document.addEventListener('mouseup', stopResize); document.addEventListener('touchend', stopResize);
             };
             const onResize = (e) => {
-                if(!isResizing) return;
-                e.preventDefault();
+                if(!isResizing) return; e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const diffX = clientX - startX;
-                const newW = startW + diffX;
-                const newH = newW / aspect; // Hauteur calculée mathématiquement
-                
-                // Limites minimales
-                if(newW > 280 && newH > 300) {
-                    el.style.width = newW + 'px';
-                    el.style.height = newH + 'px';
-                }
+                const newW = startW + (clientX - startX); const newH = newW / aspect; 
+                if(newW > 280 && newH > 300) { el.style.width = newW + 'px'; el.style.height = newH + 'px'; }
             };
-            const stopResize = () => { 
-                isResizing = false; 
-                document.removeEventListener('mousemove', onResize); document.removeEventListener('touchmove', onResize);
-            };
-            resizer.addEventListener('mousedown', startResize);
-            resizer.addEventListener('touchstart', startResize, {passive: false});
+            const stopResize = () => { isResizing = false; document.removeEventListener('mousemove', onResize); document.removeEventListener('touchmove', onResize); };
+            resizer.addEventListener('mousedown', startResize); resizer.addEventListener('touchstart', startResize, {passive: false});
         }
-
-        // Appliquer l'OS sur tous les panneaux
         document.querySelectorAll('.app-view').forEach(makeSmartWindow);
 
-
         // ==========================================
-        // 2. LE MOTEUR APPLE MAPS EDITION (CESIUM)
+        // 2. LE MOTEUR ASTRONOMIQUE CESIUM (LUMIÈRES + FADE OUT)
         // ==========================================
-
         const routeCoords = [
             2.3522, 48.8566, 28.9784, 41.0082, 105.8342, 21.0278, 105.9800, 20.2539, 105.2280, 20.4533, 
             107.0500, 20.7280, 105.8342, 21.0278, 107.5909, 16.4637, 108.3380, 15.8801, 108.5230, 15.9590, 108.2022, 16.0544
         ];
-        
         const cities = [
             { n: "Paris", lo: 2.3522, la: 48.8566, d: 0 }, { n: "Istanbul", lo: 28.9784, la: 41.0082, d: 0 },
             { n: "Hanoï", lo: 105.8342, la: 21.0278, d: 1 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539, d: 3 },
@@ -397,38 +366,41 @@
 
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
         
+        // 🚨 1. LE FOND SATELLITE DE JOUR (Pour ne plus jamais avoir de carte noire !)
         const viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // Satellite de Jour HD
             terrain: Cesium.Terrain.fromWorldTerrain(),
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false, requestRenderMode: true, maximumRenderTimeChange: Infinity
         });
         viewer.cesiumWidget.creditContainer.style.display = "none";
         
-        // 🚨 APPLE MAPS SECRET 1 : Ombre et Lumières (NASA Black Marble)
+        // 🚨 2. LE CYCLE JOUR/NUIT ASTRONOMIQUE
         viewer.scene.globe.enableLighting = true; 
-        
+
+        // 🚨 3. LES LUMIÈRES DE LA NUIT (NASA Black Marble)
         Cesium.IonImageryProvider.fromAssetId(3812).then(function (provider) {
             const nightLayer = viewer.imageryLayers.addImageryProvider(provider);
             nightLayer.dayAlpha = 0.0;
             nightLayer.nightAlpha = 1.0;
         });
 
-        // 🚨 APPLE MAPS SECRET 2 : Le Fade Out d'Eclaircissement quand on zoome !
-        // Si tu zoome près (< 2000 km), la nuit s'efface pour laisser voir la carte !
-        viewer.scene.globe.lightingFadeOutDistance = 1000000.0; 
+        // 🚨 4. LA TRICHE APPLE MAPS (L'ombre s'efface quand on zoome près)
+        // En dessous de 500km, il fait jour. Au-dessus de 3000km, on voit la vraie ombre.
+        viewer.scene.globe.lightingFadeOutDistance = 500000.0; 
         viewer.scene.globe.lightingFadeInDistance = 3000000.0;
-        viewer.scene.globe.nightFadeOutDistance = 1000000.0; 
+        viewer.scene.globe.nightFadeOutDistance = 500000.0; 
         viewer.scene.globe.nightFadeInDistance = 3000000.0;
         
         viewer.scene.fog.enabled = false; 
         viewer.scene.skyAtmosphere.enabled = true; 
         viewer.scene.globe.maximumScreenSpaceError = 2.5;
 
-        // 🚨 ZOOM HYPER RAPIDE
+        // 🚨 5. ZOOM HYPER RAPIDE MOBILE
         const cc = viewer.scene.screenSpaceCameraController; 
         cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; 
         cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000;
-        cc.maximumMovementRatio = 0.8; // Accélère le pinch tactile
-        cc.zoomFactor = 15.0; // Accélère la molette souris
+        cc.maximumMovementRatio = 0.8; // Boost Pinch Zoom
+        cc.zoomFactor = 15.0; // Boost Scroll PC
         
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray(routeCoords), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#10b981'), dashLength: 15.0 }) }});
         
@@ -453,7 +425,7 @@
 
 
         // ==========================================
-        // 3. LOGIQUE APPLICATION & UI
+        // 3. LOGIQUE GLOBALE & THEME
         // ==========================================
         const DEFAULT_VOYAGE = [
             { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "Vol Paris -> Istanbul", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
@@ -477,39 +449,21 @@
         let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_os')) || DEFAULT_VOYAGE;
         function saveVoyage() { localStorage.setItem('vn_mon_voyage_os', JSON.stringify(monVoyage)); renderDay(); }
 
-        function formatMapLink(input) {
-            if (!input) return ""; const trimmed = input.trim();
-            if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-            return `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(trimmed)}`;
-        }
+        function formatMapLink(input) { if (!input) return ""; const trimmed = input.trim(); if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed; return `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(trimmed)}`; }
+        function getTransportIcon(text) { const t = text.toLowerCase(); if (t.includes('bus') || t.includes('van') || t.includes('transfert')) return '🚌'; if (t.includes('train')) return '🚆'; if (t.includes('bateau') || t.includes('croisière') || t.includes('ferry')) return '🚤'; if (t.includes('voiture') || t.includes('taxi') || t.includes('grab')) return '🚗'; if (t.includes('scooter') || t.includes('moto')) return '🛵'; if (t.includes('vélo') || t.includes('velo')) return '🚲'; return '✈️'; }
 
-        function getTransportIcon(text) {
-            const t = text.toLowerCase();
-            if (t.includes('bus') || t.includes('van') || t.includes('transfert')) return '🚌';
-            if (t.includes('train')) return '🚆';
-            if (t.includes('bateau') || t.includes('croisière') || t.includes('ferry')) return '🚤';
-            if (t.includes('voiture') || t.includes('taxi') || t.includes('grab')) return '🚗';
-            if (t.includes('scooter') || t.includes('moto')) return '🛵';
-            if (t.includes('vélo') || t.includes('velo')) return '🚲';
-            return '✈️';
-        }
+        let currentDayIdx = 0;
 
-        let currentDayIdx = 0; 
+        function toggleTheme() { document.body.classList.toggle('dark-theme'); }
 
-        function autoFocusToday() {
-            const tripStart = new Date("2026-04-13T00:00:00").getTime();
-            const dayDiff = Math.floor((Date.now() - tripStart) / (1000 * 3600 * 24));
-            if (dayDiff >= 0 && dayDiff < monVoyage.length) currentDayIdx = dayDiff;
-            else if (dayDiff >= monVoyage.length) currentDayIdx = monVoyage.length - 1;
-        }
-        
-        function changeDay(dir) { changeDayTo(currentDayIdx + dir); }
-        function changeDayTo(idx) {
-            currentDayIdx = idx;
+        function changeDay(dir) { 
+            currentDayIdx += dir;
             if (currentDayIdx < 0) currentDayIdx = 0;
             if (currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1;
-            renderDay();
+            renderDay(); 
         }
+
+        function changeDayTo(idx) { currentDayIdx = idx; renderDay(); }
 
         function updateGlobalProgress() {
             const tripStart = new Date("2026-04-13T00:00:00").getTime();
@@ -517,7 +471,6 @@
             const now = Date.now();
             const container = document.getElementById('progress-container-div');
             if (!container) return;
-
             if (now < tripStart) {
                 const daysLeft = Math.ceil((tripStart - now) / (1000 * 3600 * 24));
                 container.innerHTML = `<div class="countdown-text">⏳ Départ dans ${daysLeft} jours</div>`;
@@ -527,15 +480,10 @@
             }
         }
 
-        // CAMÉRA TOUJOURS AU MILIEU DE L'ÉCRAN
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
             const isClose = d.zoomMap < 1000000;
-            viewer.camera.flyTo({ 
-                destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat, d.zoomMap), 
-                orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, 
-                duration: 1.2, easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT 
-            });
+            viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat, d.zoomMap), orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, duration: 1.2, easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT });
             viewer.scene.requestRender();
         }
 
@@ -559,39 +507,22 @@
             let isFirstNode = true;
 
             if (d.transport || d.alerts.length > 0) { html += `<div class="time-header">🛫 Départ & Rappels</div>`; }
+            if (d.transport) { const tIcon = getTransportIcon(d.transport); html += `<div class="timeline-item"><div class="timeline-dot dot-transport ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content ticket-style"><div class="timeline-text"><span style="font-size:18px;">${tIcon}</span> <span style="flex-grow:1;">${d.transport}</span></div></div></div>`; isFirstNode = false; }
 
-            if (d.transport) {
-                const tIcon = getTransportIcon(d.transport);
-                html += `<div class="timeline-item"><div class="timeline-dot dot-transport ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content ticket-style"><div class="timeline-text"><span style="font-size:18px;">${tIcon}</span> <span style="flex-grow:1;">${d.transport}</span></div></div></div>`;
-                isFirstNode = false;
-            }
-
-            d.alerts.forEach((al, idx) => {
-                html += `<div class="timeline-item"><div class="timeline-dot dot-alert ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content alert-style"><div class="timeline-text" style="color:#ef4444;"><span style="font-size:18px;">🔔</span><span style="flex-grow:1;">${al}</span></div><div class="timeline-action"><button onclick="delAlert(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#ef4444;font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                isFirstNode = false;
-            });
+            d.alerts.forEach((al, idx) => { html += `<div class="timeline-item"><div class="timeline-dot dot-alert ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content alert-style"><div class="timeline-text" style="color:#ef4444;"><span style="font-size:18px;">🔔</span><span style="flex-grow:1;">${al}</span></div><div class="timeline-action"><button onclick="delAlert(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#ef4444;font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`; isFirstNode = false; });
 
             let matin = []; let aprem = [];
             d.activites.forEach((a, i) => { let p = a.periode; if (!p) p = (i < d.activites.length / 2) ? 'matin' : 'aprem'; if (p === 'aprem' || p === 'soir') aprem.push({ a, i }); else matin.push({ a, i }); });
 
             if (matin.length > 0) html += `<div class="time-header">🌅 Matin</div>`;
-            matin.forEach(item => {
-                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${formatMapLink(item.a.lien)}" target="_blank" class="item-link">Aller ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                isFirstNode = false;
-            });
+            matin.forEach(item => { html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${formatMapLink(item.a.lien)}" target="_blank" class="item-link">Aller ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`; isFirstNode = false; });
 
             if (aprem.length > 0) html += `<div class="time-header">☀️ Après-midi & Soir</div>`;
-            aprem.forEach(item => {
-                html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${formatMapLink(item.a.lien)}" target="_blank" class="item-link">Aller ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                isFirstNode = false;
-            });
+            aprem.forEach(item => { html += `<div class="timeline-item"><div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>${item.a.nom}</span></div><div class="timeline-action">${item.a.lien ? `<a href="${formatMapLink(item.a.lien)}" target="_blank" class="item-link">Aller ↗</a>` : ''}<button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`; isFirstNode = false; });
 
             if (d.logements.length > 0) {
                 html += `<div class="time-header">🌙 Nuit & Logement</div>`;
-                d.logements.forEach((l, idx) => {
-                    html += `<div class="timeline-item"><div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>🏨 ${l.nom}</span></div><div class="timeline-action">${l.lien ? `<a href="${formatMapLink(l.lien)}" target="_blank" class="item-link" style="background:rgba(168, 85, 247, 0.1); color:#a855f7;">Y aller ↗</a>` : ''}<button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`;
-                    isFirstNode = false;
-                });
+                d.logements.forEach((l, idx) => { html += `<div class="timeline-item"><div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div><div class="timeline-content"><div class="timeline-text"><span>🏨 ${l.nom}</span></div><div class="timeline-action">${l.lien ? `<a href="${formatMapLink(l.lien)}" target="_blank" class="item-link" style="background:rgba(168, 85, 247, 0.1); color:#a855f7;">Y aller ↗</a>` : ''}<button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button></div></div></div>`; isFirstNode = false; });
             }
             html += '</div>';
 
@@ -605,49 +536,20 @@
             document.getElementById('day-content').innerHTML = html;
         }
 
-        window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
-        window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
-        window.delAlert = (dayIdx, itemIdx) => { monVoyage[dayIdx].alerts.splice(itemIdx, 1); saveVoyage(); };
+        window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); }; window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); }; window.delAlert = (dayIdx, itemIdx) => { monVoyage[dayIdx].alerts.splice(itemIdx, 1); saveVoyage(); };
+        window.addActivite = (dayIdx) => { const nom = document.getElementById('add-act-name').value.trim(); const lien = document.getElementById('add-act-link').value.trim(); const periode = document.getElementById('add-act-time').value; if (!nom) return; if (nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) { monVoyage[dayIdx].alerts.push(nom); } else { monVoyage[dayIdx].activites.push({ nom, lien, periode }); } saveVoyage(); };
+        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); }; window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); }; window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
+        window.startDictation = (dayIdx) => { const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SpeechRecognition) { alert("Désolé, dictée non supportée par ce navigateur."); return; } const btn = document.getElementById(`mic-${dayIdx}`); const txtArea = document.getElementById(`journal-txt-${dayIdx}`); const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false; recognition.onstart = function() { btn.classList.add('recording'); }; recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); }; recognition.onerror = function() { btn.classList.remove('recording'); }; recognition.onend = function() { btn.classList.remove('recording'); }; recognition.start(); };
 
-        window.addActivite = (dayIdx) => {
-            const nom = document.getElementById('add-act-name').value.trim();
-            const lien = document.getElementById('add-act-link').value.trim();
-            const periode = document.getElementById('add-act-time').value;
-            if (!nom) return;
-            if (nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) { monVoyage[dayIdx].alerts.push(nom); } 
-            else { monVoyage[dayIdx].activites.push({ nom, lien, periode }); }
-            saveVoyage();
-        };
-
-        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); };
-        window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); };
-        window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
-
-        window.startDictation = (dayIdx) => {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Désolé, dictée non supportée par ce navigateur."); return; }
-            const btn = document.getElementById(`mic-${dayIdx}`); const txtArea = document.getElementById(`journal-txt-${dayIdx}`);
-            const recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false;
-            recognition.onstart = function() { btn.classList.add('recording'); };
-            recognition.onresult = function(event) { txtArea.value += event.results[0][0].transcript + " "; monVoyage[dayIdx].journal.text = txtArea.value; saveVoyage(); };
-            recognition.onerror = function() { btn.classList.remove('recording'); }; recognition.onend = function() { btn.classList.remove('recording'); };
-            recognition.start();
-        };
-
-        // 🚨 NOUVEAU TOGGLE THEME (LE BOUTON EST DE RETOUR)
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-        }
-
-        // 🚨 LOGIQUE DE NAVIGATION (TOGGLE POUR FERMER L'ONGLET)
+        // 🚨 NOUVELLE GESTION DES ONGLETS (Double-clic = Fermer)
         const navItems = document.querySelectorAll('.nav-item'); 
         const views = document.querySelectorAll('.app-view');
-        navItems.forEach(i => i.addEventListener('click', (e) => {
+        navItems.forEach(i => i.addEventListener('click', () => {
             const isAlreadyActive = i.classList.contains('active');
-            const t = i.getAttribute('data-target');
+            const targetId = i.getAttribute('data-target');
 
-            // Si on reclique sur l'onglet déjà ouvert, on le ferme et on affiche la carte
-            if (isAlreadyActive && t !== 'none') {
+            if (isAlreadyActive && targetId !== 'none') {
+                // Re-clic : on ferme tout et on passe sur la Carte (id = tab-carte)
                 document.getElementById('tab-carte').click();
                 return;
             }
@@ -656,11 +558,8 @@
             views.forEach(v => { v.style.display = 'none'; });
             i.classList.add('active'); 
 
-            if (t !== 'none') {
-                const view = document.getElementById(t);
-                view.style.display = 'flex';
-                // Si la fenêtre a été trop rétrécie, on lui redonne une taille décente
-                if(parseInt(view.style.width) < 300) view.style.width = '300px';
+            if (targetId !== 'none') {
+                document.getElementById(targetId).style.display = 'flex';
             }
             updateCamera(); 
         }));
@@ -674,24 +573,11 @@
 
         let exchangeRate = parseFloat(localStorage.getItem('vn_exchange_rate')) || 27500;
         fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exchangeRate = d.rates.VND; localStorage.setItem('vn_exchange_rate', exchangeRate); document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct)`; }).catch(() => { document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne)`; });
-        window.convertEurToVnd = () => { const eur = parseFloat(document.getElementById('conv-eur').value) || 0; document.getElementById('conv-vnd').value = Math.round(eur * exchangeRate); };
-        window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); };
-        window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
+        window.convertEurToVnd = () => { const eur = parseFloat(document.getElementById('conv-eur').value) || 0; document.getElementById('conv-vnd').value = Math.round(eur * exchangeRate); }; window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); }; window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
         let exps = JSON.parse(localStorage.getItem('vn_b_exps_os')) || [];
-        function updateBudget() {
-            let total = 0; let html = '';
-            exps.forEach((e, idx) => {
-                total += parseFloat(e.aE);
-                html += `<div class="info-line" style="border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><span style="display:flex; align-items:center; flex-grow:1;"><span class="budget-tag">${e.ville}</span> ${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer; font-weight:bold; margin-left:8px;">✕</button></div>`;
-            });
-            const budgetSpentElem = document.getElementById('budget-spent');
-            if (budgetSpentElem) budgetSpentElem.innerText = `${total.toFixed(2)} €`;
-            document.getElementById('expense-list').innerHTML = html;
-        }
-
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_os', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
-        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_os', JSON.stringify(exps)); updateBudget(); };
+        function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><span style="display:flex; align-items:center; flex-grow:1;"><span class="budget-tag">${e.ville}</span> ${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer; font-weight:bold; margin-left:8px;">✕</button></div>`; }); const budgetSpentElem = document.getElementById('budget-spent'); if (budgetSpentElem) budgetSpentElem.innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_os', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); }; window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_os', JSON.stringify(exps)); updateBudget(); };
 
         let checklist = JSON.parse(localStorage.getItem('vn_checklist_os')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
         function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_os', JSON.stringify(checklist)); }
@@ -702,6 +588,7 @@
 
         window.geolocateMe = () => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.scene.requestRender(); }); } };
 
+        // INITIALISATION
         autoFocusToday();
         updateGlobalProgress();
         renderDay();
