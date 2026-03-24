@@ -79,3 +79,17 @@
   background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.3) 50%);
   border-bottom-right-radius: 32px;
 }
+
+.app-view {
+  z-index: 30;
+}
+
+@media (min-width: 768px) {
+  .window-header {
+    cursor: grab;
+  }
+
+  .window-header:active {
+    cursor: grabbing;
+  }
+}
