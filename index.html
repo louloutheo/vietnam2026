@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Apple Maps Edition</title>
+    <title>Vietnam 2026 - Chimère Ultimate</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -13,13 +13,15 @@
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
     <style>
+        /* 🌙 THÈME UNIQUE SOMBRE (L'UI matche le vide spatial) */
         :root { 
             --primary: #10b981; --danger: #ef4444; --bg: #0b1120; --text: #f8fafc; 
             --glass-bg: rgba(15, 23, 42, 0.75); --glass-border: rgba(255, 255, 255, 0.08); 
             --card-bg: rgba(255, 255, 255, 0.05); --text-muted: #94a3b8; 
             --shadow: 0 10px 40px rgba(0, 0, 0, 0.5); --accent-blue: #38bdf8;
         }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; -webkit-font-smoothing: antialiased;}
+
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; -webkit-font-smoothing: antialiased;}
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; border: none; }
         
         #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; background-color: #000; }
@@ -29,19 +31,18 @@
         .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: 32px; box-shadow: var(--shadow); color: var(--text); }
         .card { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--glass-border); }
         
-        .round-btn, .btn-pill, .speak-btn, .day-arrow, .toggle-btn, .chip, .custom-add button, .nav-item, .carousel-pill { transition: transform 0.15s, opacity 0.2s; cursor: pointer; }
+        .round-btn, .btn-pill, .speak-btn, .day-arrow, .toggle-btn, .chip, .custom-add button, .nav-item, .carousel-pill { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s; cursor: pointer; }
         .round-btn:active, .btn-pill:active { transform: scale(0.92); opacity: 0.8; }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 15px; box-sizing: border-box;}
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 15px; box-sizing: border-box; flex-shrink:0;}
         .top-widget { padding: 12px 18px; flex-grow: 1; max-width: 240px; pointer-events: auto; }
-        .top-widget h1 { margin: 0 0 6px 0; font-size: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 800;}
-        .sos-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: 800;}
+        .top-widget h1 { margin: 0 0 6px 0; font-size: 16px; color: var(--text); display: flex; justify-content: space-between; align-items: center; font-weight: 800;}
         
         .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), #818cf8); width: 0%; border-radius: 10px;}
 
         .map-tools { display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
-        .round-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); box-shadow: var(--shadow);}
+        .round-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); box-shadow: var(--shadow);}
         
         .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 95px; width: 100%; position: relative; pointer-events: none;}
         .app-view { display: none; flex-direction: column; width: 100%; max-width: 420px; max-height: 52vh; overflow-y: auto; padding: 20px; box-sizing: border-box; pointer-events: auto; margin: 0 10px;}
@@ -61,6 +62,9 @@
         .timeline-dot { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%; background: var(--bg); border: 2px solid #ccc; z-index: 2; box-shadow: 0 0 0 4px var(--bg); }
         
         .dot-transport { border-color: var(--accent-blue); } .dot-hotel { border-color: #a855f7; } .dot-activity { border-color: var(--primary); } .dot-alert { border-color: var(--danger); }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .pulse-dot { animation: pulse 2s infinite; border-color: var(--primary) !important; background: var(--primary) !important;}
+        
         .timeline-content { background: var(--card-bg); padding: 12px 15px; border-radius: 16px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;}
         .ticket-style { background: rgba(14, 165, 233, 0.05); border: 2px dashed rgba(14, 165, 233, 0.3); }
         .alert-style { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.3); }
@@ -71,13 +75,14 @@
         .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 10px 12px; border-radius: 12px; font-size: 13px;}
         .btn-pill { background: var(--text); color: var(--bg); border-radius: 50px; font-weight: bold; padding: 10px 20px; text-transform: uppercase;}
         
+        /* BOTTOM NAV */
         .bottom-area { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 20; pointer-events: auto; display: flex; flex-direction: column; gap: 10px;}
         .mini-nav-carousel { display: flex; overflow-x: auto; gap: 10px; padding: 5px; scrollbar-width: none; -ms-overflow-style: none; }
         .mini-nav-carousel::-webkit-scrollbar { display: none; }
         .carousel-pill { background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: 50px; font-size: 11px; font-weight: 800; white-space: nowrap; color: var(--text-muted);}
         .carousel-pill.active { background: var(--text); color: var(--bg); border-color: transparent; }
 
-        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: 50px; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: 50px; box-shadow: var(--shadow); }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; font-weight: 700; padding: 8px 12px; border-radius: 30px; flex: 1;}
         .nav-item.active { color: var(--primary); background: rgba(16, 185, 129, 0.15); }
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
@@ -113,20 +118,6 @@
     
     <div id="cesiumContainer"></div>
 
-    <div id="sos-modal">
-        <div class="sos-content">
-            <h2 style="color:#ef4444; margin-top:0; text-align:center; font-weight:900;">🚨 URGENCE</h2>
-            <div style="font-size: 24px; font-weight: 900; color: #ef4444; text-align: center; background: rgba(239,68,68,0.1); padding: 15px; border-radius: 16px; margin-bottom: 20px;">
-                🚓 Police : 113<br>🚑 Santé : 115<br>🚒 Feu : 114
-            </div>
-            <h3 style="margin:0 0 5px 0; font-size:14px; color:var(--text); font-weight:800;">🇫🇷 Ambassade de France</h3>
-            <p style="margin:0; font-size:13px; color:var(--text-muted); line-height:1.5;">
-                57 Tran Hung Dao, Hoan Kiem<br>📞 +84 24 39 44 57 00
-            </p>
-            <button class="btn-pill" onclick="document.getElementById('sos-modal').style.display='none'" style="width:100%; padding:14px; margin-top:25px; background:var(--text); color:var(--bg);">FERMER</button>
-        </div>
-    </div>
-
     <div id="ui-layer">
         <div class="top-bar">
             <div class="glass-panel top-widget">
@@ -134,10 +125,7 @@
                     <div style="width:28px; height:28px; border-radius:8px; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000;">
                         <img src="icon.png" style="width:100%; height:100%; object-fit:cover; transform:scale(1.2);" onerror="this.style.display='none'">
                     </div>
-                    <div style="flex-grow:1; display:flex; justify-content:space-between; align-items:center;">
-                        VNM 26
-                        <button class="sos-btn" onclick="document.getElementById('sos-modal').style.display='flex'">SOS</button>
-                    </div>
+                    VNM 26
                 </h1>
                 <div style="font-size: 11px; color: var(--text-muted); font-family: monospace; font-weight:bold;">
                     🇻🇳 <span id="time-vn">--:--</span> | 🇫🇷 <span id="time-fr">--:--</span>
@@ -212,11 +200,11 @@
 
                 <div class="card" style="padding:15px;">
                     <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0; font-weight:800;">🚨 Mémo Billets (VND)</h3>
-                    <div class="vnd-bill" style="background:var(--accent-blue); color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
+                    <div class="vnd-bill" style="background:#38bdf8; color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
                     <div class="vnd-bill" style="background:#fca5a5; color:white;"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
                     <div class="vnd-bill" style="background:#4ade80; color:black;"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
                     <div class="vnd-bill" style="background:#d97706; color:white;"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
-                    <div class="vnd-bill" style="background:var(--accent-blue); color:white; border:2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
+                    <div class="vnd-bill" style="background:#38bdf8; color:white; border:2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
                     <div class="vnd-bill" style="background:#fde047; color:black;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
                 </div>
                 
@@ -286,7 +274,7 @@
 
     <script>
         // ==========================================
-        // LE VRAI MOTEUR APPLE MAPS (CESIUM WEBGL)
+        // LE CERVEAU PRENIUM : CESIUM WEBGL
         // ==========================================
 
         const routeCoords = [
@@ -302,7 +290,7 @@
             { n: "Îles Cham", lo: 108.5230, la: 15.9590, d: 11 }, { n: "Da Nang", lo: 108.2022, la: 16.0544, d: 13 }
         ];
 
-        // Token Cesium
+        // Token de luxe (Prendre un token CesiumIon si besoin de haute résolution native)
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
         
         const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -312,26 +300,19 @@
         viewer.cesiumWidget.creditContainer.style.display = "none";
         
         // 🚨 LA MAGIE D'APPLE MAPS : Ombre du Soleil et Lumières des Villes
+        // Cesium calcule la vraie position du soleil et applique l'ombre et les lumières de la NASA (Black Marble)
         viewer.scene.globe.enableLighting = true; 
-
-        // On ajoute la couche "Lumières de la Nuit" (NASA Black Marble)
-        Cesium.IonResource.fromAssetId(3812).then(function(resource) {
-            const nightLayer = viewer.imageryLayers.addImageryProvider(
-                new Cesium.IonImageryProvider({ resource: resource })
-            );
-            // On demande à la carte graphique de n'afficher ces lumières QUE du côté nuit
-            nightLayer.dayAlpha = 0.0;
-            nightLayer.nightAlpha = 1.0;
-        });
         
         viewer.scene.fog.enabled = false; 
         viewer.scene.skyAtmosphere.enabled = true; // L'atmosphère bleutée
-        viewer.scene.globe.maximumScreenSpaceError = 2.5;
+        viewer.scene.globe.maximumScreenSpaceError = 2.5; // Optimisation GPU
 
         const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000;
         
+        // Tracé de l'itinéraire
         viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray(routeCoords), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#10b981'), dashLength: 15.0 }) }});
         
+        // Pins de villes (Clonage du design Mapbox dans Cesium pour la fluidité)
         cities.forEach(e => { 
             viewer.entities.add({ 
                 id: `city-${e.n}`, 
@@ -342,6 +323,7 @@
             }); 
         });
         
+        // Interaction tactile
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         handler.setInputAction(function(click) {
             const pickedObject = viewer.scene.pick(click.position);
@@ -370,8 +352,8 @@
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée à la maison", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_applemaps')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_applemaps', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_chimere')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_chimere', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) {
             if (!input) return ""; const trimmed = input.trim();
@@ -423,15 +405,22 @@
             }
         }
 
+        // 🎥 CAMÉRA PRENIUM ULTIME (Positionnement corrigé au centre physique)
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
-            const isMobile = window.innerWidth < 768;
             const isClose = d.zoomMap < 1000000;
-            const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
             
-            let latOffset = isClose ? (d.zoomMap * 0.000004) : 0; let lonOffset = 0;
-            if (isMobile && !isCollapsed && planningIsActive) { latOffset += (d.zoomMap * 0.000003); } else if (!isMobile) { lonOffset += (d.zoomMap * 0.0000025); }
-            viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(d.lon - lonOffset, d.lat - latOffset, d.zoomMap), orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, duration: 1.2 });
+            // J'ai viré tous les offsets compliqués. flyTo va direct au centre de l'entité.
+            viewer.camera.flyTo({ 
+                destination: Cesium.Cartesian3.fromDegrees(d.lon, d.lat, d.zoomMap), 
+                orientation: { 
+                    heading: 0, 
+                    pitch: Cesium.Math.toRadians(isClose ? -60 : -90), 
+                    roll: 0 
+                }, 
+                duration: 1.2, // Animation fluide Premium
+                easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT // Ralentissement élégant d'Apple Maps
+            });
             viewer.scene.requestRender();
         }
 
@@ -585,7 +574,7 @@
         window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); };
         window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
-        let exps = JSON.parse(localStorage.getItem('vn_b_exps_applemaps')) || [];
+        let exps = JSON.parse(localStorage.getItem('vn_b_exps_chimere')) || [];
         function updateBudget() {
             let total = 0; let html = '';
             exps.forEach((e, idx) => {
@@ -597,11 +586,11 @@
             document.getElementById('expense-list').innerHTML = html;
         }
 
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_applemaps', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
-        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_applemaps', JSON.stringify(exps)); updateBudget(); };
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_chimere', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
+        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_chimere', JSON.stringify(exps)); updateBudget(); };
 
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist_applemaps')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
-        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_applemaps', JSON.stringify(checklist)); }
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist_chimere')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_chimere', JSON.stringify(checklist)); }
         window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value.trim(); if (v) { checklist.push({ t: v, c: false }); document.getElementById('check-input').value = ''; updateChecklist(); } };
 
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
