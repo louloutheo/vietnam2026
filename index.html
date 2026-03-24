@@ -3,34 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Masterclass Mapbox</title>
+    <title>Vietnam 2026 - WebGL Ultimate</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
 
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css' rel='stylesheet' />
-    
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
     <style>
-        /* ☀️ THÈME CLAIR (Mode Jour - Cartographie Claire) */
+        /* 🌙 THÈME UNIQUE SOMBRE (L'UI matche le vide spatial) */
         :root { 
-            --primary: #10b981; 
-            --danger: #ef4444; 
-            --bg: #f5f7fa; 
-            --text: #0f172a; 
-            --glass-bg: rgba(255, 255, 255, 0.6); 
-            --glass-border: rgba(255, 255, 255, 0.4); 
-            --card-bg: rgba(255, 255, 255, 0.8); 
-            --text-muted: #64748b; 
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            --accent-blue: #0ea5e9; 
-        }
-
-        /* 🌙 THÈME SOMBRE (Mode Nuit - SATELLITE PAR DÉFAUT) */
-        body.dark-theme { 
             --primary: #10b981; 
             --danger: #ef4444; 
             --bg: #0b1120; 
@@ -43,12 +27,12 @@
             --accent-blue: #38bdf8;
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.4s ease; -webkit-font-smoothing: antialiased;}
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; -webkit-font-smoothing: antialiased;}
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; border: none; }
         
-        #map { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; background-color: var(--bg); }
+        #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; background-color: #000; }
         
-        .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { display: none !important; }
+        .cesium-widget-credits { display: none !important; }
 
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 0; box-sizing: border-box; }
         
@@ -61,7 +45,7 @@
         .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 15px; box-sizing: border-box; flex-shrink:0;}
         .top-widget { padding: 12px 18px; flex-grow: 1; max-width: 240px; pointer-events: auto; }
         .top-widget h1 { margin: 0 0 6px 0; font-size: 16px; color: var(--text); display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.5px; font-weight: 800;}
-        .sos-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s;}
+        .sos-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s;}
         
         .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), #818cf8); transition: width 0.8s ease-out; width: 0%; border-radius: 10px;}
@@ -78,10 +62,11 @@
         
         .day-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;}
         .day-arrow { background: rgba(128,128,128,0.1); border: none; color: var(--text); font-size: 14px; padding: 8px 16px; border-radius: 12px; font-weight: bold;}
-        .weather-badge { font-size: 12px; padding: 4px 10px; background: rgba(14, 165, 233, 0.1); color: var(--accent-blue); border-radius: 50px; font-weight: bold; margin-top:5px; display:inline-block; }
+        .weather-badge { font-size: 12px; padding: 4px 10px; background: rgba(56, 189, 248, 0.1); color: var(--accent-blue); border-radius: 50px; font-weight: bold; margin-top:5px; display:inline-block; }
         
         .info-line { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-muted); justify-content: space-between; font-weight: 500;}
         
+        /* TIMELINE */
         .premium-timeline { position: relative; margin-top: 10px; padding-bottom: 10px; }
         .premium-timeline::before { content: ''; position: absolute; left: 16px; top: 10px; bottom: 10px; width: 2px; background: rgba(128,128,128,0.2); border-radius: 2px; }
         .time-header { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin: 20px 0 12px 35px; position: relative; letter-spacing: 1px;}
@@ -99,12 +84,13 @@
         .timeline-text { font-size: 14px; font-weight: 700; color: var(--text); flex-grow: 1; display:flex; align-items:center; gap:8px;}
         .timeline-action { display:flex; gap: 8px; align-items: center; }
         
-        .item-link { color: #0ea5e9; text-decoration: none; font-size: 11px; font-weight: bold; padding: 4px 8px; background: rgba(14, 165, 233, 0.1); border-radius: 8px; border: 1px solid rgba(14, 165, 233, 0.2); white-space:nowrap;}
+        .item-link { color: var(--accent-blue); text-decoration: none; font-size: 11px; font-weight: bold; padding: 4px 8px; background: rgba(14, 165, 233, 0.1); border-radius: 8px; border: 1px solid rgba(14, 165, 233, 0.2); white-space:nowrap;}
         
         .custom-add { display: flex; gap: 8px; margin-top: 15px; margin-left: 12px; }
         .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 10px 12px; border-radius: 12px; font-size: 13px; width: 100%; box-sizing: border-box; font-weight: 500;}
         .btn-pill { background: var(--text); color: var(--bg); border: none; border-radius: 50px; font-weight: bold; padding: 10px 20px; text-transform: uppercase;}
         
+        /* BOTTOM NAV */
         .bottom-area { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 20; pointer-events: auto; display: flex; flex-direction: column; gap: 10px;}
         .mini-nav-carousel { display: flex; overflow-x: auto; gap: 10px; padding: 5px; scrollbar-width: none; -ms-overflow-style: none; }
         .mini-nav-carousel::-webkit-scrollbar { display: none; }
@@ -147,14 +133,11 @@
         .chip { background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.2); border-radius: 50px; padding: 6px 12px; font-size: 11px; font-weight: 600; color: var(--text);}
         .journal-textarea { width: 100%; height: 70px; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); border-radius: 12px; padding: 10px; box-sizing: border-box; font-size: 14px; resize: none; font-family: inherit; }
         .mic-btn { background: var(--danger); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; display: flex; justify-content: center; align-items: center; margin-left: 8px; box-shadow: 0 4px 10px rgba(239,68,68,0.3); cursor: pointer; }
-        
-        /* 📍 DESIGN PINS MAPBOX */
-        .mapbox-marker { background: var(--card-bg); color: var(--text); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; border: 2px solid var(--primary); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; transition: 0.2s;}
-        .mapbox-marker:hover { transform: scale(1.1); z-index: 100;}
     </style>
 </head>
 <body class="dark-theme">
-    <div id="map"></div> 
+    
+    <div id="cesiumContainer"></div>
 
     <div id="sos-modal">
         <div class="sos-content">
@@ -189,8 +172,6 @@
             </div>
 
             <div class="map-tools">
-                <div class="round-btn" onclick="toggleMapType()" title="Changer la carte">🗺️</div>
-                <div class="round-btn" onclick="toggleTheme()" title="Mode UI">🌓</div>
                 <div class="round-btn" onclick="geolocateMe()" title="Ma position">🎯</div>
             </div>
         </div>
@@ -257,11 +238,11 @@
 
                 <div class="card" style="padding:15px;">
                     <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0; font-weight:800;">🚨 Mémo Billets (VND)</h3>
-                    <div class="vnd-bill" style="background:#38bdf8; color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
+                    <div class="vnd-bill" style="background:var(--accent-blue); color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
                     <div class="vnd-bill" style="background:#fca5a5; color:white;"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
                     <div class="vnd-bill" style="background:#4ade80; color:black;"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
                     <div class="vnd-bill" style="background:#d97706; color:white;"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
-                    <div class="vnd-bill" style="background:#38bdf8; color:white; border:2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
+                    <div class="vnd-bill" style="background:var(--accent-blue); color:white; border:2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
                     <div class="vnd-bill" style="background:#fde047; color:black;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
                 </div>
                 
@@ -290,7 +271,7 @@
                 </div>
 
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 15px 0; font-weight:800;">🗣️ Survie Audio</h3>
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">🗣️ Survie Audio</h3>
                     <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Urgences Médicales</div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;">
                         <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi cần bác sĩ')">👨‍⚕️ Médecin !</button>
@@ -311,7 +292,7 @@
                     <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Traducteur (Réseau requis)</div>
                     <div style="display:flex; gap:8px;">
                         <input type="text" id="trans-input" class="custom-input" placeholder="Taper phrase...">
-                        <button class="btn-pill" style="background:#0ea5e9; padding:0 15px; font-size:16px;" onclick="translateAndSpeak()">🔊</button>
+                        <button class="btn-pill" style="background:var(--accent-blue); padding:0 15px; font-size:16px;" onclick="translateAndSpeak()">🔊</button>
                     </div>
                     <div id="trans-result" style="margin-top:10px; font-size:14px; font-style:italic; color:var(--primary); text-align:center; min-height:20px; font-weight:bold;"></div>
                 </div>
@@ -330,136 +311,68 @@
     </div>
 
     <script>
-        // 🚀 1. INITIALISATION DE MAPBOX
-        mapboxgl.accessToken = 'pk.eyJ1Ijoic2ltYW90aGVvNjQiLCJhIjoiY21uNGh0c25yMDBhdzJyc2NoMmxmaWR6OCJ9.G1w0xhZMfmz4rTISLA7iTA';
-        
-        mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
-        mapboxgl.clearStorage(); 
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/satellite-streets-v12', 
-            center: [28.9784, 41.0082], 
-            zoom: 2,
-            pitch: 45, 
-            projection: 'globe',
-            localIdeographFontFamily: "'SF Pro Display', 'Helvetica', sans-serif" 
-        });
-
-        let isSatellite = true; 
-        let isDarkTheme = true; 
-
-        // 🌒 2. LA TRICHE ULTIME : LE TERMINATEUR DOUX (APPLE MAPS STYLE)
-        function getSolarPosition() {
-            const now = new Date();
-            const start = new Date(now.getFullYear(), 0, 0);
-            const diff = now - start;
-            const oneDay = 1000 * 60 * 60 * 24;
-            const day = Math.floor(diff / oneDay);
-            const dec = -23.44 * Math.cos((360 / 365) * (day + 10) * (Math.PI / 180));
-            const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
-            let lon = 180 - (utcHours * 15);
-            if (lon > 180) lon -= 360;
-            if (lon < -180) lon += 360;
-            return { lat: dec, lon: lon };
-        }
-
-        function drawNightShadow() {
-            const sun = getSolarPosition();
-            const antiLat = -sun.lat;
-            let antiLon = sun.lon + 180;
-            if (antiLon > 180) antiLon -= 360;
-
-            const features = [];
-            const coreRadius = 8500; // Le coeur noir profond de la nuit
-            const terminatorRadius = 10018; // La limite exacte du soleil (90 degrés)
-            const steps = 40; // Le nombre de couches du dégradé (La douceur du flou)
-            const stepSize = (terminatorRadius - coreRadius) / steps;
-
-            // 1. Le coeur de la nuit
-            features.push(turf.circle([antiLon, antiLat], coreRadius, { steps: 64, units: 'kilometers', properties: { opacity: 0.5 } }));
-
-            // 2. La zone de crépuscule (Le fameux dégradé photoréaliste)
-            for (let i = 0; i <= steps; i++) {
-                const radius = terminatorRadius - (i * stepSize);
-                // Chaque couche ajoute 1.2% d'ombre, créant une transition parfaite
-                features.push(turf.circle([antiLon, antiLat], radius, { steps: 64, units: 'kilometers', properties: { opacity: 0.012 } }));
-            }
-
-            const featureCollection = turf.featureCollection(features);
-
-            if (map.getSource('night-shadow')) {
-                map.getSource('night-shadow').setData(featureCollection);
-            } else {
-                map.addSource('night-shadow', { type: 'geojson', data: featureCollection });
-                map.addLayer({
-                    'id': 'night-shadow-layer',
-                    'type': 'fill',
-                    'source': 'night-shadow',
-                    'paint': {
-                        'fill-color': '#020617', // Bleu nuit spatial très profond
-                        'fill-opacity': ['get', 'opacity'] // Magie Mapbox : lit l'opacité variable de nos 40 cercles
-                    }
-                });
-            }
-        }
-
-        function applyMapVisuals() {
-            map.setFog({
-                'color': 'rgb(186, 210, 235)', 
-                'high-color': 'rgb(36, 92, 223)', 
-                'horizon-blend': 0.02, 
-                'space-color': 'rgb(11, 11, 25)', 
-                'star-intensity': 0.6 
-            });
-            addRouteLayer(); 
-            drawNightShadow(); // On dessine la nuit photoréaliste
-        }
-
-        map.on('style.load', () => {
-            applyMapVisuals();
-        });
-
-        // Mise à jour de la course du soleil toutes les 10 minutes
-        setInterval(drawNightShadow, 600000);
-
-        // 📍 3. VILLES ET COORDONNÉES
-        const cities = [
-            { n: "Paris", lo: 2.3522, la: 48.8566, d: 0 },
-            { n: "Istanbul", lo: 28.9784, la: 41.0082, d: 0 },
-            { n: "Hanoï", lo: 105.8342, la: 21.0278, d: 1 },
-            { n: "Ninh Binh", lo: 105.9800, la: 20.2539, d: 3 },
-            { n: "Pu Luong", lo: 105.2280, la: 20.4533, d: 4 },
-            { n: "Lan Ha", lo: 107.0500, la: 20.7280, d: 6 },
-            { n: "Hué", lo: 107.5909, la: 16.4637, d: 8 },
-            { n: "Hoi An", lo: 108.3380, la: 15.8801, d: 9 },
-            { n: "Îles Cham", lo: 108.5230, la: 15.9590, d: 11 },
-            { n: "Da Nang", lo: 108.2022, la: 16.0544, d: 13 }
-        ];
-
-        cities.forEach(e => {
-            const el = document.createElement('div');
-            el.className = 'mapbox-marker';
-            el.innerHTML = '📍 ' + e.n;
-            el.addEventListener('click', () => {
-                changeDayTo(e.d);
-                document.getElementById('tab-planning').click();
-                if (isCollapsed) togglePanel();
-            });
-            new mapboxgl.Marker(el).setLngLat([e.lo, e.la]).addTo(map);
-        });
+        // ==========================================
+        // LE CHEVAL DE TROIE : MAPBOX INJECTÉ DANS CESIUM
+        // ==========================================
 
         const routeCoords = [
-            [2.3522, 48.8566], [28.9784, 41.0082], [105.8342, 21.0278], [105.9800, 20.2539], [105.2280, 20.4533], 
-            [107.0500, 20.7280], [105.8342, 21.0278], [107.5909, 16.4637], [108.3380, 15.8801], [108.5230, 15.9590], [108.2022, 16.0544]
+            2.3522, 48.8566, 28.9784, 41.0082, 105.8342, 21.0278, 105.9800, 20.2539, 105.2280, 20.4533, 
+            107.0500, 20.7280, 105.8342, 21.0278, 107.5909, 16.4637, 108.3380, 15.8801, 108.5230, 15.9590, 108.2022, 16.0544
+        ];
+        
+        const cities = [
+            { n: "Paris", lo: 2.3522, la: 48.8566, d: 0 }, { n: "Istanbul", lo: 28.9784, la: 41.0082, d: 0 },
+            { n: "Hanoï", lo: 105.8342, la: 21.0278, d: 1 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539, d: 3 },
+            { n: "Pu Luong", lo: 105.2280, la: 20.4533, d: 4 }, { n: "Lan Ha", lo: 107.0500, la: 20.7280, d: 6 },
+            { n: "Hué", lo: 107.5909, la: 16.4637, d: 8 }, { n: "Hoi An", lo: 108.3380, la: 15.8801, d: 9 },
+            { n: "Îles Cham", lo: 108.5230, la: 15.9590, d: 11 }, { n: "Da Nang", lo: 108.2022, la: 16.0544, d: 13 }
         ];
 
-        function addRouteLayer() {
-            if(map.getSource('route')) return;
-            map.addSource('route', { 'type': 'geojson', 'data': { 'type': 'Feature', 'properties': {}, 'geometry': { 'type': 'LineString', 'coordinates': routeCoords } } });
-            map.addLayer({ 'id': 'route', 'type': 'line', 'source': 'route', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': '#10b981', 'line-width': 4, 'line-dasharray': [2, 2] } });
-        }
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
+        
+        // 🚀 ON UTILISE L'API TUILES MAPBOX DANS CESIUM
+        const mapboxToken = 'pk.eyJ1Ijoic2ltYW90aGVvNjQiLCJhIjoiY21uNGh0c25yMDBhdzJyc2NoMmxmaWR6OCJ9.G1w0xhZMfmz4rTISLA7iTA';
+        const mapboxImagery = new Cesium.UrlTemplateImageryProvider({
+            url: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`,
+            credit: 'Mapbox'
+        });
 
-        // 📅 4. LOGIQUE ITINÉRAIRE
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider: mapboxImagery, // Injection des tuiles Mapbox HD
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false, requestRenderMode: true, maximumRenderTimeChange: Infinity
+        });
+        
+        // LA MAGIE WEBGL : Calcule l'ombre sur la carte graphique locale (Mode Apple Maps)
+        viewer.scene.globe.enableLighting = true; 
+        
+        viewer.scene.fog.enabled = false; 
+        viewer.scene.skyAtmosphere.enabled = true; // Atmosphere bleutée d'Apple Maps
+        viewer.scene.globe.maximumScreenSpaceError = 2.5;
+
+        const cc = viewer.scene.screenSpaceCameraController; cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000;
+        
+        viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray(routeCoords), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#10b981'), dashLength: 15.0 }) }});
+        
+        cities.forEach(e => { 
+            viewer.entities.add({ 
+                id: `city-${e.n}`, 
+                position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), 
+                point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#10b981'), outlineColor: Cesium.Color.WHITE, outlineWidth: 3 }, 
+                label: { text: "📍 " + e.n, font: 'bold 12pt sans-serif', fillColor: Cesium.Color.fromCssColorString('#0f172a'), style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.WHITE, outlineWidth: 4, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) }, 
+                properties: { dayIdx: e.d } 
+            }); 
+        });
+        
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function(click) {
+            const pickedObject = viewer.scene.pick(click.position);
+            if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties && pickedObject.id.properties.dayIdx) {
+                changeDayTo(pickedObject.id.properties.dayIdx.getValue()); document.getElementById('tab-planning').click(); if (isCollapsed) togglePanel();
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        // 📅 LOGIQUE ITINÉRAIRE
         const DEFAULT_VOYAGE = [
             { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "Vol Paris -> Istanbul", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
             { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "Vol Istanbul -> Hanoï", logements: [{ nom: "Aimee House", lien: "" }], activites: [{ nom: "Lac Hoan Kiem", lien: "", periode: "aprem" }, { nom: "Dîner Bun Cha", lien: "", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
@@ -479,8 +392,8 @@
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée à la maison", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v10_3')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v10_3', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v11_webgl')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v11_webgl', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) {
             if (!input) return ""; const trimmed = input.trim();
@@ -532,24 +445,17 @@
             }
         }
 
+        // 🎥 CAMÉRA WEBGL CENTRÉE
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
             const isMobile = window.innerWidth < 768;
-            
-            let mbZoom = 11;
-            if(d.zoomMap >= 8000000) mbZoom = 2; 
-            else if(d.zoomMap >= 200000) mbZoom = 7; 
-            else if(d.zoomMap >= 100000) mbZoom = 8;
-            else if(d.zoomMap >= 80000) mbZoom = 9.5; 
-            else if(d.zoomMap >= 60000) mbZoom = 12; 
-            else if(d.zoomMap >= 40000) mbZoom = 13; 
-            
+            const isClose = d.zoomMap < 1000000;
             const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
-            let pad = { top: 0, bottom: 0, left: 0, right: 0 };
-            if (isMobile && !isCollapsed && planningIsActive) pad.bottom = 450; 
-            else if (!isMobile) pad.left = 400;
-
-            map.flyTo({ center: [d.lon, d.lat], zoom: mbZoom, pitch: 50, bearing: 0, padding: pad, speed: 1.2, curve: 1.2, essential: true });
+            
+            let latOffset = isClose ? (d.zoomMap * 0.000004) : 0; let lonOffset = 0;
+            if (isMobile && !isCollapsed && planningIsActive) { latOffset += (d.zoomMap * 0.000003); } else if (!isMobile) { lonOffset += (d.zoomMap * 0.0000025); }
+            viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(d.lon - lonOffset, d.lat - latOffset, d.zoomMap), orientation: { heading: 0, pitch: Cesium.Math.toRadians(isClose ? -60 : -90), roll: 0 }, duration: 1.2 });
+            viewer.scene.requestRender();
         }
 
         window.addEventListener('resize', () => { setTimeout(updateCamera, 300); });
@@ -655,25 +561,6 @@
             updateCamera();
         };
 
-        function updateMapStyle() {
-            if(isSatellite) {
-                map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
-            } else {
-                map.setStyle(isDarkTheme ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11');
-            }
-        }
-
-        window.toggleMapType = () => {
-            isSatellite = !isSatellite;
-            updateMapStyle();
-        };
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            isDarkTheme = document.body.classList.contains('dark-theme');
-            if(!isSatellite) { updateMapStyle(); }
-        }
-
         function initCarousel() {
             let html = '';
             monVoyage.forEach((d, i) => { html += `<div class="carousel-pill ${i === currentDayIdx ? 'active' : ''}" onclick="handleCarouselClick(${i})">J${d.jour} - ${d.ville.split('->')[0].trim().toUpperCase()}</div>`; });
@@ -721,7 +608,7 @@
         window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); };
         window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
-        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v10_3')) || [];
+        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v11_webgl')) || [];
         function updateBudget() {
             let total = 0; let html = '';
             exps.forEach((e, idx) => {
@@ -733,17 +620,17 @@
             document.getElementById('expense-list').innerHTML = html;
         }
 
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v10_3', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
-        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v10_3', JSON.stringify(exps)); updateBudget(); };
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v11_webgl', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
+        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v11_webgl', JSON.stringify(exps)); updateBudget(); };
 
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v10_3')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
-        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v10_3', JSON.stringify(checklist)); }
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v11_webgl')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v11_webgl', JSON.stringify(checklist)); }
         window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value.trim(); if (v) { checklist.push({ t: v, c: false }); document.getElementById('check-input').value = ''; updateChecklist(); } };
 
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
         window.translateAndSpeak = async () => { const input = document.getElementById('trans-input').value; if (!input) return; const resDiv = document.getElementById('trans-result'); resDiv.innerText = "⏳ Traduction..."; try { const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=fr|vi`); const data = await response.json(); const translated = data.responseData.translatedText; resDiv.innerText = `« ${translated} »`; speakVN(translated); } catch (e) { resDiv.innerText = "❌ Pas de réseau"; } };
 
-        window.geolocateMe = () => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, essential: true }); }); } };
+        window.geolocateMe = () => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.scene.requestRender(); }); } };
 
         autoFocusToday();
         initCarousel();
