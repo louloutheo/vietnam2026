@@ -1,3 +1,4 @@
+console.log("APP V3.2 CHARGEE");
 import { state } from "./state.js";
 import { loadStateFromStorage } from "./storage.js";
 import { renderPlanning, changeDay } from "./features/planning.js";
