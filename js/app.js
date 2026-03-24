@@ -1,8 +1,9 @@
 import { state } from "./state.js";
 import { loadStateFromStorage } from "./storage.js";
-import { renderPlanning, changeDay } from "./features/planning.js";
+import { renderPlanning, changeDay, changeDayTo } from "./features/planning.js";
 import { initBudget } from "./features/budget.js";
 import { initSurvival } from "./features/survival.js";
+import { initMapEngine, mapFlyToLocation, mapFlyToUser, mapResize } from "./map/map-engine.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   loadStateFromStorage();
@@ -17,6 +18,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const budgetView = document.getElementById("view-budget");
   const vaultView = document.getElementById("view-vault");
   const navItems = document.querySelectorAll(".nav-item");
+
+  function syncMapToCurrentDay() {
+    const day = state.trip[state.currentDayIdx];
+    if (!day) return;
+
+    mapFlyToLocation({
+      lat: day.lat,
+      lon: day.lon,
+      zoomMap: day.zoomMap
+    });
+  }
+
+  function renderCurrentDay() {
+    renderPlanning();
+    syncMapToCurrentDay();
+  }
 
   function openView(targetId) {
     [planningView, budgetView, vaultView].forEach((view) => {
@@ -33,6 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeTab = document.querySelector(`.nav-item[data-target="${targetId}"]`);
     if (activeTab) activeTab.classList.add("active");
   }
+
+  initMapEngine({
+    onCitySelect: (dayIdx) => {
+      changeDayTo(dayIdx);
+      renderCurrentDay();
+      openView("view-etapes");
+    }
+  });
 
   document.getElementById("tab-planning")?.addEventListener("click", () => {
     openView("view-etapes");
@@ -52,15 +77,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btn-prev-day")?.addEventListener("click", () => {
     changeDay(-1);
+    syncMapToCurrentDay();
   });
 
   document.getElementById("btn-next-day")?.addEventListener("click", () => {
     changeDay(1);
+    syncMapToCurrentDay();
   });
 
   document.getElementById("btn-theme")?.addEventListener("click", () => {
     document.body.classList.toggle("dark-theme");
     state.theme = document.body.classList.contains("dark-theme") ? "dark" : "light";
+  });
+
+  document.getElementById("btn-geolocate")?.addEventListener("click", () => {
+    mapFlyToUser();
+  });
+
+  window.addEventListener("resize", () => {
+    mapResize();
   });
 
   const fr = document.getElementById("time-fr");
@@ -87,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   openView("view-etapes");
-  renderPlanning();
+  renderCurrentDay();
   initBudget();
   initSurvival();
   updateClocks();
