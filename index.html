@@ -148,6 +148,7 @@
         .journal-textarea { width: 100%; height: 70px; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); border-radius: 12px; padding: 10px; box-sizing: border-box; font-size: 14px; resize: none; font-family: inherit; }
         .mic-btn { background: var(--danger); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; display: flex; justify-content: center; align-items: center; margin-left: 8px; box-shadow: 0 4px 10px rgba(239,68,68,0.3); cursor: pointer; }
         
+        /* 📍 DESIGN PINS MAPBOX */
         .mapbox-marker { background: var(--card-bg); color: var(--text); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; border: 2px solid var(--primary); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; transition: 0.2s;}
         .mapbox-marker:hover { transform: scale(1.1); z-index: 100;}
     </style>
@@ -190,6 +191,7 @@
             <div class="map-tools">
                 <div class="round-btn" onclick="toggleMapType()" title="Changer la carte">🗺️</div>
                 <div class="round-btn" onclick="toggleTheme()" title="Mode UI">🌓</div>
+                <div class="round-btn" onclick="geolocateMe()" title="Ma position">🎯</div>
             </div>
         </div>
 
@@ -269,7 +271,6 @@
 
             <div id="view-vault" class="glass-panel app-view">
                 <h2>🧳 Outils & Survie</h2>
-                
                 <div class="card">
                     <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0; font-weight:800;">🤝 Règles d'or Locales</h3>
                     <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
@@ -329,12 +330,11 @@
     </div>
 
     <script>
-        // 🚀 1. OPTIMISATION MAPBOX ET CACHE HORS-LIGNE
+        // 🚀 1. INITIALISATION DE MAPBOX
         mapboxgl.accessToken = 'pk.eyJ1Ijoic2ltYW90aGVvNjQiLCJhIjoiY21uNGh0c25yMDBhdzJyc2NoMmxmaWR6OCJ9.G1w0xhZMfmz4rTISLA7iTA';
         
-        // Optimisation extrême : On stocke un maximum de tuiles géographiques sur ton téléphone !
         mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
-        mapboxgl.clearStorage(); // Vide le vieux cache s'il est corrompu
+        mapboxgl.clearStorage(); 
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/satellite-streets-v12', 
@@ -342,56 +342,62 @@
             zoom: 2,
             pitch: 45, 
             projection: 'globe',
-            localIdeographFontFamily: "'SF Pro Display', 'Helvetica', sans-serif" // Optimisation perf texte local
+            localIdeographFontFamily: "'SF Pro Display', 'Helvetica', sans-serif" 
         });
 
         let isSatellite = true; 
         let isDarkTheme = true; 
 
-        // 🌒 2. LA TRICHE : L'OMBRE DE LA NUIT (TERMINATOR) EN TEMPS RÉEL
-        // Formule pour trouver la position du Soleil exacte en fonction de l'heure UTC
+        // 🌒 2. LA TRICHE ULTIME : LE TERMINATEUR DOUX (APPLE MAPS STYLE)
         function getSolarPosition() {
             const now = new Date();
             const start = new Date(now.getFullYear(), 0, 0);
             const diff = now - start;
             const oneDay = 1000 * 60 * 60 * 24;
             const day = Math.floor(diff / oneDay);
-            
-            // Latitude du soleil (Déclinaison)
             const dec = -23.44 * Math.cos((360 / 365) * (day + 10) * (Math.PI / 180));
-            
-            // Longitude du soleil (À midi UTC, le soleil est sur le méridien de Greenwich)
             const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
             let lon = 180 - (utcHours * 15);
             if (lon > 180) lon -= 360;
             if (lon < -180) lon += 360;
-            
             return { lat: dec, lon: lon };
         }
 
-        // Dessine la gigantesque ombre noire à l'opposé du soleil
         function drawNightShadow() {
             const sun = getSolarPosition();
-            
-            // Point Anti-Solaire (Au milieu de la nuit)
             const antiLat = -sun.lat;
             let antiLon = sun.lon + 180;
             if (antiLon > 180) antiLon -= 360;
 
-            // Dessine un cercle de 10 000 km (soit une demi-planète) depuis le point anti-solaire
-            const nightPolygon = turf.circle([antiLon, antiLat], 10018, { steps: 64, units: 'kilometers' });
+            const features = [];
+            const coreRadius = 8500; // Le coeur noir profond de la nuit
+            const terminatorRadius = 10018; // La limite exacte du soleil (90 degrés)
+            const steps = 40; // Le nombre de couches du dégradé (La douceur du flou)
+            const stepSize = (terminatorRadius - coreRadius) / steps;
+
+            // 1. Le coeur de la nuit
+            features.push(turf.circle([antiLon, antiLat], coreRadius, { steps: 64, units: 'kilometers', properties: { opacity: 0.5 } }));
+
+            // 2. La zone de crépuscule (Le fameux dégradé photoréaliste)
+            for (let i = 0; i <= steps; i++) {
+                const radius = terminatorRadius - (i * stepSize);
+                // Chaque couche ajoute 1.2% d'ombre, créant une transition parfaite
+                features.push(turf.circle([antiLon, antiLat], radius, { steps: 64, units: 'kilometers', properties: { opacity: 0.012 } }));
+            }
+
+            const featureCollection = turf.featureCollection(features);
 
             if (map.getSource('night-shadow')) {
-                map.getSource('night-shadow').setData(nightPolygon);
+                map.getSource('night-shadow').setData(featureCollection);
             } else {
-                map.addSource('night-shadow', { type: 'geojson', data: nightPolygon });
+                map.addSource('night-shadow', { type: 'geojson', data: featureCollection });
                 map.addLayer({
                     'id': 'night-shadow-layer',
                     'type': 'fill',
                     'source': 'night-shadow',
                     'paint': {
-                        'fill-color': '#000000',
-                        'fill-opacity': 0.45 // Opacité parfaite de la nuit
+                        'fill-color': '#020617', // Bleu nuit spatial très profond
+                        'fill-opacity': ['get', 'opacity'] // Magie Mapbox : lit l'opacité variable de nos 40 cercles
                     }
                 });
             }
@@ -406,14 +412,14 @@
                 'star-intensity': 0.6 
             });
             addRouteLayer(); 
-            drawNightShadow(); // On dessine la nuit
+            drawNightShadow(); // On dessine la nuit photoréaliste
         }
 
         map.on('style.load', () => {
             applyMapVisuals();
         });
 
-        // Met à jour l'ombre de la nuit toutes les 10 minutes
+        // Mise à jour de la course du soleil toutes les 10 minutes
         setInterval(drawNightShadow, 600000);
 
         // 📍 3. VILLES ET COORDONNÉES
@@ -473,8 +479,8 @@
             { jour: 16, date: "28 Avril", ville: "France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée à la maison", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v10_final')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v10_final', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v10_3')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v10_3', JSON.stringify(monVoyage)); renderDay(); }
 
         function formatMapLink(input) {
             if (!input) return ""; const trimmed = input.trim();
@@ -715,7 +721,7 @@
         window.convertVndToEur = () => { const vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); };
         window.calcGrab = () => { const km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { const price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
-        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v10_final')) || [];
+        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v10_3')) || [];
         function updateBudget() {
             let total = 0; let html = '';
             exps.forEach((e, idx) => {
@@ -727,11 +733,11 @@
             document.getElementById('expense-list').innerHTML = html;
         }
 
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v10_final', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
-        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v10_final', JSON.stringify(exps)); updateBudget(); };
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if (!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_v10_3', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
+        window.delExp = (idx) => { exps.splice(idx, 1); localStorage.setItem('vn_b_exps_v10_3', JSON.stringify(exps)); updateBudget(); };
 
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v10_final')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
-        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v10_final', JSON.stringify(checklist)); }
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist_v10_3')) || [{ t: "Passeports & Visas", c: false }, { t: "Permis de Conduire", c: false }, { t: "Répulsif Moustique", c: false }];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { const checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_v10_3', JSON.stringify(checklist)); }
         window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value.trim(); if (v) { checklist.push({ t: v, c: false }); document.getElementById('check-input').value = ''; updateChecklist(); } };
 
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
