@@ -1,8 +1,6 @@
 import { DEFAULT_TRIP } from "./data/default-trip.js";
-
 export const state = {
   currentDayIdx: 0,
-  activeView: "view-etapes",
   theme: "dark",
   trip: structuredClone(DEFAULT_TRIP),
   expenses: [],
@@ -12,5 +10,6 @@ export const state = {
     { t: "Répulsif Moustique", c: false }
   ],
   exchangeRate: 27500,
-  weatherCache: {}
+  weatherCache: {},
+  navigation: { currentTarget: "view-etapes" }
 };

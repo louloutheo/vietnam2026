@@ -1,6 +1,26 @@
 import { state } from "../state.js";
 import { clamp, formatMapLink, getTransportIcon } from "../utils.js";
 
+function renderWeatherHint(day) {
+  const key = `${day.lat},${day.lon}`;
+  const cached = state.weatherCache[key];
+  const weatherEl = document.getElementById("weather-box");
+  if (!weatherEl) return;
+  if (cached) {
+    weatherEl.textContent = cached;
+    return;
+  }
+  weatherEl.textContent = "⛅ Météo...";
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${day.lat}&longitude=${day.lon}&daily=temperature_2m_max&timezone=Asia%2FHo_Chi_Minh`)
+    .then(r => r.json())
+    .then(data => {
+      const txt = data?.daily?.temperature_2m_max?.[0] != null ? `🌡️ ${Math.round(data.daily.temperature_2m_max[0])}°C` : "⛅ Météo...";
+      state.weatherCache[key] = txt;
+      weatherEl.textContent = txt;
+    })
+    .catch(()=>{weatherEl.textContent="⛅ Météo...";});
+}
+
 export function changeDay(direction) {
   state.currentDayIdx = clamp(state.currentDayIdx + direction, 0, state.trip.length - 1);
   renderPlanning();
@@ -15,77 +35,54 @@ export function renderPlanning() {
   const day = state.trip[state.currentDayIdx];
   if (!day) return;
 
-  const titleEl = document.getElementById("day-title");
-  const dateEl = document.getElementById("day-date");
-  const weatherEl = document.getElementById("weather-box");
-  const contentEl = document.getElementById("day-content");
+  document.getElementById("day-title").textContent = `Jour ${day.jour}`;
+  document.getElementById("day-date").textContent = `${day.date} - ${day.ville}`;
+  renderWeatherHint(day);
 
-  if (titleEl) titleEl.textContent = `Jour ${day.jour}`;
-  if (dateEl) dateEl.textContent = `${day.date} - ${day.ville}`;
-  if (weatherEl) weatherEl.textContent = "⛅ Météo...";
-
-  let html = "";
+  const sections = [];
 
   if (day.transport) {
-    html += `
+    sections.push(`
       <div class="card">
-        <div><strong>${getTransportIcon(day.transport)} Transport</strong></div>
-        <div style="margin-top:8px; color: var(--text-muted);">${day.transport}</div>
-      </div>
-    `;
+        <div class="timeline-item-title">${getTransportIcon(day.transport)} Transport</div>
+        <div class="timeline-item-meta">${day.transport}</div>
+      </div>`);
   }
 
   if (day.alerts?.length) {
-    html += `
+    sections.push(`
       <div class="card">
-        <div><strong>🔔 Alertes</strong></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
-          ${day.alerts.map(alert => `<div>${alert}</div>`).join("")}
-        </div>
-      </div>
-    `;
+        <div class="timeline-item-title">🔔 Alertes</div>
+        <div class="timeline-list">${day.alerts.map(a => `<div class="timeline-item-card"><div class="timeline-item-title">${a}</div></div>`).join("")}</div>
+      </div>`);
   }
 
   if (day.activites?.length) {
-    html += `
+    sections.push(`
       <div class="card">
-        <div><strong>🎒 Activités</strong></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
-          ${day.activites.map(activity => `
-            <div style="padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border);">
-              <div style="font-weight:700;">${activity.nom}</div>
-              <div style="margin-top:4px; font-size:12px; color:var(--text-muted);">${activity.periode || ""}</div>
-              ${activity.lien ? `<a href="${formatMapLink(activity.lien)}" target="_blank" style="display:inline-block; margin-top:8px; color:var(--accent-blue); font-size:12px;">Ouvrir dans Maps ↗</a>` : ""}
-            </div>
-          `).join("")}
+        <div class="timeline-item-title">🎒 Activités</div>
+        <div class="timeline-list">${day.activites.map(a => `
+          <div class="timeline-item-card">
+            <div class="timeline-item-title">${a.nom}</div>
+            <div class="timeline-item-meta">${a.periode || ""}</div>
+            ${a.lien ? `<a href="${formatMapLink(a.lien)}" target="_blank" class="item-link">Ouvrir Maps ↗</a>` : ""}
+          </div>`).join("")}
         </div>
-      </div>
-    `;
+      </div>`);
   }
 
   if (day.logements?.length) {
-    html += `
+    sections.push(`
       <div class="card">
-        <div><strong>🏨 Logement</strong></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
-          ${day.logements.map(logement => `
-            <div style="padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border);">
-              <div style="font-weight:700;">${logement.nom}</div>
-              ${logement.lien ? `<a href="${formatMapLink(logement.lien)}" target="_blank" style="display:inline-block; margin-top:8px; color:var(--accent-blue); font-size:12px;">Y aller ↗</a>` : ""}
-            </div>
-          `).join("")}
+        <div class="timeline-item-title">🏨 Logement</div>
+        <div class="timeline-list">${day.logements.map(l => `
+          <div class="timeline-item-card">
+            <div class="timeline-item-title">${l.nom}</div>
+            ${l.lien ? `<a href="${formatMapLink(l.lien)}" target="_blank" class="item-link">Y aller ↗</a>` : ""}
+          </div>`).join("")}
         </div>
-      </div>
-    `;
+      </div>`);
   }
 
-  if (!html) {
-    html = `
-      <div class="card">
-        <div style="color: var(--text-muted);">Aucune donnée pour ce jour.</div>
-      </div>
-    `;
-  }
-
-  if (contentEl) contentEl.innerHTML = html;
+  document.getElementById("day-content").innerHTML = sections.join("") || `<div class="card"><div class="muted-center">Aucune donnée pour ce jour.</div></div>`;
 }

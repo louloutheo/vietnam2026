@@ -4,46 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Vietnam 2026 - OS Ultimate</title>
-
   <link rel="icon" type="image/png" href="./icon.png" />
-  <link rel="apple-touch-icon" href="./icon.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
   <link rel="manifest" href="./manifest.json" />
-
   <link rel="stylesheet" href="./css/base.css" />
   <link rel="stylesheet" href="./css/theme.css" />
   <link rel="stylesheet" href="./css/layout.css" />
   <link rel="stylesheet" href="./css/windows.css" />
   <link rel="stylesheet" href="./css/components.css" />
   <link rel="stylesheet" href="./css/responsive.css" />
-
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
 </head>
 <body class="dark-theme">
   <div id="app">
-    <div id="map-container">
-      <div id="cesiumContainer"></div>
-    </div>
+    <div id="map-container"><div id="cesiumContainer"></div></div>
 
     <div id="ui-layer">
       <div class="top-bar">
         <div class="glass-panel top-widget">
           <h1 class="brand-title">
-            <div class="brand-icon-wrap">
-              <img src="./icon.png" alt="Vietnam 2026" class="brand-icon" />
-            </div>
-            <div class="brand-text-wrap">
-              <span>VNM 26</span>
-            </div>
+            <div class="brand-icon-wrap"><img src="./icon.png" alt="Vietnam 2026" class="brand-icon" /></div>
+            <div class="brand-text-wrap"><span>VNM 26</span></div>
           </h1>
-
-          <div class="top-times">
-            🇻🇳 <span id="time-vn">--:--</span> | 🇫🇷 <span id="time-fr">--:--</span>
-          </div>
-
+          <div class="top-times">🇻🇳 <span id="time-vn">--:--</span> | 🇫🇷 <span id="time-fr">--:--</span></div>
           <div id="progress-container-div"></div>
         </div>
-
         <div class="map-tools">
           <button class="round-btn" id="btn-geolocate" title="Ma position">🎯</button>
           <button class="round-btn" id="btn-theme" title="Mode UI">🌓</button>
@@ -56,16 +42,13 @@
           <div class="window-content">
             <div class="day-nav">
               <button class="day-arrow" id="btn-prev-day">◀</button>
-
               <div class="day-center">
                 <h2 id="day-title">Jour 1</h2>
                 <div id="day-date">...</div>
                 <span id="weather-box" class="weather-badge">⛅ Météo...</span>
               </div>
-
               <button class="day-arrow" id="btn-next-day">▶</button>
             </div>
-
             <div id="day-content"></div>
           </div>
           <div class="window-resizer"></div>
@@ -75,15 +58,12 @@
           <div class="window-header"></div>
           <div class="window-content">
             <h2>💸 Portefeuille</h2>
-
             <div class="card">
               <div class="budget-total-wrap">
                 <div class="budget-total-label">Total dépensé sur place</div>
                 <div class="budget-total-value" id="budget-spent">0 €</div>
               </div>
-
               <h3 class="section-mini-title">📝 Ajouter une dépense</h3>
-
               <div class="custom-add custom-add-inline">
                 <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" />
                 <select id="exp-currency" class="custom-input custom-select">
@@ -91,9 +71,7 @@
                   <option value="EUR">€ EUR</option>
                 </select>
               </div>
-
               <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo...)" />
-
               <button class="btn-pill btn-block" id="btn-add-expense">Valider</button>
             </div>
 
@@ -101,29 +79,13 @@
               <div class="tool-card">
                 <h3>💱 Taux Live</h3>
                 <div id="rate-display" class="tool-meta">Calcul...</div>
-
-                <div class="flex-row">
-                  <span>€</span>
-                  <input type="number" id="conv-eur" class="custom-input" placeholder="Euro" />
-                </div>
-
-                <div class="flex-row">
-                  <span>₫</span>
-                  <input type="number" id="conv-vnd" class="custom-input" placeholder="VND" />
-                </div>
+                <div class="flex-row"><span>€</span><input type="number" id="conv-eur" class="custom-input" placeholder="Euro" /></div>
+                <div class="flex-row"><span>₫</span><input type="number" id="conv-vnd" class="custom-input" placeholder="VND" /></div>
               </div>
-
               <div class="tool-card">
                 <h3>🚕 Grab (Taxi)</h3>
-                <div class="tool-meta">
-                  <a href="grab://open" class="grab-link">Ouvrir l'app ↗</a>
-                </div>
-
-                <div class="flex-row">
-                  <span>Km</span>
-                  <input type="number" id="grab-km" class="custom-input" placeholder="Distance" />
-                </div>
-
+                <div class="tool-meta"><a href="grab://open" class="grab-link">Ouvrir l'app ↗</a></div>
+                <div class="flex-row"><span>Km</span><input type="number" id="grab-km" class="custom-input" placeholder="Distance" /></div>
                 <div id="grab-result" class="grab-result">0 ₫</div>
               </div>
             </div>
@@ -137,7 +99,6 @@
               <div class="vnd-bill bill-warning"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
               <div class="vnd-bill bill-yellow"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
             </div>
-
             <h3 class="section-list-title">Aperçu des frais récents</h3>
             <div id="expense-list"></div>
           </div>
@@ -148,7 +109,6 @@
           <div class="window-header"></div>
           <div class="window-content">
             <h2>🧳 Outils & Survie</h2>
-
             <div class="card">
               <h3 class="section-mini-title">🤝 Règles d'or Locales</h3>
               <div class="survival-rules">
@@ -160,30 +120,24 @@
 
             <div class="card">
               <h3 class="section-mini-title">✅ Check-list Départ</h3>
-
               <div class="custom-add custom-add-inline checklist-add">
                 <input type="text" id="check-input" class="custom-input" placeholder="Ajouter à la liste..." />
                 <button class="btn-pill btn-plus" id="btn-add-check">+</button>
               </div>
-
               <div id="checklist-container"></div>
             </div>
 
             <div class="card">
               <h3 class="section-mini-title">🗣️ Survie Audio</h3>
-
               <div class="audio-subtitle">Urgences Médicales</div>
               <div class="speak-grid" id="medical-speak-grid"></div>
-
               <div class="audio-subtitle">Quotidien</div>
               <div class="speak-grid" id="daily-speak-grid"></div>
-
               <div class="audio-subtitle">Traducteur (Réseau requis)</div>
               <div class="translate-row">
                 <input type="text" id="trans-input" class="custom-input" placeholder="Taper phrase..." />
                 <button class="btn-pill btn-translate" id="btn-translate-speak">🔊</button>
               </div>
-
               <div id="trans-result" class="translate-result"></div>
             </div>
           </div>
@@ -193,32 +147,15 @@
 
       <div class="bottom-area">
         <div id="mini-nav-carousel" class="mini-nav-carousel"></div>
-
         <nav class="nav-container">
-          <button class="nav-item active" data-target="view-etapes" id="tab-planning">
-            <span class="nav-icon">📅</span>
-            <span>Planning</span>
-          </button>
-
-          <button class="nav-item" data-target="none" id="tab-carte">
-            <span class="nav-icon">🌍</span>
-            <span>Carte</span>
-          </button>
-
-          <button class="nav-item" data-target="view-budget" id="tab-budget">
-            <span class="nav-icon">💸</span>
-            <span>Budget</span>
-          </button>
-
-          <button class="nav-item" data-target="view-vault" id="tab-vault">
-            <span class="nav-icon">🧳</span>
-            <span>Survie</span>
-          </button>
+          <button class="nav-item active" data-target="view-etapes" id="tab-planning"><span class="nav-icon">📅</span><span>Planning</span></button>
+          <button class="nav-item" data-target="none" id="tab-carte"><span class="nav-icon">🌍</span><span>Carte</span></button>
+          <button class="nav-item" data-target="view-budget" id="tab-budget"><span class="nav-icon">💸</span><span>Budget</span></button>
+          <button class="nav-item" data-target="view-vault" id="tab-vault"><span class="nav-icon">🧳</span><span>Survie</span></button>
         </nav>
       </div>
     </div>
   </div>
-
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>
