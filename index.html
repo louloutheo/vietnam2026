@@ -2,34 +2,151 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>OS Ultimate</title>
-    
-    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#10b981">
+    <title>OS Ultimate — Vietnam 2026</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <!-- Mapbox GL JS v3 — version figée (ne pas upgrader sans tester) -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+
+    <!-- App CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
-    <div id="map-container"></div>
+<body class="dark-theme">
 
-    <div id="desktop-ui">
-        <os-window title="💸 Budget Vietnam" style="top: 50px; left: 50px; width: 350px;">
-            <div class="budget-app">
-                <h2 id="total-budget" style="margin: 0; font-size: 2.5rem; text-align: center;">0,00 €</h2>
-                <p style="color: #aaa; text-align: center; margin-top: 5px; margin-bottom: 20px;">Total dépensé</p>
-                
-                <div class="budget-form">
-                    <input type="number" id="expense-amount" placeholder="€" step="0.01">
-                    <input type="text" id="expense-desc" placeholder="Quoi ? (ex: Phở)">
-                    <button id="add-expense-btn">Valider</button>
+    <!-- ═══════════════════════════════════════════
+         CANVAS CARTE (couche la plus basse z-index)
+    ════════════════════════════════════════════ -->
+    <div id="map"></div>
+
+    <!-- ═══════════════════════════════════════════
+         UI LAYER (Smart OS au-dessus de la carte)
+    ════════════════════════════════════════════ -->
+    <div id="ui-layer">
+
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <!-- Widget infos voyage -->
+            <div class="glass-panel top-widget" id="top-widget">
+                <div class="top-widget-header">
+                    <div class="app-icon">
+                        <img src="icon.png" alt="OS" onerror="this.style.display='none'">
+                    </div>
+                    <div class="top-widget-info">
+                        <div class="app-title">VNM 26</div>
+                        <div class="time-display">
+                            🇻🇳 <span id="time-vn">--:--</span>
+                            &nbsp;·&nbsp;
+                            🇫🇷 <span id="time-fr">--:--</span>
+                        </div>
+                    </div>
                 </div>
-
-                <ul id="expense-list" class="expense-list"></ul>
+                <div id="progress-container"></div>
             </div>
-        </os-window>
-    </div>
 
-    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+            <!-- Boutons outils carte -->
+            <div class="map-tools">
+                <button class="round-btn" id="btn-geolocate" title="Ma position" aria-label="Géolocalisation">🎯</button>
+                <button class="round-btn" id="btn-theme" title="Thème" aria-label="Changer le thème">🌓</button>
+            </div>
+        </div>
+
+        <!-- FENÊTRES SMART OS (positionnées en absolute) -->
+        <div id="windows-container">
+
+            <!-- Fenêtre Planning -->
+            <div id="win-planning" class="os-window" role="dialog" aria-label="Planning du voyage">
+                <div class="window-header" data-window="win-planning">
+                    <div class="window-handle"></div>
+                </div>
+                <div class="window-content">
+                    <div class="day-nav">
+                        <button class="day-arrow" id="btn-prev-day" aria-label="Jour précédent">◀</button>
+                        <div class="day-info">
+                            <h2 id="day-title">Jour 1</h2>
+                            <div id="day-date" class="day-date"></div>
+                            <span id="weather-badge" class="weather-badge">⛅ Météo...</span>
+                        </div>
+                        <button class="day-arrow" id="btn-next-day" aria-label="Jour suivant">▶</button>
+                    </div>
+                    <div id="day-content"></div>
+                </div>
+                <div class="window-resizer" data-window="win-planning"></div>
+            </div>
+
+            <!-- Fenêtre Budget -->
+            <div id="win-budget" class="os-window" role="dialog" aria-label="Budget">
+                <div class="window-header" data-window="win-budget">
+                    <div class="window-handle"></div>
+                </div>
+                <div class="window-content" id="budget-content">
+                    <!-- Injecté par budget.js -->
+                </div>
+                <div class="window-resizer" data-window="win-budget"></div>
+            </div>
+
+            <!-- Fenêtre Survie -->
+            <div id="win-survie" class="os-window" role="dialog" aria-label="Outils Survie">
+                <div class="window-header" data-window="win-survie">
+                    <div class="window-handle"></div>
+                </div>
+                <div class="window-content" id="survie-content">
+                    <!-- Injecté par survie.js -->
+                </div>
+                <div class="window-resizer" data-window="win-survie"></div>
+            </div>
+
+        </div>
+
+        <!-- ZONE BAS — Carrousel + Dock -->
+        <div class="bottom-area">
+            <!-- Mini-carrousel jours (visible en mode carte) -->
+            <div id="day-carousel" class="day-carousel" role="navigation" aria-label="Navigation rapide par jour"></div>
+
+            <!-- Dock de navigation -->
+            <nav class="dock" role="navigation" aria-label="Navigation principale">
+                <button class="dock-item active" data-target="win-planning" id="tab-planning">
+                    <span class="dock-icon">📅</span>
+                    <span class="dock-label">Planning</span>
+                </button>
+                <button class="dock-item" data-target="none" id="tab-carte">
+                    <span class="dock-icon">🌍</span>
+                    <span class="dock-label">Carte</span>
+                </button>
+                <button class="dock-item" data-target="win-budget" id="tab-budget">
+                    <span class="dock-icon">💸</span>
+                    <span class="dock-label">Budget</span>
+                </button>
+                <button class="dock-item" data-target="win-survie" id="tab-survie">
+                    <span class="dock-icon">🧳</span>
+                    <span class="dock-label">Survie</span>
+                </button>
+            </nav>
+        </div>
+
+    </div><!-- /ui-layer -->
+
+    <!-- ═══════════════════════════════════════════
+         SCRIPTS (modules ES6)
+    ════════════════════════════════════════════ -->
     <script type="module" src="js/main.js"></script>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(r => console.log('[SW] Enregistré:', r.scope))
+                .catch(e => console.warn('[SW] Erreur:', e));
+        }
+    </script>
 </body>
 </html>

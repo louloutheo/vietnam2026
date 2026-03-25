@@ -1,0 +1,26 @@
+{
+    "name": "OS Ultimate — Vietnam 2026",
+    "short_name": "VNM OS",
+    "description": "Application de voyage Smart OS — Vietnam 2026",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#0b1120",
+    "theme_color": "#10b981",
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["travel", "navigation"],
+    "lang": "fr-FR"
+}
