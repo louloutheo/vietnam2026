@@ -3,178 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietnam 2026 - Premium UI</title>
-    
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="manifest" href="manifest.json">
-
+    <title>Vietnam 2026 - V3.7</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-    
     <style>
-        /* ☀️ THÈME CLAIR (Glassmorphism 2.0) */
-        :root { 
-            --primary: #10b981; 
-            --bg: #f5f7fa; 
-            --text: #0f172a; 
-            --glass-bg: rgba(255, 255, 255, 0.6); 
-            --glass-border: rgba(255, 255, 255, 0.4); 
-            --card-bg: rgba(255, 255, 255, 0.8); 
-            --text-muted: #64748b; 
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-        }
+        :root { --primary: #4ade80; --bg: #000; --text: #fff; --glass-bg: rgba(20, 20, 20, 0.85); --glass-border: rgba(255, 255, 255, 0.15); --card-bg: rgba(255, 255, 255, 0.08); --text-muted: #ccc; }
+        body.light-theme { --primary: #16a34a; --bg: #f8fafc; --text: #0f172a; --glass-bg: rgba(255, 255, 255, 0.95); --glass-border: rgba(0, 0, 0, 0.1); --card-bg: #f1f5f9; --text-muted: #475569; }
 
-        /* 🌙 THÈME SOMBRE */
-        body.dark-theme { 
-            --primary: #10b981; 
-            --bg: #0b1120; 
-            --text: #f8fafc; 
-            --glass-bg: rgba(15, 23, 42, 0.75); 
-            --glass-border: rgba(255, 255, 255, 0.08); 
-            --card-bg: rgba(255, 255, 255, 0.05); 
-            --text-muted: #94a3b8; 
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.4s ease; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; transition: 0.3s; }
         button, input, select, textarea { touch-action: manipulation; outline: none; font-family: inherit; }
         
         #cesiumContainer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 0; box-sizing: border-box; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) 10px; box-sizing: border-box; }
         
-        /* Glassmorphism 2.0 & Squircles */
-        .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: 32px; box-shadow: var(--shadow); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); color: var(--text); }
-        .card { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--glass-border); box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
+        .glass-panel { pointer-events: auto; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); color: var(--text); }
         
-        /* Haptic Feedback Visuel */
-        .round-btn, .btn-pill, .speak-btn, .day-arrow, .toggle-btn, .chip, .custom-add button, .nav-item, .carousel-pill { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s; cursor: pointer; }
-        .round-btn:active, .btn-pill:active, .speak-btn:active, .day-arrow:active, .toggle-btn:active, .chip:active, .custom-add button:active, .nav-item:active, .carousel-pill:active { transform: scale(0.92); opacity: 0.8; }
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 5px; box-sizing: border-box; flex-shrink:0;}
+        .top-widget { padding: 12px 15px; flex-grow: 1; max-width: 220px; pointer-events: auto; }
+        .top-widget h1 { margin: 0 0 5px 0; font-size: 16px; color: var(--primary); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;}
+        .sos-btn { background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 10px; font-weight: bold; cursor: pointer; }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: none; padding: 0 15px; box-sizing: border-box; flex-shrink:0;}
-        .top-widget { padding: 12px 18px; flex-grow: 1; max-width: 240px; pointer-events: auto; }
-        .top-widget h1 { margin: 0 0 6px 0; font-size: 16px; color: var(--primary); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.5px; font-weight: 800;}
-        .sos-btn { background: #ef4444; color: white; border: none; border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: bold; cursor: pointer;}
+        .map-tools { display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
+        .round-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); }
         
-        .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; margin-top: 8px; overflow: hidden; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.8s ease-out; width: 0%; border-radius: 10px;}
-
-        .map-tools { display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
-        .round-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text); backdrop-filter: blur(20px); box-shadow: var(--shadow);}
+        .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin: 10px 0; width: 100%; position: relative; pointer-events: none;}
         
-        .middle-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 95px; width: 100%; position: relative; pointer-events: none;}
-        .app-view { display: none; flex-direction: column; width: 100%; max-width: 420px; max-height: 52vh; overflow-y: auto; padding: 20px; box-sizing: border-box; pointer-events: auto; margin: 0 10px;}
-        .app-view h2 { margin: 0 0 15px 0; font-size: 18px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; font-weight: 800; letter-spacing:-0.5px;}
+        .app-view { display: none; flex-direction: column; width: 100%; max-width: 400px; max-height: 48vh; overflow-y: auto; padding: 15px; box-sizing: border-box; pointer-events: auto; }
+        .app-view h2 { margin: 0 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
         
-        .collapsed { max-height: 100px !important; overflow: hidden !important; }
-        .toggle-btn { background: rgba(128,128,128,0.15); border: none; color: var(--text); border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center;}
+        .collapsed { max-height: 90px !important; overflow: hidden !important; }
+        .toggle-btn { background: rgba(255,255,255,0.1); border: none; color: var(--text); border-radius: 50%; width: 26px; height: 26px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         
-        .day-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;}
-        .day-arrow { background: rgba(128,128,128,0.1); border: none; color: var(--text); font-size: 14px; padding: 8px 16px; border-radius: 12px; font-weight: bold;}
-        .weather-badge { font-size: 12px; padding: 4px 10px; background: rgba(56, 189, 248, 0.1); color: #0ea5e9; border-radius: 50px; border: 1px solid rgba(56, 189, 248, 0.2); font-weight: bold; margin-top:5px; display:inline-block; }
+        .card { background: var(--card-bg); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         
-        .info-line { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-muted); justify-content: space-between; font-weight: 500;}
+        .day-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; flex-shrink: 0;}
+        .day-arrow { background: rgba(128,128,128,0.2); border: none; color: var(--text); font-size: 14px; padding: 4px 12px; border-radius: 8px; cursor: pointer; }
+        .weather-badge { font-size: 12px; padding: 4px 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: bold; margin-top:5px; display:inline-block; }
         
-        /* Premium Timeline */
-        .premium-timeline { position: relative; margin-top: 10px; padding-bottom: 10px; }
-        .premium-timeline::before { content: ''; position: absolute; left: 16px; top: 10px; bottom: 10px; width: 2px; background: rgba(128,128,128,0.2); border-radius: 2px; }
-        .time-header { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin: 20px 0 12px 35px; position: relative; letter-spacing: 1px;}
-        .timeline-item { position: relative; padding-left: 45px; margin-bottom: 16px; }
-        .timeline-dot { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%; background: var(--bg); border: 2px solid #ccc; z-index: 2; box-shadow: 0 0 0 4px var(--bg); }
+        /* ========================================= */
+        /* 🚀 NOUVEAU DESIGN TIMELINE JOUR PAR JOUR  */
+        /* ========================================= */
+        .timeline { border-left: 2px solid rgba(255,255,255,0.1); margin-left: 10px; padding-left: 15px; position: relative; margin-top:15px; }
+        .timeline-item { position: relative; margin-bottom: 15px; }
+        .timeline-dot { position: absolute; left: -22px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--glass-bg); border: 2px solid #ccc; z-index: 2; }
         
-        .dot-transport { border-color: #0ea5e9; } .dot-hotel { border-color: #a855f7; } .dot-activity { border-color: var(--primary); } .dot-alert { border-color: #ef4444; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        /* Code Couleur Précis */
+        .dot-transport { border-color: #38bdf8; background: rgba(56, 189, 248, 0.2); }
+        .dot-hotel { border-color: #a855f7; background: rgba(168, 85, 247, 0.2); }
+        .dot-activity { border-color: var(--primary); background: rgba(74, 222, 128, 0.2); }
+        
+        /* Animation "En cours" pour le premier item */
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
         .pulse-dot { animation: pulse 2s infinite; border-color: var(--primary) !important; background: var(--primary) !important;}
         
-        .timeline-content { background: var(--card-bg); padding: 12px 15px; border-radius: 16px; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;}
-        .ticket-style { background: rgba(14, 165, 233, 0.05); border: 2px dashed rgba(14, 165, 233, 0.3); }
-        .alert-style { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.3); }
-
-        .timeline-text { font-size: 14px; font-weight: 700; color: var(--text); flex-grow: 1; display:flex; align-items:center; gap:8px;}
-        .timeline-action { display:flex; gap: 8px; align-items: center; }
+        .timeline-content { background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .timeline-title { font-size: 10px; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 4px; display:flex; justify-content:space-between; align-items:center;}
+        .timeline-text { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; justify-content: space-between; color:white; }
         
-        .item-link { color: #0ea5e9; text-decoration: none; font-size: 11px; font-weight: bold; padding: 4px 8px; background: rgba(14, 165, 233, 0.1); border-radius: 8px; border: 1px solid rgba(14, 165, 233, 0.2); white-space:nowrap;}
-        .item-link:active { background: #0ea5e9; color: white; }
+        .item-link { background: rgba(56, 189, 248, 0.15); color: #38bdf8; text-decoration: none; font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(56, 189, 248, 0.3);}
+        .item-link:active { background: #38bdf8; color: black; }
         
-        .custom-add { display: flex; gap: 8px; margin-top: 15px; margin-left: 12px; }
-        .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 10px 12px; border-radius: 12px; font-size: 13px; width: 100%; box-sizing: border-box; font-weight: 500;}
-        .btn-pill { background: var(--primary); color: white; border: none; border-radius: 50px; font-weight: bold; padding: 10px 20px; text-transform: uppercase; letter-spacing: 0.5px;}
-        
-        /* BOTTOM NAV & CARROUSEL */
-        .bottom-area { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; z-index: 20; pointer-events: auto; display: flex; flex-direction: column; gap: 10px;}
-        
-        .mini-nav-carousel { display: flex; overflow-x: auto; gap: 10px; padding: 5px; scrollbar-width: none; -ms-overflow-style: none; }
-        .mini-nav-carousel::-webkit-scrollbar { display: none; }
-        .carousel-pill { background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: 50px; font-size: 11px; font-weight: 800; white-space: nowrap; color: var(--text-muted); box-shadow: var(--shadow);}
-        .carousel-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .custom-add { display: flex; gap: 5px; margin-top: 15px; margin-left: 10px; }
+        .custom-input { flex-grow: 1; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; width: 100%; box-sizing: border-box; }
+        /* ========================================= */
 
-        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--glass-bg); backdrop-filter: blur(40px) saturate(150%); border: 1px solid var(--glass-border); border-radius: 50px; box-shadow: var(--shadow); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; font-weight: 700; padding: 8px 12px; border-radius: 30px; flex: 1;}
-        .nav-item.active { color: var(--primary); background: rgba(16, 185, 129, 0.15); }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 8px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; flex-shrink: 0;}
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 9px; font-weight: 600; cursor: pointer; padding: 6px; border-radius: 12px; transition: 0.2s; width:22%;}
+        .nav-item.active { color: var(--primary); background: rgba(74, 222, 128, 0.1); }
+        .nav-icon { font-size: 18px; margin-bottom: 2px; }
 
-        #sos-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .sos-content { background: var(--bg); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; width: 100%; max-width: 320px; color: var(--text); box-shadow: var(--shadow);}
+        #sos-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .sos-content { background: #1e1e1e; border: 2px solid #ef4444; border-radius: 20px; padding: 20px; width: 100%; max-width: 300px; color: white; }
 
-        ::-webkit-scrollbar { width: 4px; background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar { width: 3px; background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
         @media (min-width: 768px) {
-            .middle-container { position: absolute !important; left: 20px !important; top: 90px !important; bottom: 100px !important; width: 380px !important; align-items: flex-start !important; justify-content: flex-start !important; margin: 0 !important; }
-            .app-view { max-height: 100% !important; width: 100% !important; margin: 0;}
+            .middle-container { position: absolute !important; left: 15px !important; top: 85px !important; bottom: 85px !important; width: 340px !important; align-items: flex-start !important; justify-content: flex-start !important; margin: 0 !important; }
+            .app-view { max-height: 100% !important; width: 100% !important; }
             .toggle-btn { display: none !important; } 
         }
 
-        .budget-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .tool-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 15px; border-radius: 20px; }
-        .tool-card h3 { margin: 0 0 10px 0; font-size: 12px; color: var(--primary); text-transform: uppercase; font-weight: 800;}
-        .flex-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .flex-row span { font-size: 16px; font-weight: bold; width: 30px; text-align: center; color: var(--text-muted);}
+        .budget-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .tool-card { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); padding: 10px; border-radius: 12px; }
+        .tool-card h3 { margin: 0 0 8px 0; font-size: 12px; color: var(--primary); text-transform: uppercase; }
+        .flex-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .flex-row span { font-size: 16px; font-weight: bold; width: 30px; text-align: center; }
         
-        .speak-btn { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #0ea5e9; padding: 10px; border-radius: 50px; flex-grow: 1; font-weight: bold; font-size: 12px; text-align: center; }
-        .speak-btn-medical { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
-        
-        .vnd-bill { display:flex; justify-content:space-between; color:black; padding:8px 12px; border-radius:12px; font-weight:bold; margin-bottom:6px; font-size:13px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
-        .budget-tag { background: rgba(128,128,128,0.15); padding: 4px 8px; border-radius: 50px; font-size: 11px; margin-right: 8px; color: var(--text); font-weight: 700;}
-        
-        .journal-box { background: var(--card-bg); border-radius: 20px; padding: 15px; margin-top: 25px; border: 1px solid var(--glass-border); box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .star-rating { font-size: 24px; letter-spacing: 4px; cursor: pointer; color: rgba(128,128,128,0.3); margin-bottom: 12px; text-align: center; }
-        .star-rating .active { color: #facc15; }
-        .keyword-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; justify-content: center; }
-        .chip { background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.2); border-radius: 50px; padding: 6px 12px; font-size: 11px; font-weight: 600; color: var(--text);}
-        .journal-textarea { width: 100%; height: 70px; background: var(--bg); border: 1px solid var(--glass-border); color: var(--text); border-radius: 12px; padding: 10px; box-sizing: border-box; font-size: 14px; resize: none; font-family: inherit; }
-        .mic-btn { background: #ef4444; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; display: flex; justify-content: center; align-items: center; margin-left: 8px; box-shadow: 0 4px 10px rgba(239,68,68,0.3);}
-        .mic-btn.recording { animation: pulse 1s infinite; background: #dc2626; }
+        .speak-btn { background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; padding: 8px; border-radius: 8px; cursor: pointer; flex-grow: 1; font-weight: bold; font-size: 11px; text-align: center; }
+        .speak-btn:active { background: #38bdf8; color: black; }
     </style>
 </head>
-<body class="light-theme">
+<body>
     <div id="cesiumContainer"></div>
 
     <div id="sos-modal">
         <div class="sos-content">
-            <h2 style="color:#ef4444; margin-top:0; text-align:center; font-weight:900;">🚨 URGENCE</h2>
-            <div style="font-size: 24px; font-weight: 900; color: #ef4444; text-align: center; background: rgba(239,68,68,0.1); padding: 15px; border-radius: 16px; margin-bottom: 20px;">🚓 Police : 113<br>🚑 Santé : 115<br>🚒 Feu : 114</div>
-            <h3 style="margin:0 0 5px 0; font-size:14px; color:var(--text); font-weight:800;">🇫🇷 Ambassade de France (Hanoï)</h3>
-            <p style="margin:0; font-size:13px; color:var(--text-muted); line-height: 1.5;">57 Tran Hung Dao, Hoan Kiem<br>📞 +84 24 39 44 57 00</p>
-            <button class="btn-pill" onclick="document.getElementById('sos-modal').style.display='none'" style="width:100%; padding:14px; margin-top:25px; background:var(--text); color:var(--bg);">FERMER</button>
+            <h2 style="color:#ef4444; margin-top:0; text-align:center;">🚨 URGENCE VIETNAM</h2>
+            <div style="font-size: 20px; font-weight: bold; color: #ef4444; text-align: center; background: rgba(239,68,68,0.1); padding: 10px; border-radius: 12px;">🚓 Police : 113<br>🚑 Ambulance : 115<br>🚒 Pompiers : 114</div>
+            <h3 style="margin:15px 0 5px 0; font-size:13px; color:#fff;">🇫🇷 Ambassade de France (Hanoï)</h3>
+            <p style="margin:0; font-size:12px; color:#aaa;">57 Tran Hung Dao, Hoan Kiem<br>📞 +84 24 39 44 57 00</p>
+            <button onclick="document.getElementById('sos-modal').style.display='none'" style="width:100%; padding:12px; margin-top:15px; background:#444; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">FERMER</button>
         </div>
     </div>
 
     <div id="ui-layer">
         <div class="top-bar">
             <div class="glass-panel top-widget">
-                <h1 style="display:flex; align-items:center; justify-content:flex-start; gap:10px;">
-                    <div style="width:28px; height:28px; border-radius:8px; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000;">
-                        <img src="icon.png" style="width:100%; height:100%; object-fit:cover; transform:scale(1.2);" onerror="this.style.display='none'">
-                    </div>
-                    <div style="flex-grow:1; display:flex; justify-content:space-between; align-items:center;">
-                        VNM 26 <button class="sos-btn" onclick="document.getElementById('sos-modal').style.display='flex'">SOS</button>
-                    </div>
-                </h1>
-                <div style="font-size: 11px; color: var(--text-muted); font-family: monospace; font-weight:bold;">
+                <h1>VNM 26 <button class="sos-btn" onclick="document.getElementById('sos-modal').style.display='flex'">SOS</button></h1>
+                <div style="font-size: 10px; color: var(--text-muted); font-family: monospace;">
                     🇻🇳 <span id="time-vn">--:--</span> | 🇫🇷 <span id="time-fr">--:--</span>
                 </div>
-                <div id="progress-container-div"></div>
             </div>
             <div class="map-tools">
                 <div class="round-btn" onclick="toggleTheme()" title="Mode Jour/Nuit">🌓</div>
@@ -187,268 +126,150 @@
                 <div class="day-nav">
                     <button class="day-arrow" onclick="changeDay(-1)">◀</button>
                     <div style="text-align:center; display:flex; flex-direction:column; align-items:center;">
-                        <h2 id="day-title" style="margin:0; border:none; padding:0; color:var(--text); font-size:18px;">Jour 1</h2>
-                        <div id="day-date" style="font-size:13px; color:var(--text-muted); font-weight:600;">...</div>
-                        <span id="weather-box" class="weather-badge">⛅ Météo...</span>
+                        <h2 id="day-title" style="margin:0; border:none; padding:0; color:var(--text); font-size:16px;">Jour 1</h2>
+                        <div id="day-date" style="font-size:12px; color:var(--text-muted);">...</div>
+                        <div id="weather-box" class="weather-badge">⛅ Météo...</div>
                     </div>
                     <button class="day-arrow" onclick="changeDay(1)">▶</button>
                     <button class="toggle-btn" onclick="togglePanel()" id="toggle-panel-btn">🔽</button>
                 </div>
-                <div id="day-content" style="flex-grow:1; margin-top:10px;"></div>
+                
+                <div id="day-content" style="flex-grow:1; margin-top:5px;">
+                    </div>
             </div>
 
             <div id="view-budget" class="glass-panel app-view">
-                <h2>💸 Portefeuille</h2>
+                <h2>💰 Budget & Outils</h2>
                 <div class="budget-grid">
                     <div class="tool-card">
                         <h3>💱 Taux Live</h3>
-                        <div style="font-size: 10px; color:var(--text-muted); margin-bottom:10px; font-weight:bold;" id="rate-display">Calcul...</div>
+                        <div style="font-size: 9px; color:#aaa; margin-bottom:8px;" id="rate-display">Calcul...</div>
                         <div class="flex-row"><span>€</span><input type="number" id="conv-eur" class="custom-input" placeholder="Euro" oninput="convertEurToVnd()"></div>
                         <div class="flex-row"><span>₫</span><input type="number" id="conv-vnd" class="custom-input" placeholder="VND" oninput="convertVndToEur()"></div>
                     </div>
                     <div class="tool-card">
-                        <h3>🚕 Grab (Taxi)</h3>
-                        <div style="font-size: 10px; margin-bottom:10px;">
-                            <a href="grab://open" style="color:var(--primary); text-decoration:none; font-weight:900; background:rgba(16, 185, 129, 0.1); padding:4px 8px; border-radius:6px;">Ouvrir l'app ↗</a>
-                        </div>
+                        <h3>🚕 Anti-Arnaque</h3>
+                        <div style="font-size: 9px; color:#aaa; margin-bottom:8px;">~15k ₫/km + 20k base</div>
                         <div class="flex-row"><span>Km</span><input type="number" id="grab-km" class="custom-input" placeholder="Distance" oninput="calcGrab()"></div>
-                        <div style="margin-top: 12px; font-weight:900; color:var(--primary); font-size:16px; text-align:center;" id="grab-result">0 ₫</div>
+                        <div style="margin-top: 10px; font-weight:bold; color:var(--primary); font-size:14px; text-align:center;" id="grab-result">0 ₫</div>
                     </div>
                 </div>
 
-                <div class="card" style="padding:15px;">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0; font-weight:800;">🚨 Mémo Billets (VND)</h3>
-                    <div class="vnd-bill" style="background:#38bdf8; color:white;"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
-                    <div class="vnd-bill" style="background:#fca5a5; color:white;"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
-                    <div class="vnd-bill" style="background:#4ade80; color:black;"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
-                    <div class="vnd-bill" style="background:#d97706; color:white;"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
-                    <div class="vnd-bill" style="background:#38bdf8; color:white; border: 2px dashed red;"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
-                    <div class="vnd-bill" style="background:#fde047; color:black;"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
+                <div class="card" style="text-align:center; padding: 15px;">
+                    <div style="font-size:12px; color:var(--text-muted);">Total dépensé sur place</div>
+                    <div style="font-size:24px; font-weight:bold; color:var(--primary); margin:5px 0;" id="budget-spent">0 €</div>
                 </div>
-
-                <div class="card">
-                    <div style="text-align:center; padding: 10px;">
-                        <div style="font-size:13px; color:var(--text-muted); font-weight:800; text-transform:uppercase; letter-spacing:1px;">Total dépensé sur place</div>
-                        <div style="font-size:38px; font-weight:900; color:var(--text); margin:5px 0;" id="budget-spent">0 €</div>
-                    </div>
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:10px 0 10px 0; font-weight:800;">📝 Ajouter une dépense</h3>
-                    <div class="custom-add" style="margin-left:0; margin-top:0;">
-                        <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" style="width: 50%;">
-                        <select id="exp-currency" class="custom-input" style="width:auto;"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
-                    </div>
-                    <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo...)" style="margin-top:8px;">
-                    <button class="btn-pill" onclick="addExpense()" style="width:100%; padding:12px; margin-top:12px; font-size:13px;">Valider</button>
+                <div class="custom-add" style="margin-left:0;">
+                    <input type="number" id="exp-amount" class="custom-input" placeholder="Montant" style="width: 50%;">
+                    <select id="exp-currency" class="custom-input" style="width:auto;"><option value="VND">₫ VND</option><option value="EUR">€ EUR</option></select>
                 </div>
+                <input type="text" id="exp-desc" class="custom-input" placeholder="Quoi ? (Ex: Pho Bo)" style="margin-top:5px;">
+                <button onclick="addExpense()" style="width:100%; background:var(--primary); color:#000; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-top:8px; cursor:pointer;">Noter la dépense</button>
                 
-                <h3 style="font-size:13px; color:var(--primary); text-transform:uppercase; margin-top:25px; margin-bottom:10px; font-weight:800;">Aperçu des frais récents</h3>
+                <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-top:20px; margin-bottom:5px;">Historique</h3>
                 <div id="expense-list"></div>
             </div>
 
             <div id="view-vault" class="glass-panel app-view">
-                <h2>🧳 Outils & Survie</h2>
-                
+                <h2>🧳 Sac à Dos</h2>
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 8px 0; font-weight:800;">🤝 Règles d'or Locales</h3>
-                    <div style="font-size:13px; color:var(--text-muted); line-height:1.6; font-weight:500;">
-                        <b style="color:var(--text);">🚦 Traverser :</b> Avance doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br>
-                        <b style="color:var(--text);">💰 Négociation :</b> Divise par 2 ou 3 au marché.<br>
-                        <b style="color:var(--text);">💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">✅ Check-list Départ</h3>
-                    <div class="custom-add" style="margin-left:0; margin-bottom:15px; margin-top:0;">
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">✅ Check-list Départ</h3>
+                    <div class="custom-add" style="margin-left:0; margin-bottom:10px; margin-top:0;">
                         <input type="text" id="check-input" class="custom-input" placeholder="Ajouter à la liste...">
-                        <button class="btn-pill" style="padding:0 18px; font-size:18px;" onclick="addCheck()">+</button>
+                        <button onclick="addCheck()" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">+</button>
                     </div>
                     <div id="checklist-container"></div>
                 </div>
 
                 <div class="card">
-                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 12px 0; font-weight:800;">🗣️ Survie Audio</h3>
-                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Urgences Médicales</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;">
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi cần bác sĩ')">👨‍⚕️ Médecin !</button>
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Bệnh viện ở đâu?')">🏥 Hôpital ?</button>
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Tôi bị dị ứng')">🤧 Allergie !</button>
-                        <button class="speak-btn speak-btn-medical" onclick="speakVN('Hiệu thuốc')">💊 Pharmacie</button>
-                    </div>
-
-                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Quotidien</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">🗣️ Survie Audio</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;">
                         <button class="speak-btn" onclick="speakVN('Xin chào')">👋 Bonjour</button>
                         <button class="speak-btn" onclick="speakVN('Cảm ơn')">🙏 Merci</button>
-                        <button class="speak-btn" onclick="speakVN('Đắt quá')">💸 Trop cher</button>
-                        <button class="speak-btn" onclick="speakVN('Không cay nhé')">🌶️ Sans piment</button>
+                        <button class="speak-btn" style="color:var(--danger); border-color:rgba(239,68,68,0.5);" onclick="speakVN('Đắt quá')">💸 Trop cher</button>
+                        <button class="speak-btn" style="color:var(--danger); border-color:rgba(239,68,68,0.5);" onclick="speakVN('Không cay nhé')">🌶️ Sans piment</button>
                         <button class="speak-btn" onclick="speakVN('Nhà vệ sinh ở đâu?')">🚽 Toilettes ?</button>
                     </div>
                     
-                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:bold;">Traducteur (Réseau requis)</div>
-                    <div style="display:flex; gap:8px;">
-                        <input type="text" id="trans-input" class="custom-input" placeholder="Taper phrase...">
-                        <button class="btn-pill" style="background:#0ea5e9; padding:0 15px; font-size:16px;" onclick="translateAndSpeak()">🔊</button>
+                    <div style="font-size:11px; color:#aaa; margin-bottom:5px;">Traducteur (Réseau requis la 1ère fois)</div>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="trans-input" class="custom-input" placeholder="Taper une phrase en français...">
+                        <button onclick="translateAndSpeak()" style="background:#38bdf8; color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">🔊</button>
                     </div>
-                    <div id="trans-result" style="margin-top:10px; font-size:14px; font-style:italic; color:var(--primary); text-align:center; min-height:20px; font-weight:bold;"></div>
+                    <div id="trans-result" style="margin-top:8px; font-size:13px; font-style:italic; color:var(--primary); text-align:center; min-height:15px;"></div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin:0 0 10px 0;">📸 Albums</h3>
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;">
+                            <div style="font-size:10px; margin-bottom:5px; color:#aaa;">Album Food</div>
+                            <input type="file" id="photo-food" accept="image/*" style="display:none;" onchange="savePhoto(event, 'food')">
+                            <button onclick="document.getElementById('photo-food').click()" style="width:100%; background:rgba(255,255,255,0.1); color:var(--text); border:1px solid var(--glass-border); padding:6px; border-radius:8px; font-size:11px; cursor:pointer;">+ Ajouter Plat</button>
+                            <div id="gallery-food" style="display:flex; gap:8px; margin-top:8px; overflow-x:auto;"></div>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:10px; margin-bottom:5px; color:#aaa;">Album Reçus</div>
+                            <input type="file" id="photo-receipt" accept="image/*" style="display:none;" onchange="savePhoto(event, 'receipt')">
+                            <button onclick="document.getElementById('photo-receipt').click()" style="width:100%; background:rgba(255,255,255,0.1); color:var(--text); border:1px solid var(--glass-border); padding:6px; border-radius:8px; font-size:11px; cursor:pointer;">+ Ajouter Ticket</button>
+                            <div id="gallery-receipt" style="display:flex; gap:8px; margin-top:8px; overflow-x:auto;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="bottom-area">
-            <div id="mini-nav-carousel" class="mini-nav-carousel" style="display:none;"></div>
-            <div class="nav-container">
-                <div class="nav-item active" data-target="view-etapes" id="tab-planning"><span class="nav-icon">📅</span>Planning</div>
-                <div class="nav-item" data-target="none" id="tab-carte"><span class="nav-icon">🌍</span>Carte</div>
-                <div class="nav-item" data-target="view-budget"><span class="nav-icon">💸</span>Budget</div>
-                <div class="nav-item" data-target="view-vault"><span class="nav-icon">🧳</span>Survie</div>
-            </div>
+
+        <div class="glass-panel nav-container">
+            <div class="nav-item active" data-target="view-etapes" id="tab-planning"><span class="nav-icon">📅</span>Planning</div>
+            <div class="nav-item" data-target="none" id="tab-carte"><span class="nav-icon">🌍</span>Carte</div>
+            <div class="nav-item" data-target="view-budget"><span class="nav-icon">💸</span>Budget</div>
+            <div class="nav-item" data-target="view-vault"><span class="nav-icon">🧳</span>Sac à dos</div>
         </div>
     </div>
 
     <script>
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkM2NhYTBiOC0wY2I5LTRmNzktOGQ2MC01ZWVkNzMxNDBhYmUiLCJpZCI6NDAzMzMyLCJpYXQiOjE3NzM2NzI0MDd9.-d1jgaFy761lYpVClOHLzDPfyH4IyIGDGgdbOubqVp4';
 
-        // 🚨 1. FIX: CORRECTION CARTODB HD (@2x) ET BASECOLOR
-        const lightMap = new Cesium.UrlTemplateImageryProvider({ 
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', 
-            subdomains: ['a', 'b', 'c', 'd'],
-            credit: 'CartoDB HD' 
-        });
-        const darkMap = new Cesium.UrlTemplateImageryProvider({ 
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png', 
-            subdomains: ['a', 'b', 'c', 'd'],
-            credit: 'CartoDB HD' 
-        });
-
-        // 🚨 2. FIX FATAL ERROR: UTILISATION DE LA SYNTAXE CESIUM ACTUELLE
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrain: Cesium.Terrain.fromWorldTerrain(),
-            imageryProvider: lightMap,
             animation: false, timeline: false, baseLayerPicker: false, geocoder: false, homeButton: false, navigationHelpButton: false, sceneModePicker: false, infoBox: false,
             requestRenderMode: true, maximumRenderTimeChange: Infinity
         });
-        
         viewer.cesiumWidget.creditContainer.style.display = "none";
-        viewer.scene.fog.enabled = false; 
-        viewer.scene.skyAtmosphere.enabled = false; 
-        viewer.scene.globe.maximumScreenSpaceError = 2.5;
-        // Couche de secours si réseau faible
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f5f7fa');
+        viewer.scene.fog.enabled = false; viewer.scene.skyAtmosphere.enabled = false; viewer.scene.globe.maximumScreenSpaceError = 2.5;
 
         const cc = viewer.scene.screenSpaceCameraController; 
         cc.enableTilt = true; cc.enableLook = true; cc.enableTranslate = true; cc.enableZoom = true; 
         cc.minimumZoomDistance = 500; cc.maximumZoomDistance = 15000000; 
 
-        // TRACÉ ET VILLES
-        const routeCoords = [
-            2.3522, 48.8566, 28.9784, 41.0082, 105.8342, 21.0278, 105.9800, 20.2539, 105.2280, 20.4533, 
-            107.0500, 20.7280, 105.8342, 21.0278, 107.5909, 16.4637, 108.3380, 15.8801, 108.5230, 15.9590, 108.2022, 16.0544
-        ];
-        viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray(routeCoords), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#06b6d4'), dashLength: 15.0 }) }});
-
-        const cities = [
-            { n: "Paris", lo: 2.3522, la: 48.8566, d: 0 }, { n: "Istanbul", lo: 28.9784, la: 41.0082, d: 0 }, 
-            { n: "Hanoï", lo: 105.8342, la: 21.0278, d: 1 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539, d: 3 },
-            { n: "Pu Luong", lo: 105.2280, la: 20.4533, d: 4 }, { n: "Lan Ha", lo: 107.0500, la: 20.7280, d: 6 },
-            { n: "Hué", lo: 107.5909, la: 16.4637, d: 8 }, { n: "Hoi An", lo: 108.3380, la: 15.8801, d: 9 },
-            { n: "Îles Cham", lo: 108.5230, la: 15.9590, d: 11 }, { n: "Da Nang", lo: 108.2022, la: 16.0544, d: 13 }
-        ];
-
-        cities.forEach(e => viewer.entities.add({ 
-            id: { dayIdx: e.d },
-            position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), 
-            point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#10b981'), outlineColor: Cesium.Color.WHITE, outlineWidth: 3 }, 
-            label: { text: "📍 " + e.n, font: 'bold 12pt sans-serif', fillColor: Cesium.Color.fromCssColorString('#0f172a'), style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.WHITE, outlineWidth: 4, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) } 
-        }));
-
-        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-        handler.setInputAction(function(click) {
-            const pickedObject = viewer.scene.pick(click.position);
-            if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.dayIdx !== undefined) {
-                changeDayTo(pickedObject.id.dayIdx);
-                document.getElementById('tab-planning').click();
-                if(isCollapsed) togglePanel();
-            }
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        Cesium.GeoJsonDataSource.load('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/VNM.geo.json', { stroke: Cesium.Color.fromCssColorString('#4ade80'), strokeWidth: 3, fill: Cesium.Color.fromCssColorString('#4ade80').withAlpha(0.05) }).then(ds => viewer.dataSources.add(ds));
+        [{ n: "Paris", lo: 2.3522, la: 48.8566 }, { n: "Istanbul", lo: 28.9784, la: 41.0082 }, { n: "Hanoï", lo: 105.8342, la: 21.0278 }, { n: "Ninh Binh", lo: 105.9800, la: 20.2539 }].forEach(e => viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(e.lo, e.la), point: { pixelSize: 8, color: Cesium.Color.fromCssColorString('#4ade80'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }, label: { text: e.n, font: 'bold 10pt sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineColor: Cesium.Color.BLACK, outlineWidth: 2, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -8) } }));
+        viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([2.3522, 48.8566, 28.9784, 41.0082]), width: 2, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }}); 
+        viewer.entities.add({ polyline: { positions: Cesium.Cartesian3.fromDegreesArray([28.9784, 41.0082, 105.8342, 21.0278]), width: 2, material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.CYAN }) }});
 
         const DEFAULT_VOYAGE = [
-            { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "Vol Paris -> Istanbul", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "Vol Istanbul -> Hanoï (14h00)", logements: [{ nom: "Aimee House", lien: "https://maps.app.goo.gl/xxx" }], activites: [{ nom: "Balade Lac Hoan Kiem", lien: "", periode: "aprem" }, { nom: "Dîner Bun Cha Hương Liên", lien: "", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 3, date: "15 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "", logements: [{ nom: "Aimee House", lien: "" }], activites: [{ nom: "Quartier Vieux Hanoï", lien: "", periode: "matin" }, { nom: "Train Street", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000, transport: "Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "" }], activites: [{ nom: "Barque à Trang An", lien: "", periode: "matin" }, { nom: "Coucher de soleil Hang Mua", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 5, date: "17 Avril", ville: "Ninh Binh -> Pu Luong", lat: 20.4533, lon: 105.2280, zoomMap: 90000, transport: "Transfert Van Pu Luong", logements: [{ nom: "Réserve Pu Luong", lien: "" }], activites: [{ nom: "Arrivée et repos dans la jungle", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 6, date: "18 Avril", ville: "Pu Luong", lat: 20.4533, lon: 105.2280, zoomMap: 70000, transport: "", logements: [{ nom: "Réserve Pu Luong", lien: "" }], activites: [{ nom: "Trek Rizières", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 7, date: "19 Avril", ville: "Lan Ha Bay", lat: 20.7280, lon: 107.0500, zoomMap: 120000, transport: "Transfert Baie d'Halong/Lan Ha", logements: [{ nom: "Bateau Croisière", lien: "" }], activites: [{ nom: "Embarquement Croisière", lien: "", periode: "matin" }, { nom: "Kayak Baie de Lan Ha", lien: "", periode: "aprem" }], alerts: ["Payer le solde de la croisière en cash"], journal: {stars:0, text:""} },
-            { jour: 8, date: "20 Avril", ville: "Lan Ha -> Train de Nuit", lat: 21.0285, lon: 105.8542, zoomMap: 200000, transport: "Train de Nuit Hanoï -> Hué", logements: [{ nom: "Cabine Couchette", lien: "" }], activites: [{ nom: "Retour de croisière", lien: "", periode: "matin" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 9, date: "21 Avril", ville: "Hué", lat: 16.4637, lon: 107.5909, zoomMap: 60000, transport: "Arrivée Hué (Matin)", logements: [{ nom: "Hôtel Hué", lien: "" }], activites: [{ nom: "Cité Impériale", lien: "", periode: "matin" }, { nom: "Tombeaux des Empereurs", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 10, date: "22 Avril", ville: "Hué -> Hoi An", lat: 15.8801, lon: 108.3380, zoomMap: 150000, transport: "Voiture via Col des Nuages", logements: [{ nom: "Hôtel Hoi An", lien: "" }], activites: [{ nom: "Arrêt photo Col des Nuages", lien: "", periode: "matin" }, { nom: "Découverte Hoi An de nuit", lien: "", periode: "soir" }], alerts: ["Réserver le bateau pour les Îles Cham"], journal: {stars:0, text:""} },
-            { jour: 11, date: "23 Avril", ville: "Hoi An", lat: 15.8801, lon: 108.3380, zoomMap: 40000, transport: "Scooter / Vélo", logements: [{ nom: "Hôtel Hoi An", lien: "" }], activites: [{ nom: "Vieille ville & Lanternes", lien: "", periode: "matin" }, { nom: "Plage An Bang", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 12, date: "24 Avril", ville: "Îles Cham", lat: 15.9590, lon: 108.5230, zoomMap: 50000, transport: "Bateau Rapide (Matin)", logements: [{ nom: "Homestay Îles Cham", lien: "" }], activites: [{ nom: "Snorkeling", lien: "", periode: "matin" }, { nom: "Tour de l'île en scooter", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 13, date: "25 Avril", ville: "Îles Cham -> Da Nang", lat: 16.0544, lon: 108.2022, zoomMap: 90000, transport: "Bateau + Voiture Da Nang", logements: [{ nom: "Hôtel Da Nang", lien: "" }], activites: [{ nom: "Pont du Dragon", lien: "", periode: "soir" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 14, date: "26 Avril", ville: "Da Nang", lat: 16.0544, lon: 108.2022, zoomMap: 80000, transport: "", logements: [{ nom: "Hôtel Da Nang", lien: "" }], activites: [{ nom: "Montagnes de Marbre", lien: "", periode: "matin" }, { nom: "Lady Buddha", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 15, date: "27 Avril", ville: "Da Nang -> Départ", lat: 16.0544, lon: 108.2022, zoomMap: 8000000, transport: "Vol Da Nang -> Hanoï -> Istanbul", logements: [], activites: [{ nom: "Derniers achats", lien: "", periode: "matin" }, { nom: "Aéroport de Da Nang", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} },
-            { jour: 16, date: "28 Avril", ville: "Retour France", lat: 48.8566, lon: 2.3522, zoomMap: 8000000, transport: "Vol Istanbul -> Paris", logements: [], activites: [{ nom: "Arrivée à la maison", lien: "", periode: "aprem" }], alerts: [], journal: {stars:0, text:""} }
+            { jour: 1, date: "13 Avril", ville: "Départ", lat: 41.0082, lon: 28.9784, zoomMap: 8000000, transport: "✈️ Vol Paris -> Istanbul -> Hanoï", logements: [], activites: [{ nom: "Escale à Istanbul", lien: "https://www.google.com/maps/search/?api=1&query=Istanbul+Airport" }] },
+            { jour: 2, date: "14 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "✈️ Arrivée Hanoï 14h00", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Balade Lac Hoan Kiem", lien: "https://www.google.com/maps/search/?api=1&query=Hoan+Kiem+Lake+Hanoi" }, { nom: "Dîner Bun Cha Hương Liên", lien: "https://www.google.com/maps/search/?api=1&query=Bun+Cha+Huong+Lien+Hanoi" }] },
+            { jour: 3, date: "15 Avril", ville: "Hanoï", lat: 21.0285, lon: 105.8542, zoomMap: 60000, transport: "", logements: [{ nom: "Aimee House", lien: "https://www.google.com/maps/search/?api=1&query=Aimee+House+Hanoi" }], activites: [{ nom: "Quartier Vieux Hanoï", lien: "https://www.google.com/maps/search/?api=1&query=Old+Quarter+Hanoi" }, { nom: "Train Street", lien: "https://www.google.com/maps/search/?api=1&query=Train+Street+Hanoi" }] },
+            { jour: 4, date: "16 Avril", ville: "Ninh Binh", lat: 20.2539, lon: 105.9800, zoomMap: 80000, transport: "🚌 Bus 12GO (Matin)", logements: [{ nom: "Hang Mua Ecolodge", lien: "https://www.google.com/maps/search/?api=1&query=Hang+Mua+Ecolodge+Ninh+Binh" }], activites: [{ nom: "Barque à Trang An", lien: "https://www.google.com/maps/search/?api=1&query=Trang+An+Ninh+Binh" }, { nom: "Coucher de soleil Hang Mua", lien: "https://www.google.com/maps/search/?api=1&query=Mua+Caves+Ninh+Binh" }] }
         ];
 
-        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_final')) || DEFAULT_VOYAGE;
-        function saveVoyage() { localStorage.setItem('vn_mon_voyage_final', JSON.stringify(monVoyage)); renderDay(); }
+        let monVoyage = JSON.parse(localStorage.getItem('vn_mon_voyage_v3_4')) || DEFAULT_VOYAGE;
+        function saveVoyage() { localStorage.setItem('vn_mon_voyage_v3_4', JSON.stringify(monVoyage)); renderDay(); }
 
-        // 🚨 3. FIX DU BUG DEEP LINK (Google Maps)
         function formatMapLink(input) {
             if (!input) return ""; let trimmed = input.trim();
             if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
-        }
-        
-        function getTransportIcon(text) {
-            const t = text.toLowerCase();
-            if (t.includes('bus') || t.includes('van') || t.includes('transfert')) return '🚌';
-            if (t.includes('train')) return '🚆';
-            if (t.includes('bateau') || t.includes('croisière') || t.includes('ferry') || t.includes('speed')) return '🚤';
-            if (t.includes('voiture') || t.includes('taxi') || t.includes('grab')) return '🚗';
-            if (t.includes('scooter') || t.includes('moto')) return '🛵';
-            if (t.includes('vélo') || t.includes('velo')) return '🚲';
-            return '✈️';
+            return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(trimmed);
         }
 
-        let currentDayIdx = 0; let isCollapsed = false; let lastClickedCarouselDay = -1;
-
-        function autoFocusToday() {
-            const tripStart = new Date("2026-04-13T00:00:00").getTime();
-            const now = Date.now();
-            const dayDiff = Math.floor((now - tripStart) / (1000 * 3600 * 24));
-            if (dayDiff >= 0 && dayDiff < monVoyage.length) { currentDayIdx = dayDiff; } 
-            else if (dayDiff >= monVoyage.length) { currentDayIdx = monVoyage.length - 1; }
-        }
-        autoFocusToday();
-        
-        function changeDay(dir) { changeDayTo(currentDayIdx + dir); }
-        function changeDayTo(idx) {
-            currentDayIdx = idx;
-            if(currentDayIdx < 0) currentDayIdx = 0; 
-            if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; 
-            renderDay(); updateCarouselUI();
-        }
-
-        function updateGlobalProgress() {
-            const tripStart = new Date("2026-04-13T00:00:00").getTime();
-            const tripEnd = new Date("2026-04-28T23:59:59").getTime();
-            const now = Date.now();
-            const container = document.getElementById('progress-container-div');
-            
-            if (now < tripStart) {
-                const daysLeft = Math.ceil((tripStart - now) / (1000 * 3600 * 24));
-                container.innerHTML = `<div style="font-size:11px; font-weight:800; color:var(--primary); text-align:center; margin-top:8px;">⏳ Départ dans ${daysLeft} jours</div>`;
-            } else {
-                let prog = now >= tripEnd ? 100 : ((now - tripStart) / (tripEnd - tripStart)) * 100;
-                container.innerHTML = `<div class="progress-container"><div id="trip-progress" class="progress-bar" style="width:${prog}%"></div></div>`;
-            }
-        }
+        let currentDayIdx = 0; let isCollapsed = false;
+        function changeDay(dir) { currentDayIdx += dir; if(currentDayIdx < 0) currentDayIdx = 0; if(currentDayIdx >= monVoyage.length) currentDayIdx = monVoyage.length - 1; renderDay(); }
 
         function updateCamera() {
             const d = monVoyage[currentDayIdx];
             const isClose = d.zoomMap < 1000000; const isMobile = window.innerWidth < 768; 
-            let latOffset = isClose ? (d.zoomMap * 0.000004) : 0; let lonOffset = 0;
+            let latOffset = isClose ? (d.zoomMap * 0.000005) : 0; let lonOffset = 0;
             const planningIsActive = document.getElementById('tab-planning').classList.contains('active');
 
             if (isMobile && !isCollapsed && planningIsActive) { latOffset += (d.zoomMap * 0.000003); } 
@@ -462,9 +283,6 @@
 
         function renderDay() {
             const d = monVoyage[currentDayIdx];
-            if (!d.journal) d.journal = {stars:0, text:""}; 
-            if (!d.alerts) d.alerts = [];
-
             document.getElementById('day-title').innerText = `Jour ${d.jour}`; document.getElementById('day-date').innerText = `${d.date} - ${d.ville}`;
             updateCamera();
 
@@ -472,170 +290,66 @@
             .then(res => res.json()).then(data => { const temp = Math.round(data.daily.temperature_2m_max[0]); document.getElementById('weather-box').innerText = `🌡️ ${temp}°C prévu`; })
             .catch(() => document.getElementById('weather-box').innerText = `⛅ Météo indispo`);
 
-            let html = '<div class="premium-timeline">';
-            let isFirstNode = true; 
+            let html = '<div class="timeline">';
+            let isFirstNode = true; // Pour animer le premier élément
             
-            if(d.transport || d.alerts.length > 0) { html += `<div class="time-header">🛫 Départ & Rappels</div>`; }
-
+            // 1. TRANSPORT
             if(d.transport) {
-                let tIcon = getTransportIcon(d.transport);
                 html += `
                 <div class="timeline-item">
                     <div class="timeline-dot dot-transport ${isFirstNode ? 'pulse-dot' : ''}"></div>
-                    <div class="timeline-content ticket-style">
-                        <div class="timeline-text"><span style="font-size:18px;">${tIcon}</span> <span style="flex-grow:1;">${d.transport}</span></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title" style="color:#38bdf8;">🚌 Déplacement</div>
+                        <div class="timeline-text">${d.transport}</div>
                     </div>
                 </div>`;
                 isFirstNode = false;
             }
-
-            d.alerts.forEach((al, idx) => {
-                html += `
-                <div class="timeline-item">
-                    <div class="timeline-dot dot-alert ${isFirstNode ? 'pulse-dot' : ''}"></div>
-                    <div class="timeline-content alert-style">
-                        <div class="timeline-text" style="color:#ef4444;"><span style="font-size:18px;">🔔</span><span style="flex-grow:1;">${al}</span></div>
-                        <div class="timeline-action"><button onclick="delAlert(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#ef4444;font-size:14px;cursor:pointer;font-weight:bold;">✕</button></div>
-                    </div>
-                </div>`;
-                isFirstNode = false;
-            });
             
-            let matin = []; let aprem = [];
-            d.activites.forEach((a, i) => { let p = a.periode; if(!p) p = (i < d.activites.length / 2) ? 'matin' : 'aprem'; if(p === 'aprem' || p === 'soir') aprem.push({a, i}); else matin.push({a, i}); });
-
-            if(matin.length > 0) html += `<div class="time-header">🌅 Matin</div>`;
-            matin.forEach(item => {
+            // 2. LOGEMENTS
+            d.logements.forEach((l, idx) => {
                 html += `
                 <div class="timeline-item">
-                    <div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div>
+                    <div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div>
                     <div class="timeline-content">
-                        <div class="timeline-text"><span>${item.a.nom}</span></div>
-                        <div class="timeline-action">
-                            ${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Aller ↗</a>` : ''}
-                            <button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button>
+                        <div class="timeline-title" style="color:#a855f7;">🏨 Logement <button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
+                        <div class="timeline-text">
+                            <span>${l.nom}</span>
+                            ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link">Aller 📍</a>` : ''}
                         </div>
                     </div>
                 </div>`;
                 isFirstNode = false;
             });
 
-            if(aprem.length > 0) html += `<div class="time-header">☀️ Après-midi & Soir</div>`;
-            aprem.forEach(item => {
+            // 3. ACTIVITÉS
+            d.activites.forEach((a, idx) => {
                 html += `
                 <div class="timeline-item">
                     <div class="timeline-dot dot-activity ${isFirstNode ? 'pulse-dot' : ''}"></div>
                     <div class="timeline-content">
-                        <div class="timeline-text"><span>${item.a.nom}</span></div>
-                        <div class="timeline-action">
-                            ${item.a.lien ? `<a href="${item.a.lien}" target="_blank" class="item-link">Aller ↗</a>` : ''}
-                            <button onclick="delActivite(${currentDayIdx}, ${item.i})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button>
+                        <div class="timeline-title" style="color:var(--primary);">🎟️ Programme <button onclick="delActivite(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:#666;font-size:10px;cursor:pointer;">✕</button></div>
+                        <div class="timeline-text">
+                            <span>${a.nom}</span>
+                            ${a.lien ? `<a href="${a.lien}" target="_blank" class="item-link">Aller 📍</a>` : ''}
                         </div>
                     </div>
                 </div>`;
                 isFirstNode = false;
             });
 
-            if(d.logements.length > 0) {
-                html += `<div class="time-header">🌙 Nuit & Logement</div>`;
-                d.logements.forEach((l, idx) => {
-                    html += `
-                    <div class="timeline-item">
-                        <div class="timeline-dot dot-hotel ${isFirstNode ? 'pulse-dot' : ''}"></div>
-                        <div class="timeline-content">
-                            <div class="timeline-text"><span>🏨 ${l.nom}</span></div>
-                            <div class="timeline-action">
-                                ${l.lien ? `<a href="${l.lien}" target="_blank" class="item-link" style="background:rgba(168, 85, 247, 0.1); color:#a855f7; border-color:rgba(168, 85, 247, 0.2);">Y aller ↗</a>` : ''}
-                                <button onclick="delLogement(${currentDayIdx}, ${idx})" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:bold;">✕</button>
-                            </div>
-                        </div>
-                    </div>`;
-                    isFirstNode = false;
-                });
-            }
+            html += '</div>'; // Fin de la timeline
 
-            html += '</div>'; 
-
-            html += `<div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:800; margin-top:20px; margin-left:12px;">+ Ajouter une étape</div>`;
-            html += `
-            <div class="custom-add" style="flex-wrap:wrap;">
-                <input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto..." style="width:100%;">
-                <div style="display:flex; gap:8px; width:100%;">
-                    <input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps ou Mot clé">
-                    <select id="add-act-time" class="custom-input" style="width:auto;">
-                        <option value="matin">Matin</option>
-                        <option value="aprem">Aprem / Soir</option>
-                    </select>
-                    <button class="btn-pill" style="padding:0 15px; font-size:18px;" onclick="addActivite(${currentDayIdx})">+</button>
-                </div>
-            </div>`;
-
-            let starsHtml = '';
-            for(let i=1; i<=5; i++) { starsHtml += `<span class="${i <= d.journal.stars ? 'active' : ''}" onclick="setStars(${currentDayIdx}, ${i})">★</span>`; }
-
-            html += `
-            <div class="journal-box">
-                <div style="font-size:12px; color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:8px; text-align:center;">📖 Bilan du jour</div>
-                <div class="star-rating">${starsHtml}</div>
-                <div class="keyword-chips">
-                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🥵 Chaleur extrême')">🥵 Chaud</span>
-                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🤤 Régal absolu')">🤤 Régal</span>
-                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🛵 Scooter trip')">🛵 Scooter</span>
-                    <span class="chip" onclick="addKeyword(${currentDayIdx}, '🤕 Fatigué(e)')">🤕 KO</span>
-                </div>
-                <div style="display:flex; gap:8px;">
-                    <textarea id="journal-txt-${currentDayIdx}" class="journal-textarea" placeholder="Note du soir (Tape ou dicte...)" onblur="saveJournalText(${currentDayIdx})">${d.journal.text}</textarea>
-                    <button class="mic-btn" id="mic-${currentDayIdx}" onclick="startDictation(${currentDayIdx})">🎙️</button>
-                </div>
-            </div>`;
+            // 4. FORMULAIRES D'AJOUT RAPIDE (Hors de la timeline)
+            html += `<div style="font-size:10px; color:#666; text-transform:uppercase; font-weight:bold; margin-top:15px; margin-left:10px;">+ Ajouter une étape</div>`;
+            html += `<div class="custom-add"><input type="text" id="add-act-name" class="custom-input" placeholder="Lieu, resto, note..."><input type="text" id="add-act-link" class="custom-input" placeholder="Lien Maps ou Adresse"><button onclick="addActivite(${currentDayIdx})" style="background:var(--primary); color:black; border:none; border-radius:6px; font-weight:bold; padding:0 12px; cursor:pointer;">+</button></div>`;
 
             document.getElementById('day-content').innerHTML = html;
         }
 
         window.delLogement = (dayIdx, itemIdx) => { monVoyage[dayIdx].logements.splice(itemIdx, 1); saveVoyage(); };
         window.delActivite = (dayIdx, itemIdx) => { monVoyage[dayIdx].activites.splice(itemIdx, 1); saveVoyage(); };
-        window.delAlert = (dayIdx, itemIdx) => { monVoyage[dayIdx].alerts.splice(itemIdx, 1); saveVoyage(); };
-        
-        window.addActivite = (dayIdx) => { 
-            const nom = document.getElementById('add-act-name').value; 
-            const lien = formatMapLink(document.getElementById('add-act-link').value); 
-            const periode = document.getElementById('add-act-time').value;
-            
-            if(nom) { 
-                if(nom.toLowerCase().includes('payer') || nom.toLowerCase().includes('rappel') || nom.toLowerCase().includes('alerte')) {
-                    monVoyage[dayIdx].alerts.push(nom);
-                } else {
-                    monVoyage[dayIdx].activites.push({nom: nom, lien: lien, periode: periode}); 
-                }
-                saveVoyage(); 
-            } 
-        };
-
-        window.setStars = (dayIdx, val) => { monVoyage[dayIdx].journal.stars = val; saveVoyage(); };
-        window.addKeyword = (dayIdx, word) => { const txt = document.getElementById(`journal-txt-${dayIdx}`); txt.value += `[${word}] `; monVoyage[dayIdx].journal.text = txt.value; saveVoyage(); };
-        window.saveJournalText = (dayIdx) => { monVoyage[dayIdx].journal.text = document.getElementById(`journal-txt-${dayIdx}`).value; saveVoyage(); };
-
-        window.startDictation = (dayIdx) => {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Désolé, ton navigateur ne supporte pas la dictée."); return; }
-            
-            const btn = document.getElementById(`mic-${dayIdx}`);
-            const txtArea = document.getElementById(`journal-txt-${dayIdx}`);
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'fr-FR'; 
-            recognition.interimResults = false;
-
-            recognition.onstart = function() { btn.classList.add('recording'); };
-            recognition.onresult = function(event) {
-                const speechResult = event.results[0][0].transcript;
-                txtArea.value += speechResult + " ";
-                monVoyage[dayIdx].journal.text = txtArea.value;
-                saveVoyage();
-            };
-            recognition.onerror = function() { btn.classList.remove('recording'); };
-            recognition.onend = function() { btn.classList.remove('recording'); };
-            recognition.start();
-        };
+        window.addActivite = (dayIdx) => { const nom = document.getElementById('add-act-name').value; const lien = formatMapLink(document.getElementById('add-act-link').value); if(nom) { monVoyage[dayIdx].activites.push({nom: nom, lien: lien}); saveVoyage(); } };
 
         window.togglePanel = () => {
             const panel = document.getElementById('view-etapes'); const btn = document.getElementById('toggle-panel-btn');
@@ -644,53 +358,17 @@
             updateCamera(); 
         };
 
-        function toggleTheme() { 
-            document.body.classList.toggle('dark-theme'); 
-            if(document.body.classList.contains('dark-theme')) {
-                viewer.scene.imageryLayers.removeAll();
-                viewer.scene.imageryLayers.addImageryProvider(darkMap);
-                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b1120');
-            } else {
-                viewer.scene.imageryLayers.removeAll();
-                viewer.scene.imageryLayers.addImageryProvider(lightMap);
-                viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#f5f7fa');
-            }
-        }
-
-        function initCarousel() {
-            let html = '';
-            monVoyage.forEach((d, i) => { html += `<div class="carousel-pill ${i===currentDayIdx ? 'active':''}" onclick="handleCarouselClick(${i})">J${d.jour} - ${d.ville.split('->')[0].trim().toUpperCase()}</div>`; });
-            document.getElementById('mini-nav-carousel').innerHTML = html;
-        }
-
-        function updateCarouselUI() {
-            const pills = document.querySelectorAll('.carousel-pill');
-            pills.forEach((p, i) => { if(i === currentDayIdx) { p.classList.add('active'); p.scrollIntoView({behavior: "smooth", inline: "center"}); } else { p.classList.remove('active'); }});
-        }
-
-        window.handleCarouselClick = (idx) => {
-            if (lastClickedCarouselDay === idx) { document.getElementById('tab-planning').click(); lastClickedCarouselDay = -1; } 
-            else { changeDayTo(idx); lastClickedCarouselDay = idx; }
-        };
+        function toggleTheme() { document.body.classList.toggle('light-theme'); }
         
         const navItems = document.querySelectorAll('.nav-item'), views = document.querySelectorAll('.app-view');
         navItems.forEach(i => i.addEventListener('click', () => { 
             navItems.forEach(n => n.classList.remove('active')); views.forEach(v => { v.style.display = 'none'; }); 
             i.classList.add('active'); const t = i.getAttribute('data-target'); 
-            
-            if (t === 'none') { document.getElementById('mini-nav-carousel').style.display = 'flex'; } 
-            else { document.getElementById('mini-nav-carousel').style.display = 'none'; }
-
             if(t !== 'none') { document.getElementById(t).style.display = 'flex'; if(t === 'view-etapes') { document.getElementById('view-etapes').classList.remove('collapsed'); document.getElementById('toggle-panel-btn').innerText='🔽'; isCollapsed=false; } }
             updateCamera(); viewer.scene.requestRender(); 
         }));
 
-        setInterval(() => { 
-            const now = new Date(); 
-            document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); 
-            document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); 
-            updateGlobalProgress();
-        }, 1000);
+        setInterval(() => { const now = new Date(); document.getElementById("time-fr").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit'}); document.getElementById("time-vn").innerText = now.toLocaleTimeString('fr-FR', {timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute:'2-digit'}); }, 1000);
 
         let exchangeRate = parseFloat(localStorage.getItem('vn_exchange_rate')) || 27500;
         fetch('https://api.exchangerate-api.com/v4/latest/EUR').then(r => r.json()).then(d => { exchangeRate = d.rates.VND; localStorage.setItem('vn_exchange_rate', exchangeRate); document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (En direct)`; }).catch(() => { document.getElementById('rate-display').innerText = `1 € = ${exchangeRate.toLocaleString('fr-FR')} ₫ (Hors-ligne)`; });
@@ -698,31 +376,24 @@
         window.convertVndToEur = () => { let vnd = parseFloat(document.getElementById('conv-vnd').value) || 0; document.getElementById('conv-eur').value = (vnd / exchangeRate).toFixed(2); };
         window.calcGrab = () => { let km = parseFloat(document.getElementById('grab-km').value) || 0; if (km > 0) { let price = 20000 + (km * 15000); document.getElementById('grab-result').innerText = `~ ${price.toLocaleString('fr-FR')} ₫`; } else { document.getElementById('grab-result').innerText = "0 ₫"; } };
 
-        // 🚨 4. FIX BUG BUDGET : LE COMPTEUR PRINCIPAL EST MIS À JOUR
-        let exps = JSON.parse(localStorage.getItem('vn_b_exps_premium')) || [];
-        function updateBudget() { 
-            let total = 0; let html = ''; 
-            exps.forEach((e, idx) => { 
-                total += parseFloat(e.aE); 
-                html += `<div class="info-line" style="border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><span style="display:flex; align-items:center; flex-grow:1;"><span class="budget-tag">${e.ville}</span> ${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer; font-weight:bold; margin-left:8px;">✕</button></div>`; 
-            }); 
-            // Mise à jour du GROS compteur en haut de la page Budget
-            const budgetSpentElem = document.getElementById('budget-spent');
-            if(budgetSpentElem) budgetSpentElem.innerText = `${total.toFixed(2)} €`;
-            
-            document.getElementById('expense-list').innerHTML = html; 
-        }
-        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if(!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; const villeActuelle = monVoyage[currentDayIdx].ville.split('->')[0].trim(); exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq, ville: villeActuelle }); localStorage.setItem('vn_b_exps_premium', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
-        window.delExp = (idx) => { exps.splice(idx,1); localStorage.setItem('vn_b_exps_premium', JSON.stringify(exps)); updateBudget(); };
-        
-        initCarousel(); updateGlobalProgress(); renderDay(); updateBudget();
+        let exps = JSON.parse(localStorage.getItem('vn_b_exps_v3')) || [];
+        function updateBudget() { let total = 0; let html = ''; exps.forEach((e, idx) => { total += parseFloat(e.aE); html += `<div class="info-line" style="justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:5px;"><span>${e.d}</span> <strong>${e.a} ${e.c}</strong> <button onclick="delExp(${idx})" style="background:transparent;border:none;color:var(--danger);cursor:pointer;">✕</button></div>`; }); document.getElementById('budget-spent').innerText = `${total.toFixed(2)} €`; document.getElementById('expense-list').innerHTML = html; }
+        window.addExpense = () => { const amt = document.getElementById('exp-amount').value; const desc = document.getElementById('exp-desc').value || "Dépense"; const cur = document.getElementById('exp-currency').value; if(!amt) return; const eurEq = cur === 'VND' ? (amt / exchangeRate).toFixed(2) : amt; exps.unshift({ d: desc, a: amt, c: cur, aE: eurEq }); localStorage.setItem('vn_b_exps_v3', JSON.stringify(exps)); document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; updateBudget(); };
+        window.delExp = (idx) => { exps.splice(idx,1); localStorage.setItem('vn_b_exps_v3', JSON.stringify(exps)); updateBudget(); };
+        renderDay(); updateBudget();
 
-        let checklist = JSON.parse(localStorage.getItem('vn_checklist_p')) || [{t: "Passeports & Visas", c: false}, {t: "Permis de Conduire", c: false}, {t: "Répulsif Moustique", c: false}];
-        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { let checkedStyle = item.c ? "text-decoration: line-through; color: var(--text-muted);" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:8px; margin-bottom:8px;"><div style="display:flex; align-items:center; gap:12px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.3); accent-color:var(--primary);"><span style="${checkedStyle} font-size:14px; font-weight:bold;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist_p', JSON.stringify(checklist)); }
+        let checklist = JSON.parse(localStorage.getItem('vn_checklist')) || [{t: "Passeports & Visas", c: false}, {t: "Permis de Conduire International", c: false}, {t: "Répulsif Moustique (50% DEET)", c: false}];
+        function updateChecklist() { let html = ''; checklist.forEach((item, idx) => { let checkedStyle = item.c ? "text-decoration: line-through; color: #666;" : "color: var(--text);"; html += `<div class="info-line" style="align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;"><div style="display:flex; align-items:center; gap:10px;"><input type="checkbox" ${item.c ? 'checked' : ''} onchange="toggleCheck(${idx})" style="transform:scale(1.2); accent-color:var(--primary);"><span style="${checkedStyle} font-size:13px;">${item.t}</span></div><button onclick="delCheck(${idx})" style="background:transparent;border:none;color:#666;cursor:pointer;font-weight:bold;">✕</button></div>`; }); document.getElementById('checklist-container').innerHTML = html; localStorage.setItem('vn_checklist', JSON.stringify(checklist)); }
         window.toggleCheck = (idx) => { checklist[idx].c = !checklist[idx].c; updateChecklist(); }; window.delCheck = (idx) => { checklist.splice(idx, 1); updateChecklist(); }; window.addCheck = () => { const v = document.getElementById('check-input').value; if(v) { checklist.push({t: v, c: false}); document.getElementById('check-input').value = ''; updateChecklist(); } }; updateChecklist();
 
         window.speakVN = (text) => { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; speechSynthesis.speak(utterance); };
         window.translateAndSpeak = async () => { const input = document.getElementById('trans-input').value; if(!input) return; const resDiv = document.getElementById('trans-result'); resDiv.innerText = "⏳ Traduction..."; try { const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=fr|vi`); const data = await response.json(); const translated = data.responseData.translatedText; resDiv.innerText = `« ${translated} »`; speakVN(translated); } catch(e) { resDiv.innerText = "❌ Pas de réseau"; } };
+
+        let photos = JSON.parse(localStorage.getItem('vn_photos')) || { food: [], receipt: [] };
+        function renderPhotos(cat) { const gal = document.getElementById(`gallery-${cat}`); gal.innerHTML = ''; photos[cat].forEach((p, idx) => { gal.innerHTML += `<div style="position:relative;"><img src="${p}" style="height:60px; width:60px; object-fit:cover; border-radius:8px; border:1px solid var(--glass-border);"><button onclick="delPhoto('${cat}', ${idx})" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:8px; cursor:pointer;">✕</button></div>`; }); }
+        window.savePhoto = (e, cat) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { photos[cat].unshift(ev.target.result); localStorage.setItem('vn_photos', JSON.stringify(photos)); renderPhotos(cat); }; r.readAsDataURL(f); };
+        window.delPhoto = (cat, idx) => { photos[cat].splice(idx, 1); localStorage.setItem('vn_photos', JSON.stringify(photos)); renderPhotos(cat); };
+        renderPhotos('food'); renderPhotos('receipt');
         
         window.geolocateMe = () => { if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(pos.coords.longitude, pos.coords.latitude, 5000), duration: 2 }); viewer.scene.requestRender(); }); }};
     </script>
