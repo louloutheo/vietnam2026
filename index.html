@@ -14,12 +14,18 @@
 
     <div id="desktop-ui">
         <os-window title="💸 Budget Vietnam" style="top: 50px; left: 50px; width: 350px;">
-            <div style="padding: 20px;">
-                <h2 style="margin: 0; font-size: 2rem;">0,00 €</h2>
-                <p style="color: #aaa; margin-top: 5px;">Total des dépenses</p>
-                <button style="margin-top: 15px; padding: 10px; width: 100%; border-radius: 8px; border: none; background: #4CAF50; color: white; cursor: pointer; font-weight: bold;">
-                    + Ajouter une dépense
-                </button>
+            <div class="budget-app">
+                <h2 id="total-budget" style="margin: 0; font-size: 2.5rem; text-align: center;">0,00 €</h2>
+                <p style="color: #aaa; text-align: center; margin-top: 5px; margin-bottom: 20px;">Total dépensé</p>
+                
+                <div class="budget-form">
+                    <input type="number" id="expense-amount" placeholder="€" step="0.01">
+                    <input type="text" id="expense-desc" placeholder="Quoi ? (ex: Phở)">
+                    <button id="add-expense-btn">+</button>
+                </div>
+
+                <ul id="expense-list" class="expense-list">
+                    </ul>
             </div>
         </os-window>
     </div>

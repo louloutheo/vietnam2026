@@ -57,3 +57,48 @@ os-window {
 
 .window-close:hover { background: #ff4757; }
 .window-content { flex-grow: 1; }
+
+/* --- UI BUDGET --- */
+.budget-app { padding: 20px; display: flex; flex-direction: column; max-height: 400px; }
+
+.budget-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.budget-form input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    padding: 10px;
+    outline: none;
+}
+
+#expense-amount { width: 70px; text-align: center; }
+#expense-desc { flex-grow: 1; }
+
+.budget-form button {
+    background: #4CAF50; border: none; border-radius: 8px;
+    color: white; font-weight: bold; width: 40px; cursor: pointer;
+    transition: 0.2s;
+}
+.budget-form button:hover { background: #45a049; }
+
+.expense-list {
+    list-style: none; padding: 0; margin: 0;
+    overflow-y: auto; flex-grow: 1;
+}
+
+/* Scrollbar invisible pour le style OS */
+.expense-list::-webkit-scrollbar { display: none; }
+
+.expense-item {
+    display: flex; justify-content: space-between;
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.9rem;
+}
+
+.exp-amount { font-weight: bold; color: #ff9f43; }
