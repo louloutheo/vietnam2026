@@ -8,28 +8,39 @@ export class OsWindow extends HTMLElement {
     }
 
     connectedCallback() {
+        // Sécurité : empêche la fenêtre de se recréer deux fois
+        if (this.querySelector('.window-header')) return; 
+
         const title = this.getAttribute('title') || 'Application';
-        const innerContent = this.innerHTML;
         
-        this.innerHTML = `
-            <div class="window-header">
-                <span class="window-title">${title}</span>
-                <button class="window-close">✕</button>
-            </div>
-            <div class="window-content">
-                ${innerContent}
-            </div>
+        // 1. On crée l'en-tête (Header) proprement
+        const header = document.createElement('div');
+        header.className = 'window-header';
+        header.innerHTML = `
+            <span class="window-title">${title}</span>
+            <button class="window-close">✕</button>
         `;
 
-        this.header = this.querySelector('.window-header');
+        // 2. On crée le conteneur pour ton contenu (le Budget)
+        const content = document.createElement('div');
+        content.className = 'window-content';
+
+        // 3. LA MAGIE : On déplace tes inputs dans le conteneur SANS les détruire
+        while (this.firstChild) {
+            content.appendChild(this.firstChild);
+        }
+
+        // 4. On assemble le tout dans le composant
+        this.appendChild(header);
+        this.appendChild(content);
+
+        this.header = header;
         this.setupEvents();
     }
 
     setupEvents() {
         if (window.matchMedia("(max-width: 768px)").matches) {
-            this.style.width = "90%";
-            this.style.left = "5%";
-            this.style.top = "5%";
+            this.style.width = "90%"; this.style.left = "5%"; this.style.top = "5%";
             return;
         }
 
