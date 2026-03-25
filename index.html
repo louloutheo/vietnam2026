@@ -4,15 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Vietnam 2026 - OS Ultimate</title>
-  <link rel="icon" type="image/png" href="./icon.png" />
-  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
+  <link rel="apple-touch-icon" href="./assets/icon.png" />
   <link rel="manifest" href="./manifest.json" />
+
   <link rel="stylesheet" href="./css/base.css" />
   <link rel="stylesheet" href="./css/theme.css" />
   <link rel="stylesheet" href="./css/layout.css" />
   <link rel="stylesheet" href="./css/windows.css" />
   <link rel="stylesheet" href="./css/components.css" />
   <link rel="stylesheet" href="./css/responsive.css" />
+
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
 </head>
@@ -24,12 +26,13 @@
       <div class="top-bar">
         <div class="glass-panel top-widget">
           <h1 class="brand-title">
-            <div class="brand-icon-wrap"><img src="./icon.png" alt="Vietnam 2026" class="brand-icon" /></div>
+            <div class="brand-icon-wrap"><img src="./assets/icon.png" alt="Vietnam 2026" class="brand-icon" /></div>
             <div class="brand-text-wrap"><span>VNM 26</span></div>
           </h1>
           <div class="top-times">🇻🇳 <span id="time-vn">--:--</span> | 🇫🇷 <span id="time-fr">--:--</span></div>
           <div id="progress-container-div"></div>
         </div>
+
         <div class="map-tools">
           <button class="round-btn" id="btn-geolocate" title="Ma position">🎯</button>
           <button class="round-btn" id="btn-theme" title="Mode UI">🌓</button>
@@ -92,13 +95,9 @@
 
             <div class="card">
               <h3 class="section-mini-title">🚨 Mémo Billets (VND)</h3>
-              <div class="vnd-bill bill-blue"><span>500k ₫ (Bleu)</span><span>~18.50 €</span></div>
-              <div class="vnd-bill bill-rose"><span>200k ₫ (Rose)</span><span>~7.40 €</span></div>
-              <div class="vnd-bill bill-green"><span>100k ₫ (Vert)</span><span>~3.70 €</span></div>
-              <div class="vnd-bill bill-brown"><span>50k ₫ (Brun)</span><span>~1.85 €</span></div>
-              <div class="vnd-bill bill-warning"><span>20k ₫ (⚠️ = 500k)</span><span>~0.75 €</span></div>
-              <div class="vnd-bill bill-yellow"><span>10k ₫ (Jaune)</span><span>~0.37 €</span></div>
+              <div id="banknote-grid"></div>
             </div>
+
             <h3 class="section-list-title">Aperçu des frais récents</h3>
             <div id="expense-list"></div>
           </div>
@@ -112,8 +111,8 @@
             <div class="card">
               <h3 class="section-mini-title">🤝 Règles d'or Locales</h3>
               <div class="survival-rules">
-                <b>🚦 Traverser :</b> Avance doucement, ne t'arrête JAMAIS, ne recule JAMAIS.<br />
-                <b>💰 Négociation :</b> Divise par 2 ou 3 au marché. Garde le sourire.<br />
+                <b>🚦 Traverser :</b> Avance doucement, ne t'arrête jamais, ne recule jamais.<br>
+                <b>💰 Négociation :</b> Divise par 2 ou 3 au marché. Garde le sourire.<br>
                 <b>💵 Pourboire :</b> Non requis, mais 10k-20k ₫ très appréciés.
               </div>
             </div>
@@ -156,6 +155,7 @@
       </div>
     </div>
   </div>
+
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>

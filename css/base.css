@@ -1,4 +1,3 @@
-
 *,*::before,*::after{box-sizing:border-box}
 :root{--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom);--font-main:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
 html,body{margin:0;padding:0;height:100%}
