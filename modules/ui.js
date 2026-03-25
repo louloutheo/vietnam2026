@@ -1,68 +1,79 @@
-﻿import { places, planningDays, budgetStats } from "../data/content.js";
+﻿import { tripDays, places, budgetBlocks } from "../data/content.js";
 import { googleMapsSearchUrl, googleMapsDirectionsUrl } from "./googleMaps.js";
 
-export function renderMapHome(container, onSelectPlace, onFocusVietnam) {
+export function renderDayCarousel(container, activeIndex, onSelect) {
   container.innerHTML = "";
 
-  const section = document.createElement("div");
-  section.className = "card-grid";
+  tripDays.forEach((day, index) => {
+    const btn = document.createElement("button");
+    btn.className = `day-pill${index === activeIndex ? " day-pill--active" : ""}`;
+    btn.innerHTML = `<span>${day.id}</span><span>${day.city.toUpperCase()}</span>`;
+    btn.addEventListener("click", () => onSelect(index));
+    container.appendChild(btn);
+  });
+
+  const active = container.querySelector(".day-pill--active");
+  active?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+}
+
+export function renderMapHome(container, onOpenPlace, onZoomVietnam) {
+  container.innerHTML = "";
+
+  const stack = document.createElement("div");
+  stack.className = "stack";
 
   const intro = document.createElement("article");
-  intro.className = "mini-card";
+  intro.className = "card";
   intro.innerHTML = `
-    <p class="section-label">Vue voyage</p>
+    <p class="section-title">Vue voyage</p>
     <h3>Le trajet au global</h3>
     <p>On garde une vision propre du voyage, puis on zoome sur les étapes quand il faut.</p>
     <div class="actions">
-      <button class="btn btn--primary js-focus-vietnam">Zoom Vietnam</button>
+      <button class="btn btn--primary js-vietnam">Zoom Vietnam</button>
     </div>
   `;
-
-  intro.querySelector(".js-focus-vietnam")?.addEventListener("click", onFocusVietnam);
+  intro.querySelector(".js-vietnam")?.addEventListener("click", onZoomVietnam);
 
   const list = document.createElement("div");
-  list.className = "card-grid";
+  list.className = "place-list";
 
-  for (const place of places) {
-    const [lng, lat] = place.coordinates;
-
+  places.forEach((place) => {
     const card = document.createElement("article");
     card.className = "place-card";
     card.innerHTML = `
-      <p class="section-label">${place.day} · ${place.category}</p>
+      <div class="place-card__meta">
+        <span class="kv">${place.dayId} · ${place.category}</span>
+      </div>
       <h3>${place.name}</h3>
       <p>${place.city}</p>
       <p>${place.description}</p>
       <div class="actions">
         <button class="btn btn--primary js-open">Ouvrir</button>
-        <a class="btn btn--soft" href="${googleMapsSearchUrl(lat, lng)}" target="_blank" rel="noreferrer">Google Maps</a>
+        <a class="btn" href="${googleMapsSearchUrl(place.mapQuery)}" target="_blank" rel="noreferrer">Google Maps</a>
       </div>
     `;
-
-    card.querySelector(".js-open")?.addEventListener("click", () => onSelectPlace(place));
+    card.querySelector(".js-open")?.addEventListener("click", () => onOpenPlace(place));
     list.appendChild(card);
-  }
+  });
 
-  section.appendChild(intro);
-  section.appendChild(list);
-  container.appendChild(section);
+  stack.appendChild(intro);
+  stack.appendChild(list);
+  container.appendChild(stack);
 }
 
 export function renderPlaceDetail(container, place, onBack) {
-  if (!place) return;
-
-  const [lng, lat] = place.coordinates;
-
   container.innerHTML = `
     <article class="place-card">
-      <p class="section-label">${place.day} · ${place.category}</p>
+      <div class="place-card__meta">
+        <span class="kv">${place.dayId} · ${place.category}</span>
+      </div>
       <h3>${place.name}</h3>
       <p>${place.city}</p>
       <p>${place.description}</p>
       <div class="actions">
-        <button class="btn btn--primary js-back">Retour carte</button>
-        <a class="btn" href="${googleMapsSearchUrl(lat, lng)}" target="_blank" rel="noreferrer">Voir</a>
-        <a class="btn" href="${googleMapsDirectionsUrl(lat, lng)}" target="_blank" rel="noreferrer">Y aller</a>
+        <button class="btn btn--primary js-back">Retour</button>
+        <a class="btn" href="${googleMapsSearchUrl(place.mapQuery)}" target="_blank" rel="noreferrer">Voir</a>
+        <a class="btn" href="${googleMapsDirectionsUrl(place.mapQuery)}" target="_blank" rel="noreferrer">Y aller</a>
       </div>
     </article>
   `;
@@ -70,73 +81,141 @@ export function renderPlaceDetail(container, place, onBack) {
   container.querySelector(".js-back")?.addEventListener("click", onBack);
 }
 
-export function renderPlanning(container, onSelectDayPlace) {
+export function renderPlanning(container, activeIndex, onSelectDay, onOpenPlaceForDay) {
   container.innerHTML = "";
 
-  const strip = document.createElement("div");
-  strip.className = "trip-strip";
+  const day = tripDays[activeIndex];
+  const linkedPlace = places.find((place) => place.dayId === day.id);
 
-  for (let i = 0; i < planningDays.length; i++) {
-    const day = planningDays[i];
-    const button = document.createElement("button");
-    button.className = `trip-pill${i === 0 ? " trip-pill--active" : ""}`;
-    button.textContent = day.title;
-    strip.appendChild(button);
-  }
+  const stack = document.createElement("div");
+  stack.className = "stack";
 
-  const list = document.createElement("div");
-  list.className = "card-grid";
+  const headerCard = document.createElement("article");
+  headerCard.className = "card";
+  headerCard.innerHTML = `
+    <p class="section-title">${day.date}</p>
+    <h3>${day.id} · ${day.city}</h3>
+    <p>${day.subtitle}</p>
+    <div class="actions">
+      <button class="btn js-prev">Jour précédent</button>
+      <button class="btn js-next">Jour suivant</button>
+    </div>
+  `;
 
-  for (const day of planningDays) {
-    const relatedPlace = places.find((place) => place.day === day.id);
+  headerCard.querySelector(".js-prev")?.addEventListener("click", () => {
+    onSelectDay(Math.max(0, activeIndex - 1));
+  });
 
-    const card = document.createElement("article");
-    card.className = "day-card";
-    card.innerHTML = `
-      <p class="section-label">${day.id}</p>
-      <h3>${day.title}</h3>
-      <p class="meta">${day.subtitle}</p>
-      <p>${day.note}</p>
-      ${relatedPlace ? `<div class="actions"><button class="btn btn--primary js-place">Voir l'étape liée</button></div>` : ""}
+  headerCard.querySelector(".js-next")?.addEventListener("click", () => {
+    onSelectDay(Math.min(tripDays.length - 1, activeIndex + 1));
+  });
+
+  const timelineCard = document.createElement("article");
+  timelineCard.className = "card";
+
+  let timelineHtml = `<p class="section-title">Déroulé</p><div class="timeline">`;
+
+  if (day.transport) {
+    timelineHtml += `
+      <div class="timeline-item timeline-item--transport">
+        <div class="timeline-head"><strong>Transport</strong></div>
+        <p>${day.transport}</p>
+      </div>
     `;
-
-    if (relatedPlace) {
-      card.querySelector(".js-place")?.addEventListener("click", () => onSelectDayPlace(relatedPlace));
-    }
-
-    list.appendChild(card);
   }
 
-  container.appendChild(strip);
-  container.appendChild(list);
+  if (day.stay) {
+    timelineHtml += `
+      <div class="timeline-item timeline-item--stay">
+        <div class="timeline-head"><strong>Logement</strong></div>
+        <p>${day.stay}</p>
+      </div>
+    `;
+  }
+
+  day.activities.forEach((activity) => {
+    timelineHtml += `
+      <div class="timeline-item">
+        <div class="timeline-head"><strong>${activity.name}</strong></div>
+        <p>${day.city}</p>
+      </div>
+    `;
+  });
+
+  if (day.alerts.length) {
+    day.alerts.forEach((alert) => {
+      timelineHtml += `
+        <div class="timeline-item timeline-item--alert">
+          <div class="timeline-head"><strong>Rappel</strong></div>
+          <p>${alert}</p>
+        </div>
+      `;
+    });
+  }
+
+  timelineHtml += `</div>`;
+  timelineCard.innerHTML = timelineHtml;
+
+  stack.appendChild(headerCard);
+  stack.appendChild(timelineCard);
+
+  if (linkedPlace) {
+    const linkedCard = document.createElement("article");
+    linkedCard.className = "card";
+    linkedCard.innerHTML = `
+      <p class="section-title">Étape liée</p>
+      <h3>${linkedPlace.name}</h3>
+      <p>${linkedPlace.description}</p>
+      <div class="actions">
+        <button class="btn btn--primary js-open-place">Voir sur la carte</button>
+      </div>
+    `;
+    linkedCard.querySelector(".js-open-place")?.addEventListener("click", () => onOpenPlaceForDay(linkedPlace));
+    stack.appendChild(linkedCard);
+  }
+
+  container.appendChild(stack);
 }
 
 export function renderBudget(container) {
   container.innerHTML = "";
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "card-grid";
+  const stack = document.createElement("div");
+  stack.className = "stack";
 
   const intro = document.createElement("article");
-  intro.className = "budget-card";
+  intro.className = "card";
   intro.innerHTML = `
-    <p class="section-label">Budget fun</p>
+    <p class="section-title">Budget fun</p>
     <h3>Pas de flicage</h3>
-    <p>${budgetStats.vibe}</p>
+    <p>On garde juste des repères cool pour ne pas se faire surprendre.</p>
   `;
+  stack.appendChild(intro);
 
-  wrapper.appendChild(intro);
+  const grid = document.createElement("div");
+  grid.className = "budget-grid";
 
-  for (const block of budgetStats.blocks) {
+  budgetBlocks.forEach((block) => {
     const card = document.createElement("article");
-    card.className = "budget-card";
+    card.className = "card";
     card.innerHTML = `
-      <p class="section-label">${block.value}</p>
+      <p class="section-title">${block.value}</p>
       <h3>${block.title}</h3>
       <p>${block.text}</p>
     `;
-    wrapper.appendChild(card);
-  }
+    grid.appendChild(card);
+  });
 
-  container.appendChild(wrapper);
+  stack.appendChild(grid);
+
+  const tip = document.createElement("article");
+  tip.className = "card";
+  tip.innerHTML = `
+    <p class="section-title">Mémo</p>
+    <h3>Esprit du budget</h3>
+    <p>On veut un outil léger, complice et utile sur place. Pas une appli bancaire qui juge tout.</p>
+  `;
+  stack.appendChild(tip);
+
+  container.appendChild(stack);
 }

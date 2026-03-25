@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Vietnam 2026</title>
   <meta name="description" content="App web immersive Vietnam 2026" />
+  <link rel="icon" type="image/png" href="./icon.png" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -12,34 +13,39 @@
   <div id="app">
     <div id="map"></div>
 
-    <header class="top-card glass">
-      <div class="top-card__left">
-        <div class="avatar"></div>
+    <div class="map-fade"></div>
+
+    <header class="top-widget glass">
+      <div class="top-widget__left">
+        <div class="app-avatar">
+          <img src="./icon.png" alt="Vietnam 2026" onerror="this.style.display='none'" />
+        </div>
         <div>
-          <p class="kicker">Vietnam 2026</p>
+          <p class="tiny-label">Vietnam 2026</p>
           <h1>VNM 26</h1>
-          <p class="subline">Théo & Lou-Ann</p>
+          <div class="top-meta">
+            <span>🇻🇳 <span id="time-vn">--:--</span></span>
+            <span>🇫🇷 <span id="time-fr">--:--</span></span>
+          </div>
         </div>
       </div>
-      <button id="btn-locate" class="icon-btn" aria-label="Me localiser">◎</button>
+      <button id="btn-locate" class="icon-btn" aria-label="Me localiser">⌖</button>
     </header>
 
-    <button id="btn-sheet-toggle" class="sheet-handle glass" aria-label="Ouvrir le panneau">
-      <span></span>
-    </button>
+    <section class="day-carousel-wrap">
+      <div id="day-carousel" class="day-carousel"></div>
+    </section>
 
-    <section id="sheet" class="sheet glass sheet--open">
-      <div class="sheet__grab"></div>
-
-      <div class="sheet__header">
+    <section id="panel" class="panel glass">
+      <div class="panel__grab"></div>
+      <div class="panel__head">
         <div>
-          <p id="sheet-kicker" class="sheet__kicker">Carte</p>
-          <h2 id="sheet-title">Explorer le voyage</h2>
+          <p id="panel-kicker" class="panel__kicker">Carte</p>
+          <h2 id="panel-title">Vue voyage</h2>
         </div>
-        <button id="btn-close-place" class="icon-btn icon-btn--small hidden" aria-label="Fermer le lieu">×</button>
+        <button id="btn-panel-close" class="icon-btn icon-btn--sm hidden" aria-label="Fermer">×</button>
       </div>
-
-      <div id="sheet-content" class="sheet__content"></div>
+      <div id="panel-content" class="panel__content"></div>
     </section>
 
     <nav class="dock glass" aria-label="Navigation principale">
