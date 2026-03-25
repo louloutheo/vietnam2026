@@ -1,0 +1,58 @@
+/* Reset basique */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000; /* Fond sombre par défaut [cite: 11] */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Couche L0 : Le Globe  */
+#map-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+/* Couche L3 : L'interface OS  */
+#os-ui {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none; /* Laisse passer les clics vers le globe par défaut */
+}
+
+/* DOCK-01 & WIN-05 : Glassmorphism  */
+#dock {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    padding: 12px 24px;
+    border-radius: 24px;
+    background: rgba(10, 10, 25, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    pointer-events: auto; /* Réactive les clics sur le dock */
+}
+
+.dock-item {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.dock-item.active {
+    transform: scale(1.12); /* DOCK-06: Indicateur actif [cite: 37] */
+    border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+}
