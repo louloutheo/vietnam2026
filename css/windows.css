@@ -26,7 +26,8 @@
   max-height: 80vh;
   z-index: 30;
   pointer-events: auto;
-  will-change: top, left, width, height;
+  will-change: transform, width, height;
+  transform: translate3d(0, 0, 0);
 }
 
 .app-view.is-visible {
