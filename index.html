@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>OS Ultimate</title>
+    
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="map-container"></div>
+
+    <div id="desktop-ui">
+        <os-window title="💸 Budget Vietnam" style="top: 50px; left: 50px; width: 350px;">
+            <div style="padding: 20px;">
+                <h2 style="margin: 0; font-size: 2rem;">0,00 €</h2>
+                <p style="color: #aaa; margin-top: 5px;">Total des dépenses</p>
+                <button style="margin-top: 15px; padding: 10px; width: 100%; border-radius: 8px; border: none; background: #4CAF50; color: white; cursor: pointer; font-weight: bold;">
+                    + Ajouter une dépense
+                </button>
+            </div>
+        </os-window>
+    </div>
+
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
