@@ -6,24 +6,24 @@
     <title>OS Ultimate</title>
     
     <meta name="theme-color" content="#0A0A0A">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
-
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+    <script>console.log("HTML : Chargement du DOM...");</script>
+
     <div id="map-container"></div>
 
     <div id="os-ui">
         <div id="windows-manager"></div>
-
-        <nav id="dock" class="glass-panel">
-            <button id="btn-planning" class="dock-item">📅</button>
-            <button id="btn-map" class="dock-item active">🌍</button>
-            <button id="btn-budget" class="dock-item">💶</button>
-            <button id="btn-survival" class="dock-item">🆘</button>
+        <nav id="dock">
+            <button class="dock-item">📅</button>
+            <button class="dock-item active">🌍</button>
+            <button class="dock-item">💶</button>
+            <button class="dock-item">🆘</button>
         </nav>
     </div>
 
