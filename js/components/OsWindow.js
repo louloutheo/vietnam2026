@@ -8,33 +8,29 @@ export class OsWindow extends HTMLElement {
     }
 
     connectedCallback() {
-        // Sécurité : empêche la fenêtre de se recréer deux fois
         if (this.querySelector('.window-header')) return; 
 
         const title = this.getAttribute('title') || 'Application';
         
-        // 1. On crée l'en-tête (Header) proprement
-        const header = document.createElement('div');
-        header.className = 'window-header';
-        header.innerHTML = `
-            <span class="window-title">${title}</span>
-            <button class="window-close">✕</button>
-        `;
-
-        // 2. On crée le conteneur pour ton contenu (le Budget)
-        const content = document.createElement('div');
-        content.className = 'window-content';
-
-        // 3. LA MAGIE : On déplace tes inputs dans le conteneur SANS les détruire
+        // On sauvegarde le contenu existant
+        const originalContent = document.createElement('div');
         while (this.firstChild) {
-            content.appendChild(this.firstChild);
+            originalContent.appendChild(this.firstChild);
         }
 
-        // 4. On assemble le tout dans le composant
-        this.appendChild(header);
-        this.appendChild(content);
+        // On insère l'en-tête de la fenêtre
+        this.innerHTML = `
+            <div class="window-header">
+                <span class="window-title">${title}</span>
+                <button class="window-close">✕</button>
+            </div>
+            <div class="window-content"></div>
+        `;
 
-        this.header = header;
+        // On remet le contenu à l'intérieur
+        this.querySelector('.window-content').appendChild(originalContent);
+        
+        this.header = this.querySelector('.window-header');
         this.setupEvents();
     }
 
