@@ -2,58 +2,63 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Vietnam 2026</title>
-  <meta name="description" content="Carte immersive Vietnam 2026" />
+  <meta name="description" content="App web immersive Vietnam 2026" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <div id="app">
-    <aside class="sidebar">
-      <section class="brand glass">
-        <p class="eyebrow">Vietnam 2026</p>
-        <h1>Théo & Lou-Ann</h1>
-        <p class="muted">
-          Carte immersive, activités, géolocalisation et ouverture Google Maps.
-        </p>
-      </section>
+    <div id="map"></div>
 
-      <section class="panel glass">
-        <h2>Carte</h2>
-        <div class="row">
-          <button id="btn-day" class="btn btn--primary">Jour</button>
-          <button id="btn-night" class="btn">Nuit</button>
-          <button id="btn-vietnam" class="btn">Vue Vietnam</button>
-          <button id="btn-globe" class="btn">Globe</button>
+    <header class="top-card glass">
+      <div class="top-card__left">
+        <div class="avatar"></div>
+        <div>
+          <p class="kicker">Vietnam 2026</p>
+          <h1>VNM 26</h1>
+          <p class="subline">Théo & Lou-Ann</p>
         </div>
-      </section>
-
-      <section class="panel glass">
-        <h2>Position</h2>
-        <div class="row">
-          <button id="btn-locate" class="btn btn--primary">Me localiser</button>
-        </div>
-        <p class="muted small">
-          Sur mobile, le navigateur te demandera l'autorisation.
-        </p>
-      </section>
-
-      <section class="panel glass">
-        <h2>Activités</h2>
-        <div id="activities" class="activities"></div>
-      </section>
-    </aside>
-
-    <main class="map-shell">
-      <div id="map"></div>
-      <div class="map-badge glass">
-        <span class="dot"></span>
-        <span>Vietnam Explorer</span>
       </div>
-    </main>
+      <button id="btn-locate" class="icon-btn" aria-label="Me localiser">◎</button>
+    </header>
+
+    <button id="btn-sheet-toggle" class="sheet-handle glass" aria-label="Ouvrir le panneau">
+      <span></span>
+    </button>
+
+    <section id="sheet" class="sheet glass sheet--open">
+      <div class="sheet__grab"></div>
+
+      <div class="sheet__header">
+        <div>
+          <p id="sheet-kicker" class="sheet__kicker">Carte</p>
+          <h2 id="sheet-title">Explorer le voyage</h2>
+        </div>
+        <button id="btn-close-place" class="icon-btn icon-btn--small hidden" aria-label="Fermer le lieu">×</button>
+      </div>
+
+      <div id="sheet-content" class="sheet__content"></div>
+    </section>
+
+    <nav class="dock glass" aria-label="Navigation principale">
+      <button class="dock__item" data-tab="planning">
+        <span class="dock__icon">🗓️</span>
+        <span class="dock__label">Planning</span>
+      </button>
+      <button class="dock__item dock__item--active" data-tab="map">
+        <span class="dock__icon">🌍</span>
+        <span class="dock__label">Carte</span>
+      </button>
+      <button class="dock__item" data-tab="budget">
+        <span class="dock__icon">💸</span>
+        <span class="dock__label">Budget</span>
+      </button>
+    </nav>
   </div>
 
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
