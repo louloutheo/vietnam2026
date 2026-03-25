@@ -1,1 +1,0 @@
-﻿export const MAPBOX_TOKEN = "TON_MAPBOX_TOKEN_ICI";
