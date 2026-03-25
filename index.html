@@ -1,32 +1,59 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OS Ultimate</title>
-    
-    <meta name="theme-color" content="#0A0A0A">
-    <link rel="manifest" href="./manifest.json">
-    
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
-    <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vietnam 2026</title>
+  <meta name="description" content="Carte immersive Vietnam 2026" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-    <script>console.log("HTML : Chargement du DOM...");</script>
+  <div id="app">
+    <aside class="sidebar">
+      <section class="brand glass">
+        <p class="eyebrow">Vietnam 2026</p>
+        <h1>Théo & Lou-Ann</h1>
+        <p class="muted">
+          Carte immersive, activités, géolocalisation et ouverture Google Maps.
+        </p>
+      </section>
 
-    <div id="map-container"></div>
+      <section class="panel glass">
+        <h2>Carte</h2>
+        <div class="row">
+          <button id="btn-day" class="btn btn--primary">Jour</button>
+          <button id="btn-night" class="btn">Nuit</button>
+          <button id="btn-vietnam" class="btn">Vue Vietnam</button>
+          <button id="btn-globe" class="btn">Globe</button>
+        </div>
+      </section>
 
-    <div id="os-ui">
-        <div id="windows-manager"></div>
-        <nav id="dock">
-            <button class="dock-item">📅</button>
-            <button class="dock-item active">🌍</button>
-            <button class="dock-item">💶</button>
-            <button class="dock-item">🆘</button>
-        </nav>
-    </div>
+      <section class="panel glass">
+        <h2>Position</h2>
+        <div class="row">
+          <button id="btn-locate" class="btn btn--primary">Me localiser</button>
+        </div>
+        <p class="muted small">
+          Sur mobile, le navigateur te demandera l'autorisation.
+        </p>
+      </section>
 
-    <script type="module" src="./app.js"></script>
+      <section class="panel glass">
+        <h2>Activités</h2>
+        <div id="activities" class="activities"></div>
+      </section>
+    </aside>
+
+    <main class="map-shell">
+      <div id="map"></div>
+      <div class="map-badge glass">
+        <span class="dot"></span>
+        <span>Vietnam Explorer</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
