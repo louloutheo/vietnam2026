@@ -18,15 +18,15 @@
 .app-view {
   display: none;
   flex-direction: column;
-  position: absolute;
-  top: 10%;
-  left: 5%;
-  width: 380px;
-  height: 60vh;
-  max-height: 80vh;
+  position: fixed;
+  top: 120px;
+  left: 70px;
+  width: 520px;
+  height: 620px;
+  max-height: calc(100vh - 140px);
   z-index: 30;
   pointer-events: auto;
-  will-change: transform, width, height;
+  will-change: transform, width, height, top, left;
   transform: translate3d(0, 0, 0);
 }
 
@@ -101,10 +101,12 @@
 
 @media (max-width: 767px) {
   .app-view {
+    position: fixed;
     top: 8%;
     left: 5%;
     width: 90%;
     height: 62vh;
+    max-height: 62vh;
     z-index: 30;
   }
 
